@@ -1,3 +1,6 @@
+Copy everything below into `index.html`. For the presentation, open **Navigation → Try Demo → Next Demo Step**. Live phone GPS requires **HTTPS**.
+
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -29,9 +32,9 @@ body {
   line-height:1.55;
 }
 button,input,select,textarea { font:inherit; }
-button,a,summary { cursor:pointer; }
+button,a { cursor:pointer; }
 button:focus-visible,input:focus-visible,select:focus-visible,
-textarea:focus-visible,a:focus-visible,summary:focus-visible {
+textarea:focus-visible,a:focus-visible {
   outline:3px solid var(--focus);
   outline-offset:3px;
 }
@@ -174,6 +177,9 @@ textarea { min-height:90px; resize:vertical; }
 .verified { background:#dff4e5; color:#176536; }
 .rejected { background:#fde7e7; color:#9c2525; }
 #map {
+  position:relative;
+  overflow:hidden;
+  z-index:0;
   height:350px;
   border-radius:12px;
   border:1px solid var(--line);
@@ -283,15 +289,10 @@ a { color:#145ca8; }
         Accessible journeys. More inclusive townships.
       </div>
     </div>
-
     <div class="button-row" style="margin-top:0">
-      <button class="nav-button" onclick="goTo('home')">
-        Home
-      </button>
+      <button class="nav-button" onclick="goTo('home')">Home</button>
       <button class="nav-button" id="accountButton"
-              onclick="openAccount()">
-        Login
-      </button>
+              onclick="openAccount()">Login</button>
     </div>
   </div>
 </header>
@@ -307,7 +308,6 @@ a { color:#145ca8; }
 window.addEventListener("error", function(event) {
   const panel = document.getElementById("runtimeError");
   if (!panel) return;
-
   panel.style.display = "block";
   panel.textContent = "BlindPath JavaScript error: " +
     (event.message || "Unknown error") +
@@ -317,7 +317,6 @@ window.addEventListener("error", function(event) {
 window.addEventListener("unhandledrejection", function(event) {
   const panel = document.getElementById("runtimeError");
   if (!panel) return;
-
   panel.style.display = "block";
 
   const reason = event.reason && event.reason.message
@@ -335,7 +334,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-home" class="screen active">
   <div class="card">
     <h1 id="homeTitle">How can BlindPath help you?</h1>
-
     <p class="muted" id="homeIntro">
       Choose one action to get started.
       BlindPath is designed with accessibility in mind.
@@ -351,7 +349,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('navigation')">
         <span class="symbol" aria-hidden="true">🧭</span>
         <strong id="navCardTitle">Start Navigation</strong>
-        <small>Plan a walking, cycling or driving route</small>
+        <small>Plan a route or try the navigation demo</small>
       </button>
 
       <button class="home-action" onclick="goTo('report')">
@@ -406,9 +404,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Log In</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">
-          Back to Home
-        </button>
+                onclick="goTo('home')">Back to Home</button>
       </div>
     </form>
 
@@ -417,7 +413,6 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <hr>
     <p>Don't have an account yet?</p>
-
     <button class="secondary" onclick="goTo('register')">
       Create an Account
     </button>
@@ -454,9 +449,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Register</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">
-          Back to Home
-        </button>
+                onclick="goTo('home')">Back to Home</button>
       </div>
     </form>
 
@@ -465,7 +458,6 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <hr>
     <p>Already have an account?</p>
-
     <button class="secondary" onclick="goTo('auth')">
       Go to Login
     </button>
@@ -480,7 +472,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-profile" class="screen">
   <div class="card">
     <h1>My Profile</h1>
-
     <div id="profileSummary" class="good-note">
       Please log in to view your profile.
     </div>
@@ -508,14 +499,11 @@ window.addEventListener("unhandledrejection", function(event) {
       </select>
 
       <div class="button-row">
-        <button class="primary" onclick="saveProfile()">
-          Save Profile
-        </button>
+        <button class="primary" onclick="saveProfile()">Save Profile</button>
       </div>
 
       <hr>
       <h2>OKU Status Verification</h2>
-
       <p>
         Request an OKU status review through this demonstration.
         Accessibility settings remain available without verified status.
@@ -523,9 +511,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <div class="good-note">
         <strong>Current status:</strong>
-        <span id="verificationBadge" class="pill">
-          Not requested
-        </span>
+        <span id="verificationBadge" class="pill">Not requested</span>
         <p id="verificationExplanation" class="muted">
           No verification request has been submitted.
         </p>
@@ -552,8 +538,7 @@ window.addEventListener("unhandledrejection", function(event) {
         </button>
       </div>
 
-      <div class="card"
-           style="margin-top:22px;background:#f7f9f8">
+      <div class="card" style="margin-top:22px;background:#f7f9f8">
         <h2>Demo Reviewer Panel</h2>
         <p class="muted">
           These controls simulate a review result for the hackathon.
@@ -583,22 +568,16 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <div class="button-row">
         <button class="secondary" onclick="logout()">Log Out</button>
-        <button class="secondary" onclick="goTo('home')">
-          Back to Home
-        </button>
+        <button class="secondary" onclick="goTo('home')">Back to Home</button>
       </div>
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('auth')">
-        Go to Login
-      </button>
+      <button class="secondary" onclick="goTo('auth')">Go to Login</button>
       <button class="secondary" onclick="goTo('register')">
         Create Account
       </button>
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -607,7 +586,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-navigation" class="screen">
   <div class="card">
     <h1>Navigation</h1>
-
     <p class="muted">
       Enter a starting point and destination to plan a route.
     </p>
@@ -618,7 +596,6 @@ window.addEventListener("unhandledrejection", function(event) {
         <input id="start" list="umPlaceNames"
                placeholder="e.g. KK8 or Universiti Malaya">
       </div>
-
       <div>
         <label for="destination">Destination</label>
         <input id="destination" list="umPlaceNames"
@@ -635,9 +612,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <option value="driving">Driving</option>
     </select>
 
-    <label for="rideThreshold">
-      Smart Ride Assist Threshold (km)
-    </label>
+    <label for="rideThreshold">Smart Ride Assist Threshold (km)</label>
     <input id="rideThreshold" type="number"
            min="1" max="100" value="5" step="0.5">
 
@@ -647,19 +622,15 @@ window.addEventListener("unhandledrejection", function(event) {
     </p>
 
     <div class="button-row">
-      <button class="primary" id="routeButton"
-              onclick="findRoute()">
+      <button class="primary" id="routeButton" onclick="findRoute()">
         Find Route
       </button>
       <button class="secondary" onclick="useMyLocation()">
         Use My Location
       </button>
-      <button class="secondary" onclick="clearRoute()">
-        Clear
-      </button>
-      <button class="secondary" onclick="stopAllVoice()">
-        Stop Voice
-      </button>
+      <button class="secondary" onclick="clearRoute()">Clear</button>
+      <button class="secondary" onclick="loadDemoRoute()">Try Demo</button>
+      <button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
     </div>
 
     <div id="routeStatus" class="status"
@@ -682,10 +653,10 @@ window.addEventListener("unhandledrejection", function(event) {
       <h2 id="navigationHeading">Spoken directions</h2>
 
       <p>
-        English turn-by-turn guidance. Start near your route's starting
-        point and allow location access. Keep this page open.
-        GPS may be inaccurate; use your usual mobility aid and
-        check crossings independently.
+        English turn-by-turn guidance. For live navigation, start near
+        your route's starting point and allow location access.
+        Keep this page open. GPS may be inaccurate; use your usual
+        mobility aid and check crossings independently.
       </p>
 
       <div class="button-row">
@@ -702,6 +673,19 @@ window.addEventListener("unhandledrejection", function(event) {
         </button>
       </div>
 
+      <div id="demoControls" class="notice hidden">
+        <strong>Simulation — not your live location</strong>
+        <p>
+          No GPS or cloud reports are used for this simulation.
+          Choose Next Demo Step to demonstrate a turn or a sample
+          obstacle alert.
+        </p>
+        <button class="secondary" id="nextDemoStep"
+                onclick="nextDemoStep()">
+          Next Demo Step
+        </button>
+      </div>
+
       <p id="guidanceStatus" class="status"
          role="status" aria-live="polite">
         Find a route to get directions.
@@ -712,12 +696,10 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <section class="good-note" aria-labelledby="nearbyTitle">
       <h2 id="nearbyTitle">Nearby obstacle alerts</h2>
-
       <button class="secondary" id="nearbyAlertButton"
               onclick="toggleNearbyAlerts()" aria-pressed="false">
         Enable Obstacle Alerts
       </button>
-
       <p id="nearbyStatus" class="status"
          role="status" aria-live="polite">
         Alerts are off. Reports are unverified and may be incomplete.
@@ -732,9 +714,7 @@ window.addEventListener("unhandledrejection", function(event) {
         <h2 id="routeScoreTitle" style="margin:0">
           Accessible Route Assessment
         </h2>
-        <span id="routeScoreLabel" class="pill">
-          Not assessed
-        </span>
+        <span id="routeScoreLabel" class="pill">Not assessed</span>
       </div>
 
       <div class="route-score-heading" style="margin-top:8px">
@@ -751,7 +731,6 @@ window.addEventListener("unhandledrejection", function(event) {
       <p id="routeScoreSummary">
         Assessment will appear after a walking route is found.
       </p>
-
       <ul id="routeScoreDetails" class="route-score-list"></ul>
 
       <div class="notice">
@@ -772,9 +751,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -783,7 +760,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-report" class="screen">
   <div class="card">
     <h1>Report an Accessibility Issue</h1>
-
     <p class="muted">
       Help identify problems with tactile paths and pedestrian access.
     </p>
@@ -797,15 +773,9 @@ window.addEventListener("unhandledrejection", function(event) {
         <option value="Construction or roadwork">
           Construction or roadwork
         </option>
-        <option value="Blocked tactile path">
-          Tactile path blocked
-        </option>
-        <option value="Damaged tactile path">
-          Tactile path damaged
-        </option>
-        <option value="Missing tactile path">
-          Tactile path missing
-        </option>
+        <option value="Blocked tactile path">Tactile path blocked</option>
+        <option value="Damaged tactile path">Tactile path damaged</option>
+        <option value="Missing tactile path">Tactile path missing</option>
         <option value="Inaccessible crossing">
           Crossing may be inaccessible
         </option>
@@ -818,9 +788,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <input id="reportLocation" required
              placeholder="e.g. KK8 entrance, or latitude, longitude">
 
-      <label for="reportDetails">
-        Additional Details (optional)
-      </label>
+      <label for="reportDetails">Additional Details (optional)</label>
       <textarea id="reportDetails" maxlength="500"
                 placeholder="Describe the problem. Do not include private information."></textarea>
 
@@ -855,9 +823,7 @@ window.addEventListener("unhandledrejection", function(event) {
                 onclick="addCurrentCoordinates()">
           Add My Current Location
         </button>
-        <button type="submit" class="primary">
-          Save Report
-        </button>
+        <button type="submit" class="primary">Save Report</button>
       </div>
 
       <p id="gpsStatus" class="status"
@@ -872,9 +838,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -899,7 +863,8 @@ window.addEventListener("unhandledrejection", function(event) {
     <p class="muted">
       Available voices depend on your device and browser.
       A Malaysian accent is not guaranteed.
-      Turn-by-turn directions and obstacle alerts currently use English.
+      Turn-by-turn directions, demo narration and obstacle alerts
+      currently use English.
     </p>
 
     <label for="speechSpeed">
@@ -910,15 +875,11 @@ window.addEventListener("unhandledrejection", function(event) {
            oninput="document.getElementById('speedValue').textContent=this.value+'×'">
 
     <div class="button-row">
-      <button class="primary" onclick="speakIntro()">
-        Test Voice
-      </button>
+      <button class="primary" onclick="speakIntro()">Test Voice</button>
       <button class="secondary" onclick="repeatSpeech()">
         Repeat Last Message
       </button>
-      <button class="secondary" onclick="stopAllVoice()">
-        Stop Voice
-      </button>
+      <button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
     </div>
 
     <div id="voiceStatus" class="status"
@@ -932,9 +893,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -943,7 +902,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-community" class="screen">
   <div class="card">
     <h1>Community Reports</h1>
-
     <p class="muted">
       Reports from both prototypes appear here when their cloud
       connections are available. Browser reports remain on this device.
@@ -966,9 +924,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="danger" onclick="clearReports()">
         Delete All Local Reports
       </button>
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -1022,6 +978,12 @@ let guidanceGeneration = 0;
 let guidanceWarning = "";
 let guidanceApproach = -1;
 
+let demoActive = false;
+let demoRouteLoaded = false;
+let demoStepIndex = 0;
+let demoMarker = null;
+let demoLastMessage = "";
+
 let selectedMedia = null;
 let previewMediaURL = null;
 const mediaURLs = new Map();
@@ -1036,9 +998,7 @@ let nearbyTimer = null;
 let lastNearbySpeech = 0;
 const warnedReports = new Map();
 
-/* BOTH EXISTING PUBLIC SUPABASE CONFIGURATIONS
-   New reports use the reporting backend.
-   The original backend remains available for older reports. */
+/* EXISTING PUBLIC SUPABASE CONFIGURATIONS */
 
 const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2";
@@ -1047,17 +1007,11 @@ const REPORTING_URL = "https://ywbqchhcpcygkutcvsrp.supabase.co";
 const REPORTING_KEY = "sb_publishable_Tjr7GVrlV79vEOFSMuCMhQ_Obypbd0I";
 
 const cloudClient = window.supabase
-  ? window.supabase.createClient(
-      SUPABASE_URL,
-      SUPABASE_ANON_KEY
-    )
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   : null;
 
 const reportingClient = window.supabase
-  ? window.supabase.createClient(
-      REPORTING_URL,
-      REPORTING_KEY
-    )
+  ? window.supabase.createClient(REPORTING_URL, REPORTING_KEY)
   : null;
 
 const ISSUE_LABELS = {
@@ -1110,7 +1064,6 @@ const languageText = {
 
 function applyLanguage() {
   currentLang = $("language").value;
-
   document.documentElement.lang =
     currentLang === "zh" ? "zh-CN" : currentLang;
 
@@ -1171,24 +1124,18 @@ function openAccount() {
 
 function getUsers() {
   try {
-    return JSON.parse(
-      localStorage.getItem(USERS_KEY) || "[]"
-    );
+    return JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
   } catch {
     return [];
   }
 }
 
 function saveUsers(users) {
-  localStorage.setItem(
-    USERS_KEY,
-    JSON.stringify(users)
-  );
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
 }
 
 function getCurrentUser() {
   if (!currentUserEmail) return null;
-
   return getUsers().find(user =>
     user.email === currentUserEmail
   ) || null;
@@ -1207,8 +1154,7 @@ $("registerForm").addEventListener("submit", event => {
   const password = $("registerPassword").value;
 
   if (!name || !email || password.length < 4) {
-    $("registerStatus").textContent =
-      "Please complete all fields.";
+    $("registerStatus").textContent = "Please complete all fields.";
     return;
   }
 
@@ -1249,8 +1195,7 @@ $("loginForm").addEventListener("submit", event => {
   const password = $("loginPassword").value;
 
   const user = getUsers().find(item =>
-    item.email === email &&
-    item.demoPassword === password
+    item.email === email && item.demoPassword === password
   );
 
   if (!user) {
@@ -1260,7 +1205,6 @@ $("loginForm").addEventListener("submit", event => {
   }
 
   currentUserEmail = email;
-
   localStorage.setItem(CURRENT_USER_KEY, email);
   $("loginForm").reset();
 
@@ -1278,29 +1222,22 @@ function saveProfile() {
   }
 
   const users = getUsers();
-  const index = users.findIndex(item =>
-    item.email === user.email
-  );
-
+  const index = users.findIndex(item => item.email === user.email);
   if (index < 0) return;
 
-  users[index].name =
-    $("profileName").value.trim() || user.name;
-
+  users[index].name = $("profileName").value.trim() || user.name;
   users[index].accessibilityPreference =
     $("accessibilityPreference").value;
 
   saveUsers(users);
   renderProfile();
 
-  $("profileSummary").textContent =
-    "Profile saved in this browser.";
+  $("profileSummary").textContent = "Profile saved in this browser.";
 }
 
 function logout() {
   currentUserEmail = "";
   localStorage.removeItem(CURRENT_USER_KEY);
-
   updateAccountButton();
   goTo("home");
 }
@@ -1313,7 +1250,6 @@ function renderProfile() {
   if (!user) {
     $("profileSummary").textContent =
       "Please log in or register to view your profile.";
-
     $("profileContent").classList.add("hidden");
     return;
   }
@@ -1341,7 +1277,6 @@ function renderProfile() {
     badge.classList.add("verified");
     explanation.textContent =
       "Simulated approval only. Your actual OKU status has not been verified.";
-
     $("requestVerificationButton").disabled = true;
   } else if (status === "unable") {
     badge.textContent = "Unable to Verify";
@@ -1373,15 +1308,11 @@ function requestVerification() {
   }
 
   const users = getUsers();
-  const index = users.findIndex(item =>
-    item.email === user.email
-  );
-
+  const index = users.findIndex(item => item.email === user.email);
   if (index < 0) return;
 
   users[index].verificationStatus = "pending";
-  users[index].verificationRequestedAt =
-    new Date().toISOString();
+  users[index].verificationRequestedAt = new Date().toISOString();
 
   saveUsers(users);
   renderProfile();
@@ -1403,10 +1334,7 @@ function cancelVerification() {
   if (!user) return;
 
   const users = getUsers();
-  const index = users.findIndex(item =>
-    item.email === user.email
-  );
-
+  const index = users.findIndex(item => item.email === user.email);
   if (index < 0) return;
 
   users[index].verificationStatus = "not_requested";
@@ -1423,20 +1351,14 @@ function setDemoVerification(status) {
   const user = getCurrentUser();
 
   if (!user) {
-    $("demoReviewerStatus").textContent =
-      "Please log in first.";
+    $("demoReviewerStatus").textContent = "Please log in first.";
     return;
   }
 
-  if (!["pending", "verified_demo", "unable"].includes(status)) {
-    return;
-  }
+  if (!["pending", "verified_demo", "unable"].includes(status)) return;
 
   const users = getUsers();
-  const index = users.findIndex(item =>
-    item.email === user.email
-  );
-
+  const index = users.findIndex(item => item.email === user.email);
   if (index < 0) return;
 
   users[index].verificationStatus = status;
@@ -1542,9 +1464,7 @@ function matchUMCollege(value) {
       "Kolej Kediaman " + college.name,
       "Kolej Kediaman " + college.name + " Universiti Malaya",
       ...college.aliases
-    ].some(alias =>
-      normalizePlace(alias) === query
-    );
+    ].some(alias => normalizePlace(alias) === query);
   });
 }
 
@@ -1557,7 +1477,6 @@ function initUMPlaces() {
 }
 
 function readUMEntrances() {
-  // Keeps compatibility with entrances saved in an earlier version.
   try {
     return JSON.parse(
       localStorage.getItem(UM_ENTRANCES_KEY) || "{}"
@@ -1590,7 +1509,7 @@ function initMap() {
   hazardLayer = L.layerGroup().addTo(map);
 
   map.on("click", event => {
-    if (guidanceWatch !== null) return;
+    if (guidanceWatch !== null || demoActive) return;
 
     invalidatePlannedRoute();
 
@@ -1599,7 +1518,6 @@ function initMap() {
       event.latlng.lng.toFixed(6);
 
     if (endMarker) map.removeLayer(endMarker);
-
     endMarker = L.marker(event.latlng).addTo(map);
 
     $("routeStatus").textContent =
@@ -1609,6 +1527,8 @@ function initMap() {
 
 function invalidatePlannedRoute() {
   stopGuidance(false);
+  demoRouteLoaded = false;
+  $("demoControls").classList.add("hidden");
   stopSpeech();
 
   guidanceSteps = [];
@@ -1711,9 +1631,7 @@ async function geocode(place) {
   }
 
   if (/^\s*-?\d+(?:\.\d+)?\s*,/.test(place)) {
-    throw new Error(
-      "Invalid coordinates. Use latitude, longitude."
-    );
+    throw new Error("Invalid coordinates. Use latitude, longitude.");
   }
 
   const college = matchUMCollege(place);
@@ -1721,10 +1639,7 @@ async function geocode(place) {
   if (college) {
     const saved = readUMEntrances()[college.id];
 
-    if (
-      saved &&
-      parseCoordinates(saved.lat + ", " + saved.lng)
-    ) {
+    if (saved && parseCoordinates(saved.lat + ", " + saved.lng)) {
       return {
         lat:saved.lat,
         lon:saved.lng,
@@ -1785,6 +1700,12 @@ async function geocode(place) {
 /* ROUTE PLANNING */
 
 async function findRoute() {
+  if (demoRouteLoaded) {
+    $("routeStatus").textContent =
+      "Choose Clear to leave the demo, then enter real locations.";
+    return;
+  }
+
   if (!map) {
     $("routeStatus").textContent = "The map is not available.";
     return;
@@ -1803,6 +1724,10 @@ async function findRoute() {
 
   stopGuidance(false);
   guidanceSteps = [];
+  demoRouteLoaded = false;
+
+  $("voiceNavigation").classList.add("hidden");
+  $("demoControls").classList.add("hidden");
 
   const requestGeneration = ++routeRequestGeneration;
 
@@ -1810,7 +1735,6 @@ async function findRoute() {
   currentRouteCoordinates = [];
   $("routeObstacles").replaceChildren();
 
-  $("voiceNavigation").classList.add("hidden");
   $("routeResult").classList.add("hidden");
   $("routeScore").classList.add("hidden");
   $("rideAssist").classList.add("hidden");
@@ -1853,7 +1777,6 @@ async function findRoute() {
 
     const route = data.routes[0];
     currentRouteCoordinates = route.geometry.coordinates;
-
     prepareGuidance(route);
 
     const distanceKm = route.distance / 1000;
@@ -1879,10 +1802,7 @@ async function findRoute() {
       .addTo(map)
       .bindPopup("Destination: " + destinationText);
 
-    map.fitBounds(
-      routeLayer.getBounds(),
-      {padding:[24, 24]}
-    );
+    map.fitBounds(routeLayer.getBounds(), {padding:[24, 24]});
 
     $("routeStatus").textContent = "Route found.";
 
@@ -1918,7 +1838,6 @@ async function findRoute() {
       "driving";
 
     const googleLink = document.createElement("a");
-
     googleLink.href =
       "https://www.google.com/maps/dir/?api=1&origin=" +
       encodeURIComponent(start.lat + "," + start.lon) +
@@ -1929,7 +1848,6 @@ async function findRoute() {
     googleLink.target = "_blank";
     googleLink.rel = "noopener noreferrer";
     googleLink.textContent = "Open route in Google Maps";
-
     result.appendChild(googleLink);
 
     renderRouteObstacles();
@@ -1950,18 +1868,12 @@ async function findRoute() {
       rideTitle.textContent = "Smart Ride Assist";
 
       $("rideAssist").appendChild(rideTitle);
-      $("rideAssist").appendChild(
-        document.createElement("br")
-      );
-      $("rideAssist").appendChild(
-        document.createTextNode(
-          "This route exceeds your selected threshold. " +
-          "Consider another transport option if needed."
-        )
-      );
-      $("rideAssist").appendChild(
-        document.createElement("br")
-      );
+      $("rideAssist").appendChild(document.createElement("br"));
+      $("rideAssist").appendChild(document.createTextNode(
+        "This route exceeds your selected threshold. " +
+        "Consider another transport option if needed."
+      ));
+      $("rideAssist").appendChild(document.createElement("br"));
 
       const grab = document.createElement("a");
       grab.href = "https://www.grab.com/my/";
@@ -2003,8 +1915,7 @@ function useMyLocation() {
     return;
   }
 
-  $("routeStatus").textContent =
-    "Requesting location permission...";
+  $("routeStatus").textContent = "Requesting location permission...";
 
   navigator.geolocation.getCurrentPosition(position => {
     const lat = position.coords.latitude;
@@ -2012,15 +1923,11 @@ function useMyLocation() {
 
     invalidatePlannedRoute();
 
-    $("start").value =
-      lat.toFixed(6) + ", " + lon.toFixed(6);
-
-    $("routeStatus").textContent =
-      "Your current location was added.";
+    $("start").value = lat.toFixed(6) + ", " + lon.toFixed(6);
+    $("routeStatus").textContent = "Your current location was added.";
 
     if (map) {
       map.setView([lat, lon], 16);
-
       if (startMarker) map.removeLayer(startMarker);
 
       startMarker = L.marker([lat, lon])
@@ -2036,7 +1943,185 @@ function useMyLocation() {
   });
 }
 
-/* TURN-BY-TURN GUIDANCE */
+/* PRESENTATION DEMO: INVENTED ROUTE AND OBSTACLE */
+
+const DEMO_COORDINATES = [
+  [101.653, 3.122],
+  [101.654, 3.122],
+  [101.654, 3.123],
+  [101.655, 3.123]
+];
+
+const DEMO_EVENTS = [
+  {
+    coordinate:0,
+    message:"Demo. Start heading east on Demo Walkway. Continue for approximately 110 metres."
+  },
+  {
+    coordinate:1,
+    message:"Demo. Turn left onto Demo Garden Path. Continue for approximately 110 metres."
+  },
+  {
+    coordinate:1,
+    message:"Demo obstacle alert. A sample vehicle blockage is approximately 30 metres away. This is invented demonstration data."
+  },
+  {
+    coordinate:2,
+    message:"Demo. Turn right onto Demo Entrance Path. Continue for approximately 110 metres."
+  },
+  {
+    coordinate:3,
+    message:"Demo complete. You have reached the simulated destination. This was not live navigation."
+  }
+];
+
+function loadDemoRoute() {
+  clearRoute();
+  stopNearbyAlerts();
+
+  $("nearbyStatus").textContent =
+    "Live obstacle alerts are off during the demo.";
+
+  const steps = [
+    {
+      name:"Demo Walkway",
+      distance:110,
+      maneuver:{
+        type:"depart",
+        bearing_after:90,
+        location:DEMO_COORDINATES[0]
+      }
+    },
+    {
+      name:"Demo Garden Path",
+      distance:110,
+      maneuver:{
+        type:"turn",
+        modifier:"left",
+        location:DEMO_COORDINATES[1]
+      }
+    },
+    {
+      name:"Demo Entrance Path",
+      distance:110,
+      maneuver:{
+        type:"turn",
+        modifier:"right",
+        location:DEMO_COORDINATES[2]
+      }
+    },
+    {
+      name:"",
+      distance:0,
+      maneuver:{
+        type:"arrive",
+        location:DEMO_COORDINATES[3]
+      }
+    }
+  ];
+
+  prepareGuidance({
+    geometry:{coordinates:DEMO_COORDINATES},
+    legs:[{steps}]
+  });
+
+  demoRouteLoaded = true;
+  demoActive = true;
+  demoStepIndex = 0;
+
+  $("start").value = "Demo start — simulated";
+  $("destination").value = "Demo entrance — simulated";
+
+  $("startGuidance").disabled = true;
+  $("stopGuidance").disabled = false;
+  $("demoControls").classList.remove("hidden");
+  $("nextDemoStep").disabled = false;
+
+  $("routeStatus").textContent =
+    "Demo route loaded. The route and obstacle are invented. " +
+    "Choose Clear to return to live routes.";
+
+  $("routeObstacles").replaceChildren();
+
+  const note = document.createElement("p");
+  note.className = "notice";
+  note.textContent =
+    "Demo obstacle: a simulated vehicle blockage. " +
+    "This sample is not saved or shared.";
+
+  $("routeObstacles").appendChild(note);
+
+  if (map && window.L) {
+    if (hazardLayer) hazardLayer.clearLayers();
+
+    routeLayer = L.geoJSON(
+      {
+        type:"LineString",
+        coordinates:DEMO_COORDINATES
+      },
+      {
+        style:{
+          color:"#8b5cf6",
+          weight:6,
+          dashArray:"8 8"
+        }
+      }
+    ).addTo(map);
+
+    demoMarker = L.marker([
+      DEMO_COORDINATES[0][1],
+      DEMO_COORDINATES[0][0]
+    ])
+      .addTo(map)
+      .bindPopup("Simulated position — not GPS");
+
+    map.fitBounds(routeLayer.getBounds(), {padding:[24, 24]});
+  }
+
+  demoLastMessage =
+    "Demo mode. No live location is being tracked. " +
+    "Choose Next Demo Step to begin.";
+
+  announceDirection(demoLastMessage);
+}
+
+function nextDemoStep() {
+  if (!demoActive || demoStepIndex >= DEMO_EVENTS.length) return;
+
+  const event = DEMO_EVENTS[demoStepIndex++];
+  const coordinate = DEMO_COORDINATES[event.coordinate];
+
+  if (demoMarker) {
+    demoMarker.setLatLng([coordinate[1], coordinate[0]]);
+  }
+
+  demoLastMessage = event.message;
+  announceDirection(event.message);
+
+  $("guidanceStatus").textContent =
+    "Demo step " + demoStepIndex +
+    " of " + DEMO_EVENTS.length + ". " +
+    event.message;
+
+  if (demoStepIndex === DEMO_EVENTS.length) {
+    demoActive = false;
+    $("nextDemoStep").disabled = true;
+    $("stopGuidance").disabled = true;
+  }
+}
+
+function stopDemo() {
+  demoActive = false;
+  $("nextDemoStep").disabled = true;
+
+  if (map && demoMarker) {
+    map.removeLayer(demoMarker);
+  }
+
+  demoMarker = null;
+}
+
+/* TURN-BY-TURN VOICE NAVIGATION */
 
 function directionText(step) {
   const maneuver = step.maneuver;
@@ -2071,8 +2156,7 @@ function directionText(step) {
       : "";
 
     return "Start" + heading +
-      (step.name ? " on " + step.name : " along the route") +
-      ".";
+      (step.name ? " on " + step.name : " along the route") + ".";
   }
 
   if ([
@@ -2103,6 +2187,9 @@ function directionText(step) {
 function prepareGuidance(route) {
   stopGuidance(false);
 
+  demoRouteLoaded = false;
+  $("demoControls").classList.add("hidden");
+
   guidanceSteps = (route.legs || [])
     .flatMap(leg => leg.steps || [])
     .filter(step =>
@@ -2125,8 +2212,7 @@ function prepareGuidance(route) {
 
     item.textContent = directionText(step) +
       (step.distance > 0
-        ? " Continue for " +
-          Math.round(step.distance) + " metres."
+        ? " Continue for " + Math.round(step.distance) + " metres."
         : "");
 
     $("directionList").appendChild(item);
@@ -2143,6 +2229,11 @@ function announceDirection(message) {
 }
 
 function repeatDirection() {
+  if (demoRouteLoaded) {
+    announceDirection(demoLastMessage || "Demo stopped.");
+    return;
+  }
+
   if (!guidanceSteps.length) return;
 
   const index = Math.min(
@@ -2151,12 +2242,12 @@ function repeatDirection() {
   );
 
   announceDirection(
-    guidanceWarning ||
-    directionText(guidanceSteps[index])
+    guidanceWarning || directionText(guidanceSteps[index])
   );
 }
 
 function stopGuidance(announce = true) {
+  stopDemo();
   guidanceGeneration++;
 
   if (guidanceWatch !== null) {
@@ -2166,7 +2257,9 @@ function stopGuidance(announce = true) {
   guidanceWatch = null;
   guidanceWarning = "";
 
-  $("startGuidance").disabled = !guidanceSteps.length;
+  $("startGuidance").disabled =
+    demoRouteLoaded || !guidanceSteps.length;
+
   $("stopGuidance").disabled = true;
 
   if (announce) {
@@ -2177,6 +2270,14 @@ function stopGuidance(announce = true) {
 }
 
 function startGuidance() {
+  if (demoRouteLoaded) {
+    announceDirection(
+      "This is a simulated route. " +
+      "Find a real route before starting GPS navigation."
+    );
+    return;
+  }
+
   if (!guidanceSteps.length) return;
 
   stopGuidance(false);
@@ -2248,9 +2349,7 @@ function updateGuidance(position) {
       "Location accuracy is too low. Guidance is paused " +
       "until a reliable GPS position is available.";
   } else if (
-    distancePointToRouteMeters(
-      lat, lon, guidanceRoute
-    ) > 45
+    distancePointToRouteMeters(lat, lon, guidanceRoute) > 45
   ) {
     warning =
       "You appear to be away from the planned route. " +
@@ -2283,8 +2382,7 @@ function updateGuidance(position) {
     announceDirection(
       directionText(step) +
       (step.distance > 0
-        ? " Continue for " +
-          Math.round(step.distance) + " metres."
+        ? " Continue for " + Math.round(step.distance) + " metres."
         : "")
     );
 
@@ -2328,10 +2426,9 @@ function distancePointToRouteMeters(
   pointLng,
   coordinates
 ) {
-  if (
-    !Array.isArray(coordinates) ||
-    !coordinates.length
-  ) return Infinity;
+  if (!Array.isArray(coordinates) || !coordinates.length) {
+    return Infinity;
+  }
 
   const cosLat = Math.cos(pointLat * Math.PI / 180);
   const px = pointLng * 111320 * cosLat;
@@ -2360,8 +2457,7 @@ function distancePointToRouteMeters(
       ? 0
       : Math.max(0, Math.min(
           1,
-          ((px - ax) * vx + (py - ay) * vy) /
-            lengthSquared
+          ((px - ax) * vx + (py - ay) * vy) / lengthSquared
         ));
 
     minimum = Math.min(
@@ -2416,9 +2512,7 @@ async function assessRouteHazards(routeCoordinates) {
       routeCoordinates
     );
 
-    if (distance <= 50) {
-      nearby.push({report, distance});
-    }
+    if (distance <= 50) nearby.push({report, distance});
   }
 
   nearby.sort((a, b) => a.distance - b.distance);
@@ -2451,10 +2545,7 @@ async function assessRouteHazards(routeCoordinates) {
     score >= 60 && score < 80
   );
 
-  $("routeScoreFill").classList.toggle(
-    "high",
-    score < 60
-  );
+  $("routeScoreFill").classList.toggle("high", score < 60);
 
   $("routeScoreSummary").textContent = nearby.length
     ? nearby.length +
@@ -2475,11 +2566,8 @@ async function assessRouteHazards(routeCoordinates) {
 
     item.textContent =
       (report.type || "Accessibility issue") +
-      " — about " + Math.round(distance) +
-      " m from route" +
-      (report.location
-        ? " (" + report.location + ")"
-        : "");
+      " — about " + Math.round(distance) + " m from route" +
+      (report.location ? " (" + report.location + ")" : "");
 
     $("routeScoreDetails").appendChild(item);
   });
@@ -2487,8 +2575,7 @@ async function assessRouteHazards(routeCoordinates) {
   if (nearby.length > 5) {
     const more = document.createElement("li");
     more.textContent =
-      "And " + (nearby.length - 5) +
-      " more nearby reports.";
+      "And " + (nearby.length - 5) + " more nearby reports.";
 
     $("routeScoreDetails").appendChild(more);
   }
@@ -2507,19 +2594,14 @@ function getReports() {
 }
 
 function saveReports(reports) {
-  localStorage.setItem(
-    REPORTS_KEY,
-    JSON.stringify(reports)
-  );
+  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
 }
 
 function validReportCoordinates(report) {
   return (
     report.lat != null &&
     report.lng != null &&
-    parseCoordinates(
-      report.lat + "," + report.lng
-    ) !== null
+    parseCoordinates(report.lat + "," + report.lng) !== null
   );
 }
 
@@ -2537,7 +2619,6 @@ function mediaStore(operation, key, value) {
 
     open.onsuccess = () => {
       const db = open.result;
-
       const transaction = db.transaction(
         "files",
         operation === "get" ? "readonly" : "readwrite"
@@ -2638,16 +2719,11 @@ async function mediaForReport(report) {
     }
 
     try {
-      const file = await mediaStore(
-        "get",
-        report.media_ref
-      );
-
+      const file = await mediaStore("get", report.media_ref);
       if (!file) return null;
 
       const url = URL.createObjectURL(file);
       mediaURLs.set(report.media_ref, url);
-
       return url;
     } catch {
       return null;
@@ -2670,9 +2746,7 @@ async function appendReportMedia(container, report) {
   if (!url) return;
 
   const video = report.media_type === "video";
-  const element = document.createElement(
-    video ? "video" : "img"
-  );
+  const element = document.createElement(video ? "video" : "img");
 
   element.className = "report-photo";
   element.src = url;
@@ -2699,8 +2773,7 @@ function addCurrentCoordinates() {
     return;
   }
 
-  $("gpsStatus").textContent =
-    "Requesting your location...";
+  $("gpsStatus").textContent = "Requesting your location...";
 
   navigator.geolocation.getCurrentPosition(position => {
     $("reportLocation").value =
@@ -2725,17 +2798,13 @@ function addCurrentCoordinates() {
 async function geocodeReportLocation(location) {
   try {
     const result = await geocode(location);
-
-    return {
-      lat:result.lat,
-      lng:result.lon
-    };
+    return {lat:result.lat, lng:result.lon};
   } catch {
     return null;
   }
 }
 
-/* NORMALISE THE FRIEND'S DATABASE SCHEMA */
+/* NORMALISE THE SHARED DATABASE SCHEMA */
 
 function normalizeSharedReport(report) {
   const labels = [...$("issueType").options].map(option =>
@@ -2743,9 +2812,7 @@ function normalizeSharedReport(report) {
   );
 
   const prefix = labels.find(label =>
-    String(report.description || "").startsWith(
-      label + ": "
-    )
+    String(report.description || "").startsWith(label + ": ")
   );
 
   return {
@@ -2764,10 +2831,7 @@ function normalizeSharedReport(report) {
 
     lat:report.latitude,
     lng:report.longitude,
-
-    location:
-      report.latitude + ", " + report.longitude,
-
+    location:report.latitude + ", " + report.longitude,
     created_at:report.created_at,
     media_url:report.media_url,
     media_type:report.media_type
@@ -2809,7 +2873,6 @@ async function getAllReports(force = false) {
           .abortSignal(AbortSignal.timeout(12000));
 
         if (error) throw error;
-
         return data || [];
       } catch {
         failures.push(table);
@@ -2828,9 +2891,7 @@ async function getAllReports(force = false) {
         cloud_source:"legacy",
         raw_id:report.id
       })),
-
       ...shared.map(normalizeSharedReport),
-
       ...getReports().map(report => ({
         ...report,
         cloud_source:"local"
@@ -2879,8 +2940,7 @@ function reportSummary(report) {
   const box = document.createElement("div");
 
   const title = document.createElement("strong");
-  title.textContent =
-    report.type || "Accessibility issue";
+  title.textContent = report.type || "Accessibility issue";
 
   const details = document.createElement("p");
   details.textContent =
@@ -2888,7 +2948,6 @@ function reportSummary(report) {
 
   const date = document.createElement("p");
   date.className = "muted";
-
   date.textContent =
     "Unverified report · " +
     (report.created_at
@@ -2901,7 +2960,6 @@ function reportSummary(report) {
 
   const button = document.createElement("button");
   button.className = "secondary";
-
   button.textContent =
     report.cloud_source === "shared"
       ? "Mark as Cleared"
@@ -2919,14 +2977,7 @@ function reportSummary(report) {
     }
   });
 
-  box.append(
-    title,
-    details,
-    date,
-    location,
-    button
-  );
-
+  box.append(title, details, date, location, button);
   return box;
 }
 
@@ -2942,12 +2993,15 @@ function createHazardIcon() {
 }
 
 async function loadHazardMarkers() {
-  if (!map || !window.L) return;
+  if (!map || !window.L || demoRouteLoaded) return;
 
   const generation = ++reportLoadGeneration;
   const reports = await getAllReports();
 
-  if (generation !== reportLoadGeneration) return;
+  if (
+    generation !== reportLoadGeneration ||
+    demoRouteLoaded
+  ) return;
 
   if (!hazardLayer) {
     hazardLayer = L.layerGroup().addTo(map);
@@ -2973,6 +3027,8 @@ async function loadHazardMarkers() {
 /* REPORTS ALONG THE ACTIVE ROUTE */
 
 function renderRouteObstacles() {
+  if (demoRouteLoaded) return;
+
   const container = $("routeObstacles");
   container.replaceChildren();
 
@@ -2998,7 +3054,6 @@ function renderRouteObstacles() {
     const note = document.createElement("p");
     note.textContent =
       "No matching reports found. This does not mean the route is clear.";
-
     container.appendChild(note);
   }
 
@@ -3048,14 +3103,11 @@ async function markProblemSolved(id) {
     );
 
     if (voted.includes(String(id))) {
-      alert(
-        "You already confirmed this report on this browser."
-      );
+      alert("You already confirmed this report on this browser.");
       return;
     }
 
-    const count =
-      Number(report.solved_count || 0) + 1;
+    const count = Number(report.solved_count || 0) + 1;
 
     if (report.cloud_source === "legacy") {
       try {
@@ -3109,7 +3161,6 @@ function issueCode(type) {
   if (/vehicle/i.test(type)) return "blocked_vehicle";
   if (/construction/i.test(type)) return "construction";
   if (/damaged/i.test(type)) return "damaged_tactile_path";
-
   return "other_obstacle";
 }
 
@@ -3166,8 +3217,7 @@ $("reportForm").addEventListener("submit", async event => {
 
         if (selectedMedia) {
           const uploadedPath =
-            "reports/" +
-            crypto.randomUUID() +
+            "reports/" + crypto.randomUUID() +
             "." + MEDIA_TYPES[selectedMedia.type];
 
           const {error} = await reportingClient.storage
@@ -3193,29 +3243,24 @@ $("reportForm").addEventListener("submit", async event => {
           .from("tactile_reports")
           .insert([{
             issue_type:issueCode(report.type),
-            description:
-              report.type + ": " + report.details,
+            description:report.type + ": " + report.details,
             latitude:coords.lat,
             longitude:coords.lng,
             status:"open",
             media_url:mediaUrl,
-            media_type:mediaUrl
-              ? report.media_type
-              : null
+            media_type:mediaUrl ? report.media_type : null
           }])
           .select("id")
           .abortSignal(AbortSignal.timeout(12000));
 
         if (error || !data?.length) {
-          throw new Error(
-            "Cloud save was not confirmed."
-          );
+          throw new Error("Cloud save was not confirmed.");
         }
 
         shared = true;
       } catch {
-        // A cloud response can be interrupted after saving.
-        // Keep any uploaded attachment intact and save a local copy.
+        // An interrupted response may follow a completed cloud save.
+        // Keep uploaded media intact and retain a local copy.
       }
     }
 
@@ -3260,10 +3305,7 @@ $("reportForm").addEventListener("submit", async event => {
   } catch (error) {
     if (localMediaKey) {
       try {
-        await mediaStore(
-          "delete",
-          localMediaKey
-        );
+        await mediaStore("delete", localMediaKey);
       } catch {}
     }
 
@@ -3322,14 +3364,10 @@ async function deleteReport(id) {
 
   if (report?.media_ref) {
     try {
-      await mediaStore(
-        "delete",
-        report.media_ref
-      );
+      await mediaStore("delete", report.media_ref);
     } catch {}
 
     const url = mediaURLs.get(report.media_ref);
-
     if (url) URL.revokeObjectURL(url);
     mediaURLs.delete(report.media_ref);
   }
@@ -3350,14 +3388,10 @@ async function clearReports() {
     if (!report.media_ref) continue;
 
     try {
-      await mediaStore(
-        "delete",
-        report.media_ref
-      );
+      await mediaStore("delete", report.media_ref);
     } catch {}
 
     const url = mediaURLs.get(report.media_ref);
-
     if (url) URL.revokeObjectURL(url);
     mediaURLs.delete(report.media_ref);
   }
@@ -3375,7 +3409,6 @@ function stopNearbyAlerts() {
   }
 
   nearbyWatch = null;
-
   clearInterval(nearbyTimer);
   nearbyTimer = null;
 
@@ -3389,6 +3422,13 @@ function stopNearbyAlerts() {
 }
 
 function toggleNearbyAlerts() {
+  if (demoRouteLoaded) {
+    $("nearbyStatus").textContent =
+      "Demo mode uses a sample obstacle. " +
+      "Clear the demo before enabling live alerts.";
+    return;
+  }
+
   if (nearbyWatch !== null) {
     stopNearbyAlerts();
     $("nearbyStatus").textContent =
@@ -3488,8 +3528,7 @@ function updateNearbyAlerts(position) {
 
   $("nearbyStatus").textContent =
     "Reported nearby: " + nearest.report.type +
-    ", approximately " +
-    Math.round(nearest.distance) +
+    ", approximately " + Math.round(nearest.distance) +
     " metres away. Report not verified.";
 
   const candidate = nearby.find(item =>
@@ -3503,7 +3542,6 @@ function updateNearbyAlerts(position) {
     Date.now() - lastNearbySpeech < 15000
   ) return;
 
-  // Avoid building up a queue of repeated hazard messages.
   if (
     "speechSynthesis" in window &&
     speechSynthesis.pending
@@ -3515,7 +3553,7 @@ function updateNearbyAlerts(position) {
     Math.round(candidate.distance) +
     " metres away. This report is unverified.";
 
-  // Queue obstacle speech rather than cancelling an active turn prompt.
+  // Queue this alert rather than interrupting an active turn prompt.
   speak(message, "en-MY", false);
 
   if (navigator.vibrate) {
@@ -3533,9 +3571,7 @@ function updateNearbyAlerts(position) {
 function stopAllVoice() {
   stopGuidance();
   stopNearbyAlerts();
-
-  $("nearbyStatus").textContent =
-    "Obstacle alerts are off.";
+  $("nearbyStatus").textContent = "Obstacle alerts are off.";
 }
 
 /* SPEECH */
@@ -3557,9 +3593,7 @@ function loadVoices() {
     speechSynthesis.getVoices().forEach((voice, index) => {
       const option = document.createElement("option");
       option.value = String(index);
-      option.textContent =
-        voice.name + " (" + voice.lang + ")";
-
+      option.textContent = voice.name + " (" + voice.lang + ")";
       select.appendChild(option);
     });
 
@@ -3574,11 +3608,7 @@ function loadVoices() {
   speechSynthesis.onvoiceschanged = populate;
 }
 
-function speak(
-  message,
-  language = null,
-  interrupt = true
-) {
+function speak(message, language = null, interrupt = true) {
   lastSpokenMessage = message;
 
   if (!("speechSynthesis" in window)) {
@@ -3587,9 +3617,7 @@ function speak(
     return;
   }
 
-  if (interrupt) {
-    speechSynthesis.cancel();
-  }
+  if (interrupt) speechSynthesis.cancel();
 
   const utterance = new SpeechSynthesisUtterance(message);
 
@@ -3599,8 +3627,7 @@ function speak(
     "en-MY"
   );
 
-  utterance.rate =
-    Number($("speechSpeed").value) || 1;
+  utterance.rate = Number($("speechSpeed").value) || 1;
 
   const selectedVoice = $("voiceSelect").value;
   const voices = speechSynthesis.getVoices();
@@ -3669,10 +3696,7 @@ window.addEventListener("load", () => {
   initUMPlaces();
 
   ["start", "destination", "mode"].forEach(id => {
-    $(id).addEventListener(
-      "change",
-      invalidatePlannedRoute
-    );
+    $(id).addEventListener("change", invalidatePlannedRoute);
   });
 
   initMap();
@@ -3687,3 +3711,4 @@ window.addEventListener("load", () => {
 </script>
 </body>
 </html>
+```
