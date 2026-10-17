@@ -29,9 +29,9 @@ body {
   line-height:1.55;
 }
 button,input,select,textarea { font:inherit; }
-button,a { cursor:pointer; }
+button,a,summary { cursor:pointer; }
 button:focus-visible,input:focus-visible,select:focus-visible,
-textarea:focus-visible,a:focus-visible {
+textarea:focus-visible,a:focus-visible,summary:focus-visible {
   outline:3px solid var(--focus);
   outline-offset:3px;
 }
@@ -108,11 +108,7 @@ p { margin:7px 0 13px; }
 }
 .primary { background:var(--green); color:white; }
 .secondary { background:white; color:var(--green); }
-.danger {
-  background:white;
-  color:#9c2525;
-  border-color:#c77;
-}
+.danger { background:white; color:#9c2525; border-color:#c77; }
 .nav-button {
   background:transparent;
   color:white;
@@ -174,7 +170,7 @@ textarea { min-height:90px; resize:vertical; }
 .verified { background:#dff4e5; color:#176536; }
 .rejected { background:#fde7e7; color:#9c2525; }
 #map {
-  height:320px;
+  height:360px;
   border-radius:12px;
   border:1px solid var(--line);
   margin-top:12px;
@@ -257,11 +253,13 @@ a { color:#145ca8; }
 }
 #directionList { padding-left:24px; }
 #directionList li { margin:10px 0; }
+summary { font-weight:700; }
+details[open] summary { margin-bottom:12px; }
 @media(max-width:620px) {
   .home-grid,.field-grid { grid-template-columns:1fr; }
   .home-action { min-height:100px; }
   .header-inner { align-items:flex-start; }
-  #map { height:280px; }
+  #map { height:300px; }
 }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {
@@ -300,25 +298,23 @@ a { color:#145ca8; }
 <script>
 window.addEventListener("error", function(event) {
   const panel = document.getElementById("runtimeError");
-  if (panel) {
-    panel.style.display = "block";
-    panel.textContent = "BlindPath JavaScript error: " +
-      (event.message || "Unknown error") +
-      ". Open the browser Console for details.";
-  }
+  if (!panel) return;
+  panel.style.display = "block";
+  panel.textContent = "BlindPath JavaScript error: " +
+    (event.message || "Unknown error") +
+    ". Open the browser Console for details.";
 });
 
 window.addEventListener("unhandledrejection", function(event) {
   const panel = document.getElementById("runtimeError");
-  if (panel) {
-    panel.style.display = "block";
-    const reason = event.reason && event.reason.message
-      ? event.reason.message
-      : String(event.reason || "Unknown error");
+  if (!panel) return;
+  panel.style.display = "block";
+  const reason = event.reason && event.reason.message
+    ? event.reason.message
+    : String(event.reason || "Unknown error");
 
-    panel.textContent = "BlindPath async error: " + reason +
-      ". Open the browser Console for details.";
-  }
+  panel.textContent = "BlindPath async error: " + reason +
+    ". Open the browser Console for details.";
 });
 </script>
 
@@ -343,7 +339,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('navigation')">
         <span class="symbol" aria-hidden="true">🧭</span>
         <strong id="navCardTitle">Start Navigation</strong>
-        <small>Plan a walking or driving route</small>
+        <small>Plan a route or choose a UM residential college</small>
       </button>
 
       <button class="home-action" onclick="goTo('report')">
@@ -402,8 +398,8 @@ window.addEventListener("unhandledrejection", function(event) {
       </div>
     </form>
 
-    <p id="authStatus" class="status" role="status"
-       aria-live="polite"></p>
+    <p id="authStatus" class="status"
+       role="status" aria-live="polite"></p>
 
     <hr>
     <p>Don't have an account yet?</p>
@@ -447,14 +443,12 @@ window.addEventListener("unhandledrejection", function(event) {
       </div>
     </form>
 
-    <p id="registerStatus" class="status" role="status"
-       aria-live="polite"></p>
+    <p id="registerStatus" class="status"
+       role="status" aria-live="polite"></p>
 
     <hr>
     <p>Already have an account?</p>
-    <button class="secondary" onclick="goTo('auth')">
-      Go to Login
-    </button>
+    <button class="secondary" onclick="goTo('auth')">Go to Login</button>
 
     <div class="notice">
       This prototype does not use secure, production-ready authentication.
@@ -466,7 +460,6 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-profile" class="screen">
   <div class="card">
     <h1>My Profile</h1>
-
     <div id="profileSummary" class="good-note">
       Please log in to view your profile.
     </div>
@@ -480,9 +473,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <label for="profileEmail">Email</label>
       <input id="profileEmail" type="email" disabled>
 
-      <label for="accessibilityPreference">
-        Accessibility Preference
-      </label>
+      <label for="accessibilityPreference">Accessibility Preference</label>
       <select id="accessibilityPreference">
         <option value="Blind or low vision">Blind or low vision</option>
         <option value="Mobility assistance">Mobility assistance</option>
@@ -494,14 +485,11 @@ window.addEventListener("unhandledrejection", function(event) {
       </select>
 
       <div class="button-row">
-        <button class="primary" onclick="saveProfile()">
-          Save Profile
-        </button>
+        <button class="primary" onclick="saveProfile()">Save Profile</button>
       </div>
 
       <hr>
       <h2>OKU Status Verification</h2>
-
       <p>
         Request an OKU status review through this demonstration.
         Accessibility settings remain available without verified status.
@@ -509,9 +497,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <div class="good-note">
         <strong>Current status:</strong>
-        <span id="verificationBadge" class="pill">
-          Not requested
-        </span>
+        <span id="verificationBadge" class="pill">Not requested</span>
         <p id="verificationExplanation" class="muted">
           No verification request has been submitted.
         </p>
@@ -538,12 +524,11 @@ window.addEventListener("unhandledrejection", function(event) {
         </button>
       </div>
 
-      <div class="card"
-           style="margin-top:22px;background:#f7f9f8">
+      <div class="card" style="margin-top:22px;background:#f7f9f8">
         <h2>Demo Reviewer Panel</h2>
         <p class="muted">
-          These controls simulate a review result for the hackathon
-          presentation. They do not verify a person's actual OKU status.
+          These controls simulate a review result for the hackathon.
+          They do not verify a person's actual OKU status.
         </p>
 
         <div class="button-row">
@@ -590,21 +575,72 @@ window.addEventListener("unhandledrejection", function(event) {
   <div class="card">
     <h1>Navigation</h1>
     <p class="muted">
-      Enter a starting point and destination to plan a route.
+      Enter a place, coordinates, or a UM college alias such as KK8.
     </p>
 
     <div class="field-grid">
       <div>
         <label for="start">Starting Point</label>
-        <input id="start"
-               placeholder="e.g. Universiti Malaya, Kuala Lumpur">
+        <input id="start" list="umPlaceNames"
+               placeholder="e.g. KK8 or Universiti Malaya">
       </div>
       <div>
         <label for="destination">Destination</label>
-        <input id="destination"
-               placeholder="e.g. KL Sentral, Kuala Lumpur">
+        <input id="destination" list="umPlaceNames"
+               placeholder="e.g. KK12 or Kolej Kediaman Kinabalu">
       </div>
     </div>
+
+    <datalist id="umPlaceNames"></datalist>
+
+    <details class="good-note">
+      <summary>UM residential colleges and saved entrances</summary>
+
+      <p>
+        Choose a college or type an alias such as KK8.
+        College names help search; entrance coordinates are not
+        pre-verified. Save a confirmed entrance to bypass place search.
+      </p>
+
+      <label for="umCollege">UM residential college</label>
+      <select id="umCollege"></select>
+
+      <div class="button-row">
+        <button class="secondary" onclick="useUMCollege('start')">
+          Use as Start
+        </button>
+        <button class="secondary" onclick="useUMCollege('destination')">
+          Use as Destination
+        </button>
+      </div>
+
+      <p id="umSavedStatus" class="status"
+         role="status" aria-live="polite"></p>
+
+      <label for="umCoordinates">
+        Entrance coordinates: latitude, longitude
+      </label>
+      <input id="umCoordinates"
+             placeholder="Paste coordinates for the selected college entrance">
+
+      <div class="button-row">
+        <button class="secondary" onclick="captureUMEntrance()">
+          Get My Coordinates
+        </button>
+        <button class="primary" onclick="saveUMEntrance()">
+          Save Entrance for This College
+        </button>
+        <button class="danger" onclick="forgetUMEntrance()">
+          Remove Saved Entrance
+        </button>
+      </div>
+
+      <p>
+        Only save your current location when you are at the intended
+        entrance. Saved entrances stay in this browser and do not
+        establish accessibility.
+      </p>
+    </details>
 
     <label for="mode">Travel Mode</label>
     <select id="mode">
@@ -612,15 +648,13 @@ window.addEventListener("unhandledrejection", function(event) {
       <option value="driving">Driving</option>
     </select>
 
-    <label for="rideThreshold">
-      Smart Ride Assist Threshold (km)
-    </label>
-    <input id="rideThreshold" type="number" min="1"
-           max="100" value="5" step="0.5">
+    <label for="rideThreshold">Smart Ride Assist Threshold (km)</label>
+    <input id="rideThreshold" type="number"
+           min="1" max="100" value="5" step="0.5">
 
     <p class="muted">
-      For routes longer than this distance, BlindPath speaks a reminder
-      and offers a link to Grab. It does not automatically book a ride.
+      For longer routes, BlindPath offers a link to Grab.
+      It does not automatically book a ride.
     </p>
 
     <div class="button-row">
@@ -628,9 +662,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="secondary" onclick="useMyLocation()">
         Use My Location
       </button>
-      <button class="secondary" onclick="stopGuidance()">
-        Stop Voice
-      </button>
+      <button class="secondary" onclick="stopGuidance()">Stop Voice</button>
     </div>
 
     <div id="routeStatus" class="status"
@@ -638,19 +670,36 @@ window.addEventListener("unhandledrejection", function(event) {
       Enter a starting point and destination.
     </div>
 
+    <div class="button-row">
+      <button class="secondary" onclick="pickMapPoint('start')">
+        Choose Start on Map
+      </button>
+      <button class="secondary" onclick="pickMapPoint('destination')">
+        Choose Destination on Map
+      </button>
+      <button class="secondary" onclick="cancelMapPick()">
+        Cancel Map Selection
+      </button>
+    </div>
+
+    <p class="muted">
+      Tap the map after selecting a map button.
+      You can also type latitude, longitude directly in either field.
+    </p>
+
     <div id="map" aria-label="Route map"></div>
+
     <div id="routeResult" class="good-note hidden"
          aria-live="polite"></div>
 
     <section id="voiceNavigation" class="card hidden"
              aria-labelledby="navigationHeading">
       <h2 id="navigationHeading">Spoken directions</h2>
-
       <p>
         English turn-by-turn guidance. Start near your route's starting
         point and allow location access. Keep this page open.
-        GPS may be inaccurate; use your usual mobility aid and
-        check crossings independently.
+        GPS may be inaccurate; use your usual mobility aid and check
+        crossings independently.
       </p>
 
       <div class="button-row">
@@ -702,11 +751,9 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <div class="notice">
         <strong>Important limitation:</strong>
-        This score only reflects active reports found near the route.
-        BlindPath is not connected to a verified tactile-paving or
-        curb-ramp dataset. Missing reports do not mean a route is
-        accessible or safe. Confirm conditions locally and use your
-        usual mobility aids.
+        This score only reflects active reports near the route.
+        It does not verify tactile paving, curb ramps or safe crossings.
+        Missing reports do not establish accessibility.
       </div>
     </section>
 
@@ -720,9 +767,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -751,7 +796,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <label for="reportLocation">Location</label>
       <input id="reportLocation" required
-             placeholder="e.g. Near a mall entrance">
+             placeholder="e.g. Near a mall entrance, or coordinates">
 
       <label for="reportDetails">Additional Details (optional)</label>
       <textarea id="reportDetails"
@@ -765,12 +810,10 @@ window.addEventListener("unhandledrejection", function(event) {
            style="margin-top:10px">
         <img id="photoPreview"
              alt="Preview of the reported accessibility issue"
-             style="max-width:100%;max-height:220px;border-radius:10px;
-             border:1px solid var(--line)">
+             style="max-width:100%;max-height:220px;
+             border-radius:10px;border:1px solid var(--line)">
         <button type="button" class="secondary"
-                onclick="removeReportPhoto()">
-          Remove photo
-        </button>
+                onclick="removeReportPhoto()">Remove photo</button>
       </div>
 
       <div class="button-row">
@@ -792,9 +835,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -817,8 +858,8 @@ window.addEventListener("unhandledrejection", function(event) {
     </select>
 
     <p class="muted">
-      Available voices depend on your device, browser and operating
-      system. A Malaysian accent is not guaranteed.
+      Available voices depend on your device and browser.
+      A Malaysian accent is not guaranteed.
       Turn-by-turn directions currently use English.
     </p>
 
@@ -848,9 +889,7 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -859,11 +898,9 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-community" class="screen">
   <div class="card">
     <h1>Community Reports</h1>
-
     <p class="muted">
-      Review active community reports loaded from Supabase when cloud
-      access is available. Reports may fall back to this browser if
-      the cloud connection fails.
+      Active reports are loaded from Supabase when available.
+      Local reports are used as a fallback.
     </p>
 
     <div class="good-note">
@@ -881,9 +918,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="danger" onclick="clearReports()">
         Delete All Local Reports
       </button>
-      <button class="secondary" onclick="goTo('home')">
-        Back to Home
-      </button>
+      <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
   </div>
 </section>
@@ -891,10 +926,9 @@ window.addEventListener("unhandledrejection", function(event) {
 </main>
 
 <footer>
-  BlindPath combined hackathon prototype. Uses public map services,
-  local storage and optional cloud reports.
-  Route and accessibility information may be incomplete.
-  Not for safety-critical navigation.
+  BlindPath hackathon prototype. Uses public map services, local storage
+  and optional cloud reports. Route and accessibility information may
+  be incomplete. Not for safety-critical navigation.
 </footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -903,12 +937,13 @@ window.addEventListener("unhandledrejection", function(event) {
 <script>
 "use strict";
 
-/* STORAGE AND APPLICATION STATE */
+/* APPLICATION STATE */
 
+const $ = id => document.getElementById(id);
 const USERS_KEY = "blindpath_demo_users_v1";
 const CURRENT_USER_KEY = "blindpath_demo_current_user_v1";
 const REPORTS_KEY = "blindpath_accessibility_reports_v1";
-const $ = id => document.getElementById(id);
+const UM_ENTRANCES_KEY = "blindpath_um_entrances_v1";
 
 let currentLang = "en";
 let currentUserEmail = localStorage.getItem(CURRENT_USER_KEY) || "";
@@ -920,8 +955,19 @@ let endMarker = null;
 let hazardLayer = null;
 let currentReportPhoto = null;
 let reportCache = [];
+let mapPickTarget = null;
+let searchQueue = Promise.resolve();
+let lastSearchAt = 0;
 
-/* Existing public Supabase configuration. Never use a service-role key here. */
+let guidanceSteps = [];
+let guidanceRoute = [];
+let guidanceIndex = 0;
+let guidanceWatch = null;
+let guidanceGeneration = 0;
+let guidanceWarning = "";
+let guidanceApproach = -1;
+
+/* Existing public Supabase configuration. */
 const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2";
 
@@ -967,7 +1013,6 @@ function applyLanguage() {
     currentLang === "zh" ? "zh-CN" : currentLang;
 
   const t = languageText[currentLang];
-
   $("tagline").textContent = t.tagline;
   $("homeTitle").textContent = t.homeTitle;
   $("homeIntro").textContent = t.homeIntro;
@@ -1035,11 +1080,14 @@ function saveUsers(users) {
 
 function getCurrentUser() {
   if (!currentUserEmail) return null;
-  return getUsers().find(user => user.email === currentUserEmail) || null;
+  return getUsers().find(user =>
+    user.email === currentUserEmail
+  ) || null;
 }
 
 function updateAccountButton() {
-  $("accountButton").textContent = getCurrentUser() ? "My Profile" : "Login";
+  $("accountButton").textContent =
+    getCurrentUser() ? "My Profile" : "Login";
 }
 
 $("registerForm").addEventListener("submit", event => {
@@ -1073,7 +1121,6 @@ $("registerForm").addEventListener("submit", event => {
 
   saveUsers(users);
   $("registerForm").reset();
-
   $("authStatus").textContent = "Registration successful. Please log in.";
   $("loginEmail").value = email;
   $("loginPassword").value = "";
@@ -1109,6 +1156,7 @@ $("loginForm").addEventListener("submit", event => {
 
 function saveProfile() {
   const user = getCurrentUser();
+
   if (!user) {
     goTo("auth");
     return;
@@ -1163,22 +1211,22 @@ function renderProfile() {
     badge.textContent = "Pending";
     badge.classList.add("pending");
     explanation.textContent =
-      "Your request is pending. In a real system, an authorised service or reviewer would need to review it.";
+      "Your request is pending. A real system would require an authorised reviewer.";
   } else if (status === "verified_demo") {
     badge.textContent = "Verified (Demo)";
     badge.classList.add("verified");
     explanation.textContent =
-      "Simulated approval only. Your actual OKU status has not been verified by JKM or another government service.";
+      "Simulated approval only. Your actual OKU status has not been verified.";
     $("requestVerificationButton").disabled = true;
   } else if (status === "unable") {
     badge.textContent = "Unable to Verify";
     badge.classList.add("rejected");
     explanation.textContent =
-      "The simulated review could not verify the request. A real system should explain next steps and provide a way to request review.";
+      "The simulated review could not verify the request.";
   } else {
     badge.textContent = "Not requested";
     explanation.textContent =
-      "No verification request has been submitted. You can still use BlindPath accessibility features.";
+      "No verification request has been submitted. Accessibility features remain available.";
   }
 
   $("profileSummary").textContent = "Signed in as " + user.name + ".";
@@ -1242,8 +1290,7 @@ function setDemoVerification(status) {
   const user = getCurrentUser();
 
   if (!user) {
-    $("demoReviewerStatus").textContent =
-      "Please log in first to demonstrate the verification workflow.";
+    $("demoReviewerStatus").textContent = "Please log in first.";
     return;
   }
 
@@ -1267,6 +1314,246 @@ function setDemoVerification(status) {
   speak(messages[status]);
 }
 
+/* UM COLLEGE DIRECTORY
+   Names and aliases only. Coordinates must come from search
+   or an entrance confirmed by the user. */
+
+const UM_COLLEGES = [
+  {
+    id:"kk1",
+    name:"Tuanku Abdul Rahman",
+    aliases:["tunku abdul rahman", "first college"]
+  },
+  {
+    id:"kk2",
+    name:"Tuanku Bahiyah",
+    aliases:["tunku bahiyah", "second college"]
+  },
+  {
+    id:"kk3",
+    name:"Tuanku Kurshiah",
+    aliases:["tunku kurshiah", "third college"]
+  },
+  {
+    id:"kk4",
+    name:"Bestari",
+    aliases:["fourth college"]
+  },
+  {
+    id:"kk5",
+    name:"Dayasari",
+    aliases:["daya sari", "fifth college"]
+  },
+  {
+    id:"kk6",
+    name:"Ibnu Sina",
+    aliases:["sixth college"]
+  },
+  {
+    id:"kk7",
+    name:"Za'ba",
+    aliases:["zaba", "seventh college"]
+  },
+  {
+    id:"kk8",
+    name:"Kinabalu",
+    aliases:["eighth college"]
+  },
+  {
+    id:"kk9",
+    name:"Tun Syed Zahiruddin",
+    aliases:["ninth college"]
+  },
+  {
+    id:"kk10",
+    name:"Tun Ahmad Zaidi",
+    aliases:["tenth college"]
+  },
+  {
+    id:"kk11",
+    name:"Ungku Aziz",
+    aliases:["eleventh college"]
+  },
+  {
+    id:"kk12",
+    name:"Raja Dr. Nazrin Shah",
+    aliases:["raja dr nazrin shah", "twelfth college"]
+  }
+];
+
+function normalizePlace(value) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function umLabel(college) {
+  return college.id.toUpperCase() +
+    " — Kolej Kediaman " + college.name;
+}
+
+function matchUMCollege(value) {
+  const query = normalizePlace(value);
+
+  return UM_COLLEGES.find(college => {
+    const number = college.id.slice(2);
+
+    return [
+      college.id,
+      umLabel(college),
+      college.name,
+      "KK " + number,
+      "Kolej Kediaman " + number,
+      "Kolej Kediaman " + college.name,
+      "Kolej Kediaman " + college.name + " Universiti Malaya",
+      ...college.aliases
+    ].some(alias => normalizePlace(alias) === query);
+  });
+}
+
+function readUMEntrances() {
+  try {
+    return JSON.parse(
+      localStorage.getItem(UM_ENTRANCES_KEY) || "{}"
+    );
+  } catch {
+    return {};
+  }
+}
+
+function selectedUMCollege() {
+  return UM_COLLEGES.find(college =>
+    college.id === $("umCollege").value
+  );
+}
+
+function showUMEntrance() {
+  const college = selectedUMCollege();
+  const saved = readUMEntrances()[college.id];
+
+  $("umCoordinates").value =
+    saved ? saved.lat + ", " + saved.lng : "";
+
+  $("umSavedStatus").textContent = saved
+    ? "User-saved entrance: " + saved.lat + ", " + saved.lng +
+      ". Confirm it is the intended entrance."
+    : "No entrance coordinates saved. This college will use online place search.";
+}
+
+function initUMPlaces() {
+  UM_COLLEGES.forEach(college => {
+    const option = document.createElement("option");
+    option.value = college.id;
+    option.textContent = umLabel(college);
+    $("umCollege").appendChild(option);
+
+    const suggestion = document.createElement("option");
+    suggestion.value = umLabel(college);
+    $("umPlaceNames").appendChild(suggestion);
+  });
+
+  $("umCollege").addEventListener("change", showUMEntrance);
+  showUMEntrance();
+}
+
+function invalidatePlannedRoute() {
+  stopGuidance(false);
+  stopSpeech();
+  guidanceSteps = [];
+
+  $("voiceNavigation").classList.add("hidden");
+  $("routeResult").classList.add("hidden");
+  $("routeScore").classList.add("hidden");
+  $("rideAssist").classList.add("hidden");
+
+  if (map && routeLayer) {
+    map.removeLayer(routeLayer);
+    routeLayer = null;
+  }
+}
+
+function useUMCollege(target) {
+  invalidatePlannedRoute();
+  $(target).value = umLabel(selectedUMCollege());
+  $("routeStatus").textContent =
+    "College selected. Choose Find Route to continue.";
+}
+
+function saveUMEntrance() {
+  const coords = parseCoordinates($("umCoordinates").value);
+
+  if (!coords) {
+    $("umSavedStatus").textContent =
+      "Enter valid latitude, longitude coordinates first.";
+    return;
+  }
+
+  const college = selectedUMCollege();
+
+  if (!confirm(
+    "Save " + coords.lat + ", " + coords.lng +
+    " as your chosen entrance for " + umLabel(college) +
+    "? Confirm this location before using it."
+  )) return;
+
+  try {
+    const entrances = readUMEntrances();
+    entrances[college.id] = coords;
+
+    localStorage.setItem(
+      UM_ENTRANCES_KEY,
+      JSON.stringify(entrances)
+    );
+
+    invalidatePlannedRoute();
+    showUMEntrance();
+  } catch {
+    $("umSavedStatus").textContent =
+      "Could not save. Browser storage may be unavailable.";
+  }
+}
+
+function forgetUMEntrance() {
+  const entrances = readUMEntrances();
+  delete entrances[selectedUMCollege().id];
+
+  localStorage.setItem(
+    UM_ENTRANCES_KEY,
+    JSON.stringify(entrances)
+  );
+
+  invalidatePlannedRoute();
+  showUMEntrance();
+}
+
+function captureUMEntrance() {
+  if (!navigator.geolocation) {
+    $("umSavedStatus").textContent =
+      "Location is not supported. Paste coordinates instead.";
+    return;
+  }
+
+  $("umSavedStatus").textContent =
+    "Getting coordinates. They will not be saved automatically.";
+
+  navigator.geolocation.getCurrentPosition(position => {
+    $("umCoordinates").value =
+      position.coords.latitude.toFixed(6) + ", " +
+      position.coords.longitude.toFixed(6);
+
+    $("umSavedStatus").textContent =
+      "GPS uncertainty: approximately " +
+      Math.round(position.coords.accuracy) +
+      " metres. Check the coordinates, then save only if this " +
+      "is the intended college entrance.";
+  }, () => {
+    $("umSavedStatus").textContent =
+      "Could not get location. Allow location permission or paste coordinates.";
+  }, {
+    enableHighAccuracy:true,
+    timeout:15000,
+    maximumAge:0
+  });
+}
+
 /* MAP */
 
 function initMap() {
@@ -1276,7 +1563,8 @@ function initMap() {
     return;
   }
 
-  map = L.map("map").setView([3.139, 101.6869], 12);
+  // Approximate campus map centre, not a college entrance.
+  map = L.map("map").setView([3.122, 101.653], 15);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom:19,
@@ -1284,38 +1572,189 @@ function initMap() {
   }).addTo(map);
 
   hazardLayer = L.layerGroup().addTo(map);
+
+  map.on("click", event => {
+    if (!mapPickTarget) return;
+
+    const target = mapPickTarget;
+    invalidatePlannedRoute();
+
+    const coords =
+      event.latlng.lat.toFixed(6) + ", " +
+      event.latlng.lng.toFixed(6);
+
+    $(target).value = coords;
+    $("umCoordinates").value = coords;
+
+    const marker = L.marker(event.latlng).addTo(map);
+
+    if (target === "start") {
+      if (startMarker) map.removeLayer(startMarker);
+      startMarker = marker;
+    } else {
+      if (endMarker) map.removeLayer(endMarker);
+      endMarker = marker;
+    }
+
+    cancelMapPick();
+
+    $("routeStatus").textContent =
+      "Map point set for " + target +
+      ". Choose Find Route. Save it in the UM panel only " +
+      "if it matches the selected college.";
+  });
+
   loadHazardMarkers();
 }
 
-async function geocode(place) {
-  const coordinateMatch = place.match(
+function pickMapPoint(target) {
+  if (!map) {
+    $("routeStatus").textContent =
+      "Map unavailable. Paste latitude, longitude instead.";
+    return;
+  }
+
+  mapPickTarget = target;
+  $("map").style.cursor = "crosshair";
+
+  $("routeStatus").textContent =
+    "Tap the intended " + target +
+    " entrance on the map. This does not verify accessibility.";
+}
+
+function cancelMapPick() {
+  mapPickTarget = null;
+  $("map").style.cursor = "";
+}
+
+/* COORDINATES AND PLACE SEARCH */
+
+function parseCoordinates(value) {
+  const match = String(value || "").match(
     /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
   );
 
-  if (coordinateMatch) {
+  if (!match) return null;
+
+  const lat = Number(match[1]);
+  const lng = Number(match[2]);
+
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng) ||
+    lat < -90 || lat > 90 ||
+    lng < -180 || lng > 180
+  ) return null;
+
+  return {lat, lng};
+}
+
+function searchPlace(query) {
+  // Serialise searches to respect the public service's request rate.
+  const task = searchQueue.then(async () => {
+    const wait = Math.max(
+      0,
+      1100 - (Date.now() - lastSearchAt)
+    );
+
+    await new Promise(resolve => setTimeout(resolve, wait));
+    lastSearchAt = Date.now();
+
+    const response = await fetch(
+      "https://nominatim.openstreetmap.org/search" +
+      "?format=jsonv2&limit=5&q=" + encodeURIComponent(query),
+      {
+        headers:{"Accept-Language":currentLang},
+        signal:AbortSignal.timeout(12000)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        "Place search is unavailable. Use coordinates or a saved entrance."
+      );
+    }
+
+    return response.json();
+  });
+
+  searchQueue = task.catch(() => {});
+  return task;
+}
+
+async function geocode(place) {
+  const coords = parseCoordinates(place);
+
+  if (coords) {
     return {
-      lat:Number(coordinateMatch[1]),
-      lon:Number(coordinateMatch[2]),
+      lat:coords.lat,
+      lon:coords.lng,
       name:place
     };
   }
 
-  const url =
-    "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
-    encodeURIComponent(place);
-
-  const response = await fetch(url, {
-    headers:{"Accept-Language":currentLang}
-  });
-
-  if (!response.ok) {
-    throw new Error("Location search service unavailable.");
+  if (/^\s*-?\d+(?:\.\d+)?\s*,/.test(place)) {
+    throw new Error("Invalid coordinates. Use latitude, longitude.");
   }
 
-  const results = await response.json();
+  const college = matchUMCollege(place);
+
+  if (college) {
+    const saved = readUMEntrances()[college.id];
+
+    if (
+      saved &&
+      parseCoordinates(saved.lat + ", " + saved.lng)
+    ) {
+      return {
+        lat:saved.lat,
+        lon:saved.lng,
+        name:umLabel(college)
+      };
+    }
+
+    const queries = [
+      "Kolej Kediaman " + college.name +
+        ", Universiti Malaya, Kuala Lumpur",
+      college.name +
+        " residential college, University of Malaya"
+    ];
+
+    for (const query of queries) {
+      const results = await searchPlace(query);
+
+      // Reject distant namesakes. This is a broad UM vicinity check,
+      // not verification of a building or accessible entrance.
+      const nearby = results.find(result =>
+        Number(result.lat) >= 3.09 &&
+        Number(result.lat) <= 3.16 &&
+        Number(result.lon) >= 101.63 &&
+        Number(result.lon) <= 101.69
+      );
+
+      if (nearby) {
+        return {
+          lat:Number(nearby.lat),
+          lon:Number(nearby.lon),
+          name:nearby.display_name
+        };
+      }
+    }
+
+    throw new Error(
+      umLabel(college) +
+      " was not found near UM. Choose its entrance on the map, " +
+      "paste coordinates, or save an entrance using the UM panel."
+    );
+  }
+
+  const results = await searchPlace(place);
 
   if (!results.length) {
-    throw new Error("Place not found. Try adding the city or state.");
+    throw new Error(
+      "Place not found. Try its full name and city, " +
+      "choose a map point, or use coordinates."
+    );
   }
 
   return {
@@ -1324,6 +1763,8 @@ async function geocode(place) {
     name:results[0].display_name
   };
 }
+
+/* ROUTE PLANNING */
 
 async function findRoute() {
   if (!map) {
@@ -1345,7 +1786,6 @@ async function findRoute() {
   stopGuidance(false);
   guidanceSteps = [];
   $("voiceNavigation").classList.add("hidden");
-
   $("routeStatus").textContent = "Finding your route...";
   $("routeResult").classList.add("hidden");
   $("routeScore").classList.add("hidden");
@@ -1353,10 +1793,6 @@ async function findRoute() {
 
   try {
     const start = await geocode(startText);
-
-    // Space requests to the public geocoding service.
-    await new Promise(resolve => setTimeout(resolve, 1100));
-
     const end = await geocode(destinationText);
 
     const endpoint = mode === "foot"
@@ -1377,7 +1813,11 @@ async function findRoute() {
 
     const data = await response.json();
 
-    if (data.code !== "Ok" || !data.routes || !data.routes.length) {
+    if (
+      data.code !== "Ok" ||
+      !data.routes ||
+      !data.routes.length
+    ) {
       throw new Error("No route was returned.");
     }
 
@@ -1405,7 +1845,8 @@ async function findRoute() {
 
     map.fitBounds(routeLayer.getBounds(), {padding:[24, 24]});
 
-    $("routeStatus").textContent = "Route found.";
+    $("routeStatus").textContent =
+      "Route found. Check the matched locations below.";
 
     const result = $("routeResult");
     result.classList.remove("hidden");
@@ -1414,31 +1855,29 @@ async function findRoute() {
     const title = document.createElement("strong");
     title.textContent = "Route found";
     result.appendChild(title);
+
+    [
+      "Start matched: " + start.name,
+      "Destination matched: " + end.name,
+      "Distance: " + distanceKm.toFixed(2) + " km",
+      "Estimated time: " + minutes + " minutes",
+      mode === "foot"
+        ? "Walking route estimate."
+        : "Driving route estimate."
+    ].forEach(text => {
+      result.appendChild(document.createElement("br"));
+      result.appendChild(document.createTextNode(text));
+    });
+
     result.appendChild(document.createElement("br"));
 
-    result.appendChild(document.createTextNode(
-      "Distance: " + distanceKm.toFixed(2) + " km"
-    ));
-    result.appendChild(document.createElement("br"));
-
-    result.appendChild(document.createTextNode(
-      "Estimated time: " + minutes + " minutes"
-    ));
-    result.appendChild(document.createElement("br"));
-
-    result.appendChild(document.createTextNode(
-      mode === "foot" ? "Walking route estimate." : "Driving route estimate."
-    ));
-    result.appendChild(document.createElement("br"));
-
-    const googleMode = mode === "foot" ? "walking" : "driving";
     const googleLink = document.createElement("a");
-
     googleLink.href =
       "https://www.google.com/maps/dir/?api=1&origin=" +
-      encodeURIComponent(startText) +
-      "&destination=" + encodeURIComponent(destinationText) +
-      "&travelmode=" + googleMode;
+      encodeURIComponent(start.lat + "," + start.lon) +
+      "&destination=" +
+      encodeURIComponent(end.lat + "," + end.lon) +
+      "&travelmode=" + (mode === "foot" ? "walking" : "driving");
 
     googleLink.target = "_blank";
     googleLink.rel = "noopener noreferrer";
@@ -1447,8 +1886,6 @@ async function findRoute() {
 
     if (mode === "foot") {
       await assessRouteHazards(route.geometry.coordinates);
-    } else {
-      $("routeScore").classList.add("hidden");
     }
 
     if (distanceKm > threshold) {
@@ -1457,7 +1894,6 @@ async function findRoute() {
 
       const rideTitle = document.createElement("strong");
       rideTitle.textContent = "Smart Ride Assist";
-
       $("rideAssist").appendChild(rideTitle);
       $("rideAssist").appendChild(document.createElement("br"));
       $("rideAssist").appendChild(document.createTextNode(
@@ -1505,8 +1941,12 @@ function useMyLocation() {
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
 
+    invalidatePlannedRoute();
+
     $("start").value = lat.toFixed(6) + ", " + lon.toFixed(6);
-    $("routeStatus").textContent = "Your current location was added.";
+    $("routeStatus").textContent =
+      "Your current location was added. GPS uncertainty: approximately " +
+      Math.round(position.coords.accuracy) + " metres.";
 
     if (map) {
       map.setView([lat, lon], 16);
@@ -1526,14 +1966,6 @@ function useMyLocation() {
 }
 
 /* TURN-BY-TURN VOICE NAVIGATION */
-
-let guidanceSteps = [];
-let guidanceRoute = [];
-let guidanceIndex = 0;
-let guidanceWatch = null;
-let guidanceGeneration = 0;
-let guidanceWarning = "";
-let guidanceApproach = -1;
 
 function directionText(step) {
   const maneuver = step.maneuver;
@@ -1648,7 +2080,6 @@ function repeatDirection() {
 }
 
 function stopGuidance(announce = true) {
-  // Ignore any delayed callbacks from the previous watcher.
   guidanceGeneration++;
 
   if (guidanceWatch !== null) {
@@ -1763,7 +2194,6 @@ function updateGuidance(position) {
   const step = guidanceSteps[guidanceIndex];
   if (!step) return;
 
-  // OSRM stores coordinates as [longitude, latitude].
   const distance = distancePointToRouteMeters(
     lat,
     lon,
@@ -1815,10 +2245,10 @@ window.addEventListener("pagehide", () => {
   stopGuidance(false);
 });
 
-/* ROUTE DISTANCE AND REPORTED-HAZARD ASSESSMENT */
+/* DISTANCE CALCULATION */
 
 function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
-  if (!Array.isArray(coordinates) || coordinates.length === 0) {
+  if (!Array.isArray(coordinates) || !coordinates.length) {
     return Infinity;
   }
 
@@ -1828,9 +2258,10 @@ function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
   let minimum = Infinity;
 
   if (coordinates.length === 1) {
-    const dx = px - coordinates[0][0] * 111320 * cosLat;
-    const dy = py - coordinates[0][1] * 110540;
-    return Math.hypot(dx, dy);
+    return Math.hypot(
+      px - coordinates[0][0] * 111320 * cosLat,
+      py - coordinates[0][1] * 110540
+    );
   }
 
   for (let i = 1; i < coordinates.length; i++) {
@@ -1850,15 +2281,21 @@ function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
           ((px - ax) * vx + (py - ay) * vy) / lengthSquared
         ));
 
-    const dx = px - (ax + t * vx);
-    const dy = py - (ay + t * vy);
+    minimum = Math.min(
+      minimum,
+      Math.hypot(
+        px - (ax + t * vx),
+        py - (ay + t * vy)
+      )
+    );
 
-    minimum = Math.min(minimum, Math.hypot(dx, dy));
     if (minimum <= 2) return minimum;
   }
 
   return minimum;
 }
+
+/* REPORTED-HAZARD ASSESSMENT */
 
 function hazardPenalty(type) {
   const value = String(type || "").toLowerCase();
@@ -1874,16 +2311,17 @@ async function assessRouteHazards(routeCoordinates) {
   $("routeScoreLabel").textContent = "Checking reports…";
   $("routeScoreNumber").textContent = "—/100";
   $("routeScoreSummary").textContent =
-    "Checking active community reports within 50 metres of the walking route.";
+    "Checking active reports within 50 metres of the walking route.";
   $("routeScoreDetails").replaceChildren();
 
   const reports = await getAllReports();
   const nearby = [];
 
   for (const report of reports) {
-    if (report.lat == null || (report.lng ?? report.lon) == null) {
-      continue;
-    }
+    if (
+      report.lat == null ||
+      (report.lng ?? report.lon) == null
+    ) continue;
 
     const lat = Number(report.lat);
     const lng = Number(report.lng ?? report.lon);
@@ -1896,9 +2334,7 @@ async function assessRouteHazards(routeCoordinates) {
     ) continue;
 
     const distance = distancePointToRouteMeters(
-      lat,
-      lng,
-      routeCoordinates
+      lat, lng, routeCoordinates
     );
 
     if (distance <= 50) nearby.push({report, distance});
@@ -1909,11 +2345,11 @@ async function assessRouteHazards(routeCoordinates) {
   let penalty = 0;
 
   nearby.forEach(({report, distance}) => {
-    const proximityFactor =
+    const factor =
       distance <= 15 ? 1 :
       distance <= 30 ? 0.7 : 0.4;
 
-    penalty += hazardPenalty(report.type) * proximityFactor;
+    penalty += hazardPenalty(report.type) * factor;
   });
 
   const score = Math.max(
@@ -1921,71 +2357,48 @@ async function assessRouteHazards(routeCoordinates) {
     Math.min(100, Math.round(100 - penalty))
   );
 
-  const label =
+  $("routeScoreLabel").textContent =
     score >= 80 ? "Fewer reported hazards" :
     score >= 60 ? "Some reported hazards" :
     "More reported hazards";
 
-  $("routeScoreLabel").textContent = label;
   $("routeScoreNumber").textContent = score + "/100";
   $("routeScoreFill").style.width = score + "%";
-
   $("routeScoreFill").classList.toggle(
-    "moderate",
-    score >= 60 && score < 80
+    "moderate", score >= 60 && score < 80
   );
   $("routeScoreFill").classList.toggle("high", score < 60);
 
-  if (!nearby.length) {
-    $("routeScoreSummary").textContent =
-      "No active, geolocated community reports were found within " +
-      "50 metres of this route. This is not evidence that the route is clear.";
-  } else {
-    $("routeScoreSummary").textContent =
-      nearby.length + " active report" +
-      (nearby.length === 1 ? " was" : "s were") +
-      " found within 50 metres of the route. The score is reduced " +
-      "according to report type and approximate proximity.";
-  }
+  $("routeScoreSummary").textContent = nearby.length
+    ? nearby.length + " active reports found within 50 metres. " +
+      "The score reflects reported hazards and approximate proximity."
+    : "No active geolocated reports were found within 50 metres. " +
+      "This is not evidence that the route is clear.";
 
   const confidence = document.createElement("li");
   confidence.textContent =
-    "Data confidence: low. This prototype has no verified tactile-paving, " +
-    "curb-ramp, crossing-signal or sidewalk-condition dataset.";
-
+    "Data confidence: low. No verified tactile-paving, curb-ramp, " +
+    "crossing-signal or sidewalk-condition dataset is connected.";
   $("routeScoreDetails").appendChild(confidence);
 
-  if (nearby.length) {
-    nearby.slice(0, 5).forEach(({report, distance}) => {
-      const item = document.createElement("li");
+  nearby.slice(0, 5).forEach(({report, distance}) => {
+    const item = document.createElement("li");
+    item.textContent =
+      (report.type || "Accessibility issue") +
+      " — about " + Math.round(distance) + " m from route" +
+      (report.location ? " (" + report.location + ")" : "");
+    $("routeScoreDetails").appendChild(item);
+  });
 
-      item.textContent =
-        (report.type || "Accessibility issue") +
-        " — about " + Math.round(distance) + " m from route" +
-        (report.location ? " (" + report.location + ")" : "");
-
-      $("routeScoreDetails").appendChild(item);
-    });
-
-    if (nearby.length > 5) {
-      const more = document.createElement("li");
-      more.textContent =
-        "And " + (nearby.length - 5) + " more nearby report" +
-        (nearby.length - 5 === 1 ? "" : "s") + ".";
-
-      $("routeScoreDetails").appendChild(more);
-    }
-  } else {
-    const none = document.createElement("li");
-    none.textContent =
-      "No nearby geolocated reports matched; reports without " +
-      "coordinates cannot be included.";
-
-    $("routeScoreDetails").appendChild(none);
+  if (nearby.length > 5) {
+    const more = document.createElement("li");
+    more.textContent =
+      "And " + (nearby.length - 5) + " more nearby reports.";
+    $("routeScoreDetails").appendChild(more);
   }
 }
 
-/* COMMUNITY REPORT STORAGE */
+/* LOCAL REPORT STORAGE */
 
 function getReports() {
   try {
@@ -2039,7 +2452,6 @@ $("reportPhoto").addEventListener("change", event => {
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-
       canvas.getContext("2d").drawImage(image, 0, 0, width, height);
 
       currentReportPhoto = canvas.toDataURL("image/jpeg", 0.72);
@@ -2080,46 +2492,10 @@ function addCurrentCoordinates() {
   });
 }
 
-function parseCoordinates(value) {
-  const match = String(value || "").match(
-    /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
-  );
-
-  if (!match) return null;
-
-  const lat = Number(match[1]);
-  const lng = Number(match[2]);
-
-  if (
-    !Number.isFinite(lat) ||
-    !Number.isFinite(lng) ||
-    lat < -90 || lat > 90 ||
-    lng < -180 || lng > 180
-  ) return null;
-
-  return {lat, lng};
-}
-
 async function geocodeReportLocation(location) {
-  const coordinates = parseCoordinates(location);
-  if (coordinates) return coordinates;
-
   try {
-    const response = await fetch(
-      "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" +
-      encodeURIComponent(location),
-      {headers:{"Accept-Language":currentLang}}
-    );
-
-    if (!response.ok) return null;
-
-    const results = await response.json();
-    if (!results.length) return null;
-
-    return {
-      lat:Number(results[0].lat),
-      lng:Number(results[0].lon)
-    };
+    const result = await geocode(location);
+    return {lat:result.lat, lng:result.lon};
   } catch {
     return null;
   }
@@ -2150,7 +2526,9 @@ async function getAllReports() {
     }
   }
 
-  const reports = cloudReports.length ? cloudReports : getReports();
+  const reports = cloudReports.length
+    ? cloudReports
+    : getReports();
 
   reportCache = reports.filter(report =>
     !report.is_solved &&
@@ -2160,7 +2538,7 @@ async function getAllReports() {
   return reportCache;
 }
 
-/* MAP HAZARD MARKERS */
+/* HAZARD MAP MARKERS */
 
 function createHazardIcon() {
   return L.divIcon({
@@ -2179,7 +2557,6 @@ async function loadHazardMarkers() {
   }
 
   hazardLayer.clearLayers();
-
   const reports = await getAllReports();
 
   reports.forEach(report => {
@@ -2200,12 +2577,14 @@ async function loadHazardMarkers() {
     });
 
     const popup = document.createElement("div");
+
     const title = document.createElement("strong");
     title.textContent =
       "Reported hazard: " + (report.type || "Accessibility issue");
 
     const location = document.createElement("p");
-    location.textContent = report.location || "Location not provided";
+    location.textContent =
+      report.location || "Location not provided";
 
     const details = document.createElement("p");
     details.textContent = report.details || "";
@@ -2227,7 +2606,7 @@ async function loadHazardMarkers() {
   });
 }
 
-/* SOLVED REPORT CONFIRMATIONS */
+/* SOLVED CONFIRMATIONS */
 
 async function markProblemSolved(id) {
   const voted = JSON.parse(
@@ -2252,10 +2631,7 @@ async function markProblemSolved(id) {
     try {
       const {error} = await cloudClient
         .from("reports")
-        .update({
-          solved_count:count,
-          is_solved:solved
-        })
+        .update({solved_count:count, is_solved:solved})
         .eq("id", id);
 
       if (error) {
@@ -2289,8 +2665,8 @@ async function markProblemSolved(id) {
 
   alert(
     solved
-      ? "Two confirmations recorded. The report will be removed from active hazards."
-      : "Thank you. One confirmation recorded; another confirmation is needed."
+      ? "Two confirmations recorded. The report will leave active hazards."
+      : "One confirmation recorded. Another confirmation is needed."
   );
 
   await renderReports();
@@ -2339,16 +2715,10 @@ $("reportForm").addEventListener("submit", async event => {
         report.id = data[0].id;
         cloudSaved = true;
       } else if (error) {
-        console.warn(
-          "Cloud report save failed; saving locally.",
-          error
-        );
+        console.warn("Cloud save failed; saving locally.", error);
       }
     } catch (error) {
-      console.warn(
-        "Cloud report save failed; saving locally.",
-        error
-      );
+      console.warn("Cloud save failed; saving locally.", error);
     }
   }
 
@@ -2362,7 +2732,7 @@ $("reportForm").addEventListener("submit", async event => {
       saveReports(local);
     } catch {
       $("gpsStatus").textContent =
-        "Could not save the report. The browser may be out of storage.";
+        "Could not save the report. Browser storage may be full.";
       submitButton.disabled = false;
       return;
     }
@@ -2375,6 +2745,11 @@ $("reportForm").addEventListener("submit", async event => {
   $("gpsStatus").textContent = cloudSaved
     ? "Report shared through the configured cloud backend."
     : "Report saved in this browser. Cloud sharing was unavailable.";
+
+  if (!coords) {
+    $("gpsStatus").textContent +=
+      " Location could not be matched; this report has no map marker.";
+  }
 
   renderReports();
   loadHazardMarkers();
@@ -2596,6 +2971,12 @@ function stopSpeech() {
 /* STARTUP */
 
 window.addEventListener("load", () => {
+  initUMPlaces();
+
+  ["start", "destination", "mode"].forEach(id => {
+    $(id).addEventListener("change", invalidatePlannedRoute);
+  });
+
   initMap();
   loadVoices();
   renderReports();
