@@ -29,9 +29,9 @@ body {
   line-height:1.55;
 }
 button,input,select,textarea { font:inherit; }
-button,a,summary { cursor:pointer; }
+button,a { cursor:pointer; }
 button:focus-visible,input:focus-visible,select:focus-visible,
-textarea:focus-visible,a:focus-visible,summary:focus-visible {
+textarea:focus-visible,a:focus-visible {
   outline:3px solid var(--focus);
   outline-offset:3px;
 }
@@ -108,7 +108,11 @@ p { margin:7px 0 13px; }
 }
 .primary { background:var(--green); color:white; }
 .secondary { background:white; color:var(--green); }
-.danger { background:white; color:#9c2525; border-color:#c77; }
+.danger {
+  background:white;
+  color:#9c2525;
+  border-color:#c77;
+}
 .nav-button {
   background:transparent;
   color:white;
@@ -170,7 +174,7 @@ textarea { min-height:90px; resize:vertical; }
 .verified { background:#dff4e5; color:#176536; }
 .rejected { background:#fde7e7; color:#9c2525; }
 #map {
-  height:360px;
+  height:320px;
   border-radius:12px;
   border:1px solid var(--line);
   margin-top:12px;
@@ -253,13 +257,11 @@ a { color:#145ca8; }
 }
 #directionList { padding-left:24px; }
 #directionList li { margin:10px 0; }
-summary { font-weight:700; }
-details[open] summary { margin-bottom:12px; }
 @media(max-width:620px) {
   .home-grid,.field-grid { grid-template-columns:1fr; }
   .home-action { min-height:100px; }
   .header-inner { align-items:flex-start; }
-  #map { height:300px; }
+  #map { height:280px; }
 }
 @media(prefers-reduced-motion:reduce) {
   *,*::before,*::after {
@@ -280,10 +282,15 @@ details[open] summary { margin-bottom:12px; }
         Accessible journeys. More inclusive townships.
       </div>
     </div>
+
     <div class="button-row" style="margin-top:0">
-      <button class="nav-button" onclick="goTo('home')">Home</button>
+      <button class="nav-button" onclick="goTo('home')">
+        Home
+      </button>
       <button class="nav-button" id="accountButton"
-              onclick="openAccount()">Login</button>
+              onclick="openAccount()">
+        Login
+      </button>
     </div>
   </div>
 </header>
@@ -298,23 +305,28 @@ details[open] summary { margin-bottom:12px; }
 <script>
 window.addEventListener("error", function(event) {
   const panel = document.getElementById("runtimeError");
-  if (!panel) return;
-  panel.style.display = "block";
-  panel.textContent = "BlindPath JavaScript error: " +
-    (event.message || "Unknown error") +
-    ". Open the browser Console for details.";
+
+  if (panel) {
+    panel.style.display = "block";
+    panel.textContent = "BlindPath JavaScript error: " +
+      (event.message || "Unknown error") +
+      ". Open the browser Console for details.";
+  }
 });
 
 window.addEventListener("unhandledrejection", function(event) {
   const panel = document.getElementById("runtimeError");
-  if (!panel) return;
-  panel.style.display = "block";
-  const reason = event.reason && event.reason.message
-    ? event.reason.message
-    : String(event.reason || "Unknown error");
 
-  panel.textContent = "BlindPath async error: " + reason +
-    ". Open the browser Console for details.";
+  if (panel) {
+    panel.style.display = "block";
+
+    const reason = event.reason && event.reason.message
+      ? event.reason.message
+      : String(event.reason || "Unknown error");
+
+    panel.textContent = "BlindPath async error: " +
+      reason + ". Open the browser Console for details.";
+  }
 });
 </script>
 
@@ -324,6 +336,7 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-home" class="screen active">
   <div class="card">
     <h1 id="homeTitle">How can BlindPath help you?</h1>
+
     <p class="muted" id="homeIntro">
       Choose one action to get started.
       BlindPath is designed with accessibility in mind.
@@ -339,7 +352,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('navigation')">
         <span class="symbol" aria-hidden="true">🧭</span>
         <strong id="navCardTitle">Start Navigation</strong>
-        <small>Plan a route or choose a UM residential college</small>
+        <small>Plan a walking or driving route</small>
       </button>
 
       <button class="home-action" onclick="goTo('report')">
@@ -357,7 +370,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('community')">
         <span class="symbol" aria-hidden="true">🤝</span>
         <strong id="communityCardTitle">Community</strong>
-        <small>Review community accessibility reports</small>
+        <small>Review community reports</small>
       </button>
     </div>
 
@@ -394,7 +407,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Log In</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">Back to Home</button>
+                onclick="goTo('home')">
+          Back to Home
+        </button>
       </div>
     </form>
 
@@ -403,6 +418,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <hr>
     <p>Don't have an account yet?</p>
+
     <button class="secondary" onclick="goTo('register')">
       Create an Account
     </button>
@@ -439,7 +455,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Register</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">Back to Home</button>
+                onclick="goTo('home')">
+          Back to Home
+        </button>
       </div>
     </form>
 
@@ -448,7 +466,10 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <hr>
     <p>Already have an account?</p>
-    <button class="secondary" onclick="goTo('auth')">Go to Login</button>
+
+    <button class="secondary" onclick="goTo('auth')">
+      Go to Login
+    </button>
 
     <div class="notice">
       This prototype does not use secure, production-ready authentication.
@@ -460,6 +481,7 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-profile" class="screen">
   <div class="card">
     <h1>My Profile</h1>
+
     <div id="profileSummary" class="good-note">
       Please log in to view your profile.
     </div>
@@ -473,7 +495,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <label for="profileEmail">Email</label>
       <input id="profileEmail" type="email" disabled>
 
-      <label for="accessibilityPreference">Accessibility Preference</label>
+      <label for="accessibilityPreference">
+        Accessibility Preference
+      </label>
       <select id="accessibilityPreference">
         <option value="Blind or low vision">Blind or low vision</option>
         <option value="Mobility assistance">Mobility assistance</option>
@@ -485,11 +509,14 @@ window.addEventListener("unhandledrejection", function(event) {
       </select>
 
       <div class="button-row">
-        <button class="primary" onclick="saveProfile()">Save Profile</button>
+        <button class="primary" onclick="saveProfile()">
+          Save Profile
+        </button>
       </div>
 
       <hr>
       <h2>OKU Status Verification</h2>
+
       <p>
         Request an OKU status review through this demonstration.
         Accessibility settings remain available without verified status.
@@ -497,7 +524,9 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <div class="good-note">
         <strong>Current status:</strong>
-        <span id="verificationBadge" class="pill">Not requested</span>
+        <span id="verificationBadge" class="pill">
+          Not requested
+        </span>
         <p id="verificationExplanation" class="muted">
           No verification request has been submitted.
         </p>
@@ -524,7 +553,8 @@ window.addEventListener("unhandledrejection", function(event) {
         </button>
       </div>
 
-      <div class="card" style="margin-top:22px;background:#f7f9f8">
+      <div class="card"
+           style="margin-top:22px;background:#f7f9f8">
         <h2>Demo Reviewer Panel</h2>
         <p class="muted">
           These controls simulate a review result for the hackathon.
@@ -561,11 +591,15 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('auth')">Go to Login</button>
+      <button class="secondary" onclick="goTo('auth')">
+        Go to Login
+      </button>
       <button class="secondary" onclick="goTo('register')">
         Create Account
       </button>
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
+      <button class="secondary" onclick="goTo('home')">
+        Back to Home
+      </button>
     </div>
   </div>
 </section>
@@ -575,7 +609,7 @@ window.addEventListener("unhandledrejection", function(event) {
   <div class="card">
     <h1>Navigation</h1>
     <p class="muted">
-      Enter a place, coordinates, or a UM college alias such as KK8.
+      Enter a starting point and destination to plan a route.
     </p>
 
     <div class="field-grid">
@@ -584,6 +618,7 @@ window.addEventListener("unhandledrejection", function(event) {
         <input id="start" list="umPlaceNames"
                placeholder="e.g. KK8 or Universiti Malaya">
       </div>
+
       <div>
         <label for="destination">Destination</label>
         <input id="destination" list="umPlaceNames"
@@ -593,62 +628,15 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <datalist id="umPlaceNames"></datalist>
 
-    <details class="good-note">
-      <summary>UM residential colleges and saved entrances</summary>
-
-      <p>
-        Choose a college or type an alias such as KK8.
-        College names help search; entrance coordinates are not
-        pre-verified. Save a confirmed entrance to bypass place search.
-      </p>
-
-      <label for="umCollege">UM residential college</label>
-      <select id="umCollege"></select>
-
-      <div class="button-row">
-        <button class="secondary" onclick="useUMCollege('start')">
-          Use as Start
-        </button>
-        <button class="secondary" onclick="useUMCollege('destination')">
-          Use as Destination
-        </button>
-      </div>
-
-      <p id="umSavedStatus" class="status"
-         role="status" aria-live="polite"></p>
-
-      <label for="umCoordinates">
-        Entrance coordinates: latitude, longitude
-      </label>
-      <input id="umCoordinates"
-             placeholder="Paste coordinates for the selected college entrance">
-
-      <div class="button-row">
-        <button class="secondary" onclick="captureUMEntrance()">
-          Get My Coordinates
-        </button>
-        <button class="primary" onclick="saveUMEntrance()">
-          Save Entrance for This College
-        </button>
-        <button class="danger" onclick="forgetUMEntrance()">
-          Remove Saved Entrance
-        </button>
-      </div>
-
-      <p>
-        Only save your current location when you are at the intended
-        entrance. Saved entrances stay in this browser and do not
-        establish accessibility.
-      </p>
-    </details>
-
     <label for="mode">Travel Mode</label>
     <select id="mode">
       <option value="foot">Walking</option>
       <option value="driving">Driving</option>
     </select>
 
-    <label for="rideThreshold">Smart Ride Assist Threshold (km)</label>
+    <label for="rideThreshold">
+      Smart Ride Assist Threshold (km)
+    </label>
     <input id="rideThreshold" type="number"
            min="1" max="100" value="5" step="0.5">
 
@@ -658,11 +646,15 @@ window.addEventListener("unhandledrejection", function(event) {
     </p>
 
     <div class="button-row">
-      <button class="primary" onclick="findRoute()">Find Route</button>
+      <button class="primary" onclick="findRoute()">
+        Find Route
+      </button>
       <button class="secondary" onclick="useMyLocation()">
         Use My Location
       </button>
-      <button class="secondary" onclick="stopGuidance()">Stop Voice</button>
+      <button class="secondary" onclick="stopGuidance()">
+        Stop Voice
+      </button>
     </div>
 
     <div id="routeStatus" class="status"
@@ -670,21 +662,9 @@ window.addEventListener("unhandledrejection", function(event) {
       Enter a starting point and destination.
     </div>
 
-    <div class="button-row">
-      <button class="secondary" onclick="pickMapPoint('start')">
-        Choose Start on Map
-      </button>
-      <button class="secondary" onclick="pickMapPoint('destination')">
-        Choose Destination on Map
-      </button>
-      <button class="secondary" onclick="cancelMapPick()">
-        Cancel Map Selection
-      </button>
-    </div>
-
     <p class="muted">
-      Tap the map after selecting a map button.
-      You can also type latitude, longitude directly in either field.
+      Type a college name or KK number, or tap the map to choose
+      your destination.
     </p>
 
     <div id="map" aria-label="Route map"></div>
@@ -695,9 +675,10 @@ window.addEventListener("unhandledrejection", function(event) {
     <section id="voiceNavigation" class="card hidden"
              aria-labelledby="navigationHeading">
       <h2 id="navigationHeading">Spoken directions</h2>
+
       <p>
-        English turn-by-turn guidance. Start near your route's starting
-        point and allow location access. Keep this page open.
+        English turn-by-turn guidance. Start near your route's
+        starting point and allow location access. Keep this page open.
         GPS may be inaccurate; use your usual mobility aid and check
         crossings independently.
       </p>
@@ -730,7 +711,9 @@ window.addEventListener("unhandledrejection", function(event) {
         <h2 id="routeScoreTitle" style="margin:0">
           Accessible Route Assessment
         </h2>
-        <span id="routeScoreLabel" class="pill">Not assessed</span>
+        <span id="routeScoreLabel" class="pill">
+          Not assessed
+        </span>
       </div>
 
       <div class="route-score-heading" style="margin-top:8px">
@@ -747,6 +730,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <p id="routeScoreSummary">
         Assessment will appear after a walking route is found.
       </p>
+
       <ul id="routeScoreDetails" class="route-score-list"></ul>
 
       <div class="notice">
@@ -767,7 +751,9 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
+      <button class="secondary" onclick="goTo('home')">
+        Back to Home
+      </button>
     </div>
   </div>
 </section>
@@ -783,9 +769,15 @@ window.addEventListener("unhandledrejection", function(event) {
     <form id="reportForm">
       <label for="issueType">What is the problem?</label>
       <select id="issueType" required>
-        <option value="Blocked tactile path">Tactile path blocked</option>
-        <option value="Damaged tactile path">Tactile path damaged</option>
-        <option value="Missing tactile path">Tactile path missing</option>
+        <option value="Blocked tactile path">
+          Tactile path blocked
+        </option>
+        <option value="Damaged tactile path">
+          Tactile path damaged
+        </option>
+        <option value="Missing tactile path">
+          Tactile path missing
+        </option>
         <option value="Inaccessible crossing">
           Crossing may be inaccessible
         </option>
@@ -796,9 +788,11 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <label for="reportLocation">Location</label>
       <input id="reportLocation" required
-             placeholder="e.g. Near a mall entrance, or coordinates">
+             placeholder="e.g. Near a mall entrance">
 
-      <label for="reportDetails">Additional Details (optional)</label>
+      <label for="reportDetails">
+        Additional Details (optional)
+      </label>
       <textarea id="reportDetails"
                 placeholder="Describe the problem. Do not include private information."></textarea>
 
@@ -813,7 +807,9 @@ window.addEventListener("unhandledrejection", function(event) {
              style="max-width:100%;max-height:220px;
              border-radius:10px;border:1px solid var(--line)">
         <button type="button" class="secondary"
-                onclick="removeReportPhoto()">Remove photo</button>
+                onclick="removeReportPhoto()">
+          Remove photo
+        </button>
       </div>
 
       <div class="button-row">
@@ -821,7 +817,9 @@ window.addEventListener("unhandledrejection", function(event) {
                 onclick="addCurrentCoordinates()">
           Add My Current Location
         </button>
-        <button type="submit" class="primary">Save Report</button>
+        <button type="submit" class="primary">
+          Save Report
+        </button>
       </div>
 
       <p id="gpsStatus" class="status"
@@ -835,7 +833,9 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
+      <button class="secondary" onclick="goTo('home')">
+        Back to Home
+      </button>
     </div>
   </div>
 </section>
@@ -871,11 +871,15 @@ window.addEventListener("unhandledrejection", function(event) {
            oninput="document.getElementById('speedValue').textContent=this.value+'×'">
 
     <div class="button-row">
-      <button class="primary" onclick="speakIntro()">Test Voice</button>
+      <button class="primary" onclick="speakIntro()">
+        Test Voice
+      </button>
       <button class="secondary" onclick="repeatSpeech()">
         Repeat Last Message
       </button>
-      <button class="secondary" onclick="stopGuidance()">Stop Voice</button>
+      <button class="secondary" onclick="stopGuidance()">
+        Stop Voice
+      </button>
     </div>
 
     <div id="voiceStatus" class="status"
@@ -889,7 +893,9 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
+      <button class="secondary" onclick="goTo('home')">
+        Back to Home
+      </button>
     </div>
   </div>
 </section>
@@ -898,9 +904,10 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-community" class="screen">
   <div class="card">
     <h1>Community Reports</h1>
+
     <p class="muted">
-      Active reports are loaded from Supabase when available.
-      Local reports are used as a fallback.
+      Review active reports loaded from Supabase when available.
+      Reports may fall back to this browser if the cloud connection fails.
     </p>
 
     <div class="good-note">
@@ -918,7 +925,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="danger" onclick="clearReports()">
         Delete All Local Reports
       </button>
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
+      <button class="secondary" onclick="goTo('home')">
+        Back to Home
+      </button>
     </div>
   </div>
 </section>
@@ -955,7 +964,7 @@ let endMarker = null;
 let hazardLayer = null;
 let currentReportPhoto = null;
 let reportCache = [];
-let mapPickTarget = null;
+
 let searchQueue = Promise.resolve();
 let lastSearchAt = 0;
 
@@ -967,7 +976,8 @@ let guidanceGeneration = 0;
 let guidanceWarning = "";
 let guidanceApproach = -1;
 
-/* Existing public Supabase configuration. */
+/* PUBLIC SUPABASE CONFIGURATION */
+
 const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2";
 
@@ -1009,10 +1019,12 @@ const languageText = {
 
 function applyLanguage() {
   currentLang = $("language").value;
+
   document.documentElement.lang =
     currentLang === "zh" ? "zh-CN" : currentLang;
 
   const t = languageText[currentLang];
+
   $("tagline").textContent = t.tagline;
   $("homeTitle").textContent = t.homeTitle;
   $("homeIntro").textContent = t.homeIntro;
@@ -1064,7 +1076,7 @@ function openAccount() {
   }
 }
 
-/* DEMO ACCOUNTS */
+/* DEMO ACCOUNT SYSTEM */
 
 function getUsers() {
   try {
@@ -1080,6 +1092,7 @@ function saveUsers(users) {
 
 function getCurrentUser() {
   if (!currentUserEmail) return null;
+
   return getUsers().find(user =>
     user.email === currentUserEmail
   ) || null;
@@ -1121,7 +1134,10 @@ $("registerForm").addEventListener("submit", event => {
 
   saveUsers(users);
   $("registerForm").reset();
-  $("authStatus").textContent = "Registration successful. Please log in.";
+
+  $("authStatus").textContent =
+    "Registration successful. Please log in.";
+
   $("loginEmail").value = email;
   $("loginPassword").value = "";
 
@@ -1136,7 +1152,8 @@ $("loginForm").addEventListener("submit", event => {
   const password = $("loginPassword").value;
 
   const user = getUsers().find(item =>
-    item.email === email && item.demoPassword === password
+    item.email === email &&
+    item.demoPassword === password
   );
 
   if (!user) {
@@ -1172,6 +1189,7 @@ function saveProfile() {
 
   saveUsers(users);
   renderProfile();
+
   $("profileSummary").textContent = "Profile saved in this browser.";
 }
 
@@ -1229,7 +1247,8 @@ function renderProfile() {
       "No verification request has been submitted. Accessibility features remain available.";
   }
 
-  $("profileSummary").textContent = "Signed in as " + user.name + ".";
+  $("profileSummary").textContent =
+    "Signed in as " + user.name + ".";
 }
 
 function requestVerification() {
@@ -1251,7 +1270,8 @@ function requestVerification() {
   if (index < 0) return;
 
   users[index].verificationStatus = "pending";
-  users[index].verificationRequestedAt = new Date().toISOString();
+  users[index].verificationRequestedAt =
+    new Date().toISOString();
 
   saveUsers(users);
   renderProfile();
@@ -1290,17 +1310,21 @@ function setDemoVerification(status) {
   const user = getCurrentUser();
 
   if (!user) {
-    $("demoReviewerStatus").textContent = "Please log in first.";
+    $("demoReviewerStatus").textContent =
+      "Please log in first.";
     return;
   }
 
-  if (!["pending", "verified_demo", "unable"].includes(status)) return;
+  if (!["pending", "verified_demo", "unable"].includes(status)) {
+    return;
+  }
 
   const users = getUsers();
   const index = users.findIndex(item => item.email === user.email);
   if (index < 0) return;
 
   users[index].verificationStatus = status;
+
   saveUsers(users);
   renderProfile();
 
@@ -1314,9 +1338,53 @@ function setDemoVerification(status) {
   speak(messages[status]);
 }
 
-/* UM COLLEGE DIRECTORY
-   Names and aliases only. Coordinates must come from search
-   or an entrance confirmed by the user. */
+/* MAP */
+
+function initMap() {
+  if (!window.L) {
+    $("routeStatus").textContent =
+      "The map library could not load. Check your internet connection.";
+    return;
+  }
+
+  // Approximate UM campus map centre, not a college entrance.
+  map = L.map("map").setView([3.122, 101.653], 15);
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom:19,
+      attribution:"© OpenStreetMap contributors"
+    }
+  ).addTo(map);
+
+  hazardLayer = L.layerGroup().addTo(map);
+
+  map.on("click", event => {
+    // Avoid changing the destination during active guidance.
+    if (guidanceWatch !== null) return;
+
+    invalidatePlannedRoute();
+
+    const coords =
+      event.latlng.lat.toFixed(6) + ", " +
+      event.latlng.lng.toFixed(6);
+
+    $("destination").value = coords;
+
+    if (endMarker) map.removeLayer(endMarker);
+
+    endMarker = L.marker(event.latlng).addTo(map);
+
+    $("routeStatus").textContent =
+      "Destination selected on the map. Choose Find Route.";
+  });
+
+  loadHazardMarkers();
+}
+
+/* UM COLLEGE ALIASES
+   No entrance coordinates are guessed or pre-verified. */
 
 const UM_COLLEGES = [
   {
@@ -1405,11 +1473,22 @@ function matchUMCollege(value) {
       "Kolej Kediaman " + college.name,
       "Kolej Kediaman " + college.name + " Universiti Malaya",
       ...college.aliases
-    ].some(alias => normalizePlace(alias) === query);
+    ].some(alias =>
+      normalizePlace(alias) === query
+    );
+  });
+}
+
+function initUMPlaces() {
+  UM_COLLEGES.forEach(college => {
+    const suggestion = document.createElement("option");
+    suggestion.value = umLabel(college);
+    $("umPlaceNames").appendChild(suggestion);
   });
 }
 
 function readUMEntrances() {
+  // Retain compatibility with entrances saved by the earlier version.
   try {
     return JSON.parse(
       localStorage.getItem(UM_ENTRANCES_KEY) || "{}"
@@ -1417,41 +1496,6 @@ function readUMEntrances() {
   } catch {
     return {};
   }
-}
-
-function selectedUMCollege() {
-  return UM_COLLEGES.find(college =>
-    college.id === $("umCollege").value
-  );
-}
-
-function showUMEntrance() {
-  const college = selectedUMCollege();
-  const saved = readUMEntrances()[college.id];
-
-  $("umCoordinates").value =
-    saved ? saved.lat + ", " + saved.lng : "";
-
-  $("umSavedStatus").textContent = saved
-    ? "User-saved entrance: " + saved.lat + ", " + saved.lng +
-      ". Confirm it is the intended entrance."
-    : "No entrance coordinates saved. This college will use online place search.";
-}
-
-function initUMPlaces() {
-  UM_COLLEGES.forEach(college => {
-    const option = document.createElement("option");
-    option.value = college.id;
-    option.textContent = umLabel(college);
-    $("umCollege").appendChild(option);
-
-    const suggestion = document.createElement("option");
-    suggestion.value = umLabel(college);
-    $("umPlaceNames").appendChild(suggestion);
-  });
-
-  $("umCollege").addEventListener("change", showUMEntrance);
-  showUMEntrance();
 }
 
 function invalidatePlannedRoute() {
@@ -1468,163 +1512,6 @@ function invalidatePlannedRoute() {
     map.removeLayer(routeLayer);
     routeLayer = null;
   }
-}
-
-function useUMCollege(target) {
-  invalidatePlannedRoute();
-  $(target).value = umLabel(selectedUMCollege());
-  $("routeStatus").textContent =
-    "College selected. Choose Find Route to continue.";
-}
-
-function saveUMEntrance() {
-  const coords = parseCoordinates($("umCoordinates").value);
-
-  if (!coords) {
-    $("umSavedStatus").textContent =
-      "Enter valid latitude, longitude coordinates first.";
-    return;
-  }
-
-  const college = selectedUMCollege();
-
-  if (!confirm(
-    "Save " + coords.lat + ", " + coords.lng +
-    " as your chosen entrance for " + umLabel(college) +
-    "? Confirm this location before using it."
-  )) return;
-
-  try {
-    const entrances = readUMEntrances();
-    entrances[college.id] = coords;
-
-    localStorage.setItem(
-      UM_ENTRANCES_KEY,
-      JSON.stringify(entrances)
-    );
-
-    invalidatePlannedRoute();
-    showUMEntrance();
-  } catch {
-    $("umSavedStatus").textContent =
-      "Could not save. Browser storage may be unavailable.";
-  }
-}
-
-function forgetUMEntrance() {
-  const entrances = readUMEntrances();
-  delete entrances[selectedUMCollege().id];
-
-  localStorage.setItem(
-    UM_ENTRANCES_KEY,
-    JSON.stringify(entrances)
-  );
-
-  invalidatePlannedRoute();
-  showUMEntrance();
-}
-
-function captureUMEntrance() {
-  if (!navigator.geolocation) {
-    $("umSavedStatus").textContent =
-      "Location is not supported. Paste coordinates instead.";
-    return;
-  }
-
-  $("umSavedStatus").textContent =
-    "Getting coordinates. They will not be saved automatically.";
-
-  navigator.geolocation.getCurrentPosition(position => {
-    $("umCoordinates").value =
-      position.coords.latitude.toFixed(6) + ", " +
-      position.coords.longitude.toFixed(6);
-
-    $("umSavedStatus").textContent =
-      "GPS uncertainty: approximately " +
-      Math.round(position.coords.accuracy) +
-      " metres. Check the coordinates, then save only if this " +
-      "is the intended college entrance.";
-  }, () => {
-    $("umSavedStatus").textContent =
-      "Could not get location. Allow location permission or paste coordinates.";
-  }, {
-    enableHighAccuracy:true,
-    timeout:15000,
-    maximumAge:0
-  });
-}
-
-/* MAP */
-
-function initMap() {
-  if (!window.L) {
-    $("routeStatus").textContent =
-      "The map library could not load. Check your internet connection.";
-    return;
-  }
-
-  // Approximate campus map centre, not a college entrance.
-  map = L.map("map").setView([3.122, 101.653], 15);
-
-  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom:19,
-    attribution:"© OpenStreetMap contributors"
-  }).addTo(map);
-
-  hazardLayer = L.layerGroup().addTo(map);
-
-  map.on("click", event => {
-    if (!mapPickTarget) return;
-
-    const target = mapPickTarget;
-    invalidatePlannedRoute();
-
-    const coords =
-      event.latlng.lat.toFixed(6) + ", " +
-      event.latlng.lng.toFixed(6);
-
-    $(target).value = coords;
-    $("umCoordinates").value = coords;
-
-    const marker = L.marker(event.latlng).addTo(map);
-
-    if (target === "start") {
-      if (startMarker) map.removeLayer(startMarker);
-      startMarker = marker;
-    } else {
-      if (endMarker) map.removeLayer(endMarker);
-      endMarker = marker;
-    }
-
-    cancelMapPick();
-
-    $("routeStatus").textContent =
-      "Map point set for " + target +
-      ". Choose Find Route. Save it in the UM panel only " +
-      "if it matches the selected college.";
-  });
-
-  loadHazardMarkers();
-}
-
-function pickMapPoint(target) {
-  if (!map) {
-    $("routeStatus").textContent =
-      "Map unavailable. Paste latitude, longitude instead.";
-    return;
-  }
-
-  mapPickTarget = target;
-  $("map").style.cursor = "crosshair";
-
-  $("routeStatus").textContent =
-    "Tap the intended " + target +
-    " entrance on the map. This does not verify accessibility.";
-}
-
-function cancelMapPick() {
-  mapPickTarget = null;
-  $("map").style.cursor = "";
 }
 
 /* COORDINATES AND PLACE SEARCH */
@@ -1644,13 +1531,15 @@ function parseCoordinates(value) {
     !Number.isFinite(lng) ||
     lat < -90 || lat > 90 ||
     lng < -180 || lng > 180
-  ) return null;
+  ) {
+    return null;
+  }
 
   return {lat, lng};
 }
 
 function searchPlace(query) {
-  // Serialise searches to respect the public service's request rate.
+  // Serialise requests to the public place-search service.
   const task = searchQueue.then(async () => {
     const wait = Math.max(
       0,
@@ -1662,7 +1551,8 @@ function searchPlace(query) {
 
     const response = await fetch(
       "https://nominatim.openstreetmap.org/search" +
-      "?format=jsonv2&limit=5&q=" + encodeURIComponent(query),
+      "?format=jsonv2&limit=5&q=" +
+      encodeURIComponent(query),
       {
         headers:{"Accept-Language":currentLang},
         signal:AbortSignal.timeout(12000)
@@ -1671,7 +1561,8 @@ function searchPlace(query) {
 
     if (!response.ok) {
       throw new Error(
-        "Place search is unavailable. Use coordinates or a saved entrance."
+        "Place search is unavailable. " +
+        "Tap the destination on the map instead."
       );
     }
 
@@ -1694,7 +1585,9 @@ async function geocode(place) {
   }
 
   if (/^\s*-?\d+(?:\.\d+)?\s*,/.test(place)) {
-    throw new Error("Invalid coordinates. Use latitude, longitude.");
+    throw new Error(
+      "Invalid coordinates. Use latitude, longitude."
+    );
   }
 
   const college = matchUMCollege(place);
@@ -1723,8 +1616,8 @@ async function geocode(place) {
     for (const query of queries) {
       const results = await searchPlace(query);
 
-      // Reject distant namesakes. This is a broad UM vicinity check,
-      // not verification of a building or accessible entrance.
+      // Broad UM vicinity filter to reject distant namesakes.
+      // This does not verify the exact entrance or accessibility.
       const nearby = results.find(result =>
         Number(result.lat) >= 3.09 &&
         Number(result.lat) <= 3.16 &&
@@ -1743,8 +1636,8 @@ async function geocode(place) {
 
     throw new Error(
       umLabel(college) +
-      " was not found near UM. Choose its entrance on the map, " +
-      "paste coordinates, or save an entrance using the UM panel."
+      " was not found. Tap its entrance on the map " +
+      "to set your destination."
     );
   }
 
@@ -1785,6 +1678,7 @@ async function findRoute() {
 
   stopGuidance(false);
   guidanceSteps = [];
+
   $("voiceNavigation").classList.add("hidden");
   $("routeStatus").textContent = "Finding your route...";
   $("routeResult").classList.add("hidden");
@@ -1793,6 +1687,9 @@ async function findRoute() {
 
   try {
     const start = await geocode(startText);
+
+    await new Promise(resolve => setTimeout(resolve, 1100));
+
     const end = await geocode(destinationText);
 
     const endpoint = mode === "foot"
@@ -1832,7 +1729,11 @@ async function findRoute() {
     if (endMarker) map.removeLayer(endMarker);
 
     routeLayer = L.geoJSON(route.geometry, {
-      style:{color:"#1769aa", weight:6, opacity:0.85}
+      style:{
+        color:"#1769aa",
+        weight:6,
+        opacity:0.85
+      }
     }).addTo(map);
 
     startMarker = L.marker([start.lat, start.lon])
@@ -1843,10 +1744,12 @@ async function findRoute() {
       .addTo(map)
       .bindPopup("Destination: " + destinationText);
 
-    map.fitBounds(routeLayer.getBounds(), {padding:[24, 24]});
+    map.fitBounds(
+      routeLayer.getBounds(),
+      {padding:[24, 24]}
+    );
 
-    $("routeStatus").textContent =
-      "Route found. Check the matched locations below.";
+    $("routeStatus").textContent = "Route found.";
 
     const result = $("routeResult");
     result.classList.remove("hidden");
@@ -1871,21 +1774,28 @@ async function findRoute() {
 
     result.appendChild(document.createElement("br"));
 
+    const googleMode =
+      mode === "foot" ? "walking" : "driving";
+
     const googleLink = document.createElement("a");
+
     googleLink.href =
       "https://www.google.com/maps/dir/?api=1&origin=" +
       encodeURIComponent(start.lat + "," + start.lon) +
       "&destination=" +
       encodeURIComponent(end.lat + "," + end.lon) +
-      "&travelmode=" + (mode === "foot" ? "walking" : "driving");
+      "&travelmode=" + googleMode;
 
     googleLink.target = "_blank";
     googleLink.rel = "noopener noreferrer";
     googleLink.textContent = "Open route in Google Maps";
+
     result.appendChild(googleLink);
 
     if (mode === "foot") {
       await assessRouteHazards(route.geometry.coordinates);
+    } else {
+      $("routeScore").classList.add("hidden");
     }
 
     if (distanceKm > threshold) {
@@ -1894,19 +1804,27 @@ async function findRoute() {
 
       const rideTitle = document.createElement("strong");
       rideTitle.textContent = "Smart Ride Assist";
+
       $("rideAssist").appendChild(rideTitle);
-      $("rideAssist").appendChild(document.createElement("br"));
-      $("rideAssist").appendChild(document.createTextNode(
-        "This route exceeds your selected threshold. " +
-        "Consider another transport option if needed."
-      ));
-      $("rideAssist").appendChild(document.createElement("br"));
+      $("rideAssist").appendChild(
+        document.createElement("br")
+      );
+      $("rideAssist").appendChild(
+        document.createTextNode(
+          "This route exceeds your selected threshold. " +
+          "Consider another transport option if needed."
+        )
+      );
+      $("rideAssist").appendChild(
+        document.createElement("br")
+      );
 
       const grab = document.createElement("a");
       grab.href = "https://www.grab.com/my/";
       grab.target = "_blank";
       grab.rel = "noopener noreferrer";
       grab.textContent = "Open Grab Malaysia";
+
       $("rideAssist").appendChild(grab);
 
       speak(
@@ -1935,7 +1853,8 @@ function useMyLocation() {
     return;
   }
 
-  $("routeStatus").textContent = "Requesting location permission...";
+  $("routeStatus").textContent =
+    "Requesting location permission...";
 
   navigator.geolocation.getCurrentPosition(position => {
     const lat = position.coords.latitude;
@@ -1943,13 +1862,15 @@ function useMyLocation() {
 
     invalidatePlannedRoute();
 
-    $("start").value = lat.toFixed(6) + ", " + lon.toFixed(6);
+    $("start").value =
+      lat.toFixed(6) + ", " + lon.toFixed(6);
+
     $("routeStatus").textContent =
-      "Your current location was added. GPS uncertainty: approximately " +
-      Math.round(position.coords.accuracy) + " metres.";
+      "Your current location was added.";
 
     if (map) {
       map.setView([lat, lon], 16);
+
       if (startMarker) map.removeLayer(startMarker);
 
       startMarker = L.marker([lat, lon])
@@ -2000,11 +1921,16 @@ function directionText(step) {
       : "";
 
     return "Start" + heading +
-      (step.name ? " on " + step.name : " along the route") + ".";
+      (step.name
+        ? " on " + step.name
+        : " along the route") + ".";
   }
 
   if ([
-    "roundabout", "rotary", "exit roundabout", "exit rotary"
+    "roundabout",
+    "rotary",
+    "exit roundabout",
+    "exit rotary"
   ].includes(maneuver.type)) {
     return "At the roundabout, " +
       (maneuver.exit
@@ -2050,7 +1976,8 @@ function prepareGuidance(route) {
 
     item.textContent = directionText(step) +
       (step.distance > 0
-        ? " Continue for " + Math.round(step.distance) + " metres."
+        ? " Continue for " +
+          Math.round(step.distance) + " metres."
         : "");
 
     $("directionList").appendChild(item);
@@ -2075,11 +2002,13 @@ function repeatDirection() {
   );
 
   announceDirection(
-    guidanceWarning || directionText(guidanceSteps[index])
+    guidanceWarning ||
+    directionText(guidanceSteps[index])
   );
 }
 
 function stopGuidance(announce = true) {
+  // Ignore delayed callbacks from previous location watchers.
   guidanceGeneration++;
 
   if (guidanceWatch !== null) {
@@ -2171,7 +2100,9 @@ function updateGuidance(position) {
       "Location accuracy is too low. Guidance is paused " +
       "until a reliable GPS position is available.";
   } else if (
-    distancePointToRouteMeters(lat, lon, guidanceRoute) > 45
+    distancePointToRouteMeters(
+      lat, lon, guidanceRoute
+    ) > 45
   ) {
     warning =
       "You appear to be away from the planned route. " +
@@ -2194,6 +2125,7 @@ function updateGuidance(position) {
   const step = guidanceSteps[guidanceIndex];
   if (!step) return;
 
+  // OSRM coordinates use [longitude, latitude].
   const distance = distancePointToRouteMeters(
     lat,
     lon,
@@ -2204,7 +2136,8 @@ function updateGuidance(position) {
     announceDirection(
       directionText(step) +
       (step.distance > 0
-        ? " Continue for " + Math.round(step.distance) + " metres."
+        ? " Continue for " +
+          Math.round(step.distance) + " metres."
         : "")
     );
 
@@ -2247,21 +2180,31 @@ window.addEventListener("pagehide", () => {
 
 /* DISTANCE CALCULATION */
 
-function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
-  if (!Array.isArray(coordinates) || !coordinates.length) {
+function distancePointToRouteMeters(
+  pointLat,
+  pointLng,
+  coordinates
+) {
+  if (
+    !Array.isArray(coordinates) ||
+    coordinates.length === 0
+  ) {
     return Infinity;
   }
 
   const cosLat = Math.cos(pointLat * Math.PI / 180);
   const px = pointLng * 111320 * cosLat;
   const py = pointLat * 110540;
+
   let minimum = Infinity;
 
   if (coordinates.length === 1) {
-    return Math.hypot(
-      px - coordinates[0][0] * 111320 * cosLat,
-      py - coordinates[0][1] * 110540
-    );
+    const dx =
+      px - coordinates[0][0] * 111320 * cosLat;
+    const dy =
+      py - coordinates[0][1] * 110540;
+
+    return Math.hypot(dx, dy);
   }
 
   for (let i = 1; i < coordinates.length; i++) {
@@ -2278,15 +2221,16 @@ function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
       ? 0
       : Math.max(0, Math.min(
           1,
-          ((px - ax) * vx + (py - ay) * vy) / lengthSquared
+          ((px - ax) * vx + (py - ay) * vy) /
+            lengthSquared
         ));
+
+    const dx = px - (ax + t * vx);
+    const dy = py - (ay + t * vy);
 
     minimum = Math.min(
       minimum,
-      Math.hypot(
-        px - (ax + t * vx),
-        py - (ay + t * vy)
-      )
+      Math.hypot(dx, dy)
     );
 
     if (minimum <= 2) return minimum;
@@ -2299,10 +2243,12 @@ function distancePointToRouteMeters(pointLat, pointLng, coordinates) {
 
 function hazardPenalty(type) {
   const value = String(type || "").toLowerCase();
+
   if (value.includes("blocked")) return 25;
   if (value.includes("damaged")) return 18;
   if (value.includes("missing")) return 20;
   if (value.includes("crossing")) return 15;
+
   return 8;
 }
 
@@ -2311,7 +2257,7 @@ async function assessRouteHazards(routeCoordinates) {
   $("routeScoreLabel").textContent = "Checking reports…";
   $("routeScoreNumber").textContent = "—/100";
   $("routeScoreSummary").textContent =
-    "Checking active reports within 50 metres of the walking route.";
+    "Checking active community reports within 50 metres of the walking route.";
   $("routeScoreDetails").replaceChildren();
 
   const reports = await getAllReports();
@@ -2334,10 +2280,14 @@ async function assessRouteHazards(routeCoordinates) {
     ) continue;
 
     const distance = distancePointToRouteMeters(
-      lat, lng, routeCoordinates
+      lat,
+      lng,
+      routeCoordinates
     );
 
-    if (distance <= 50) nearby.push({report, distance});
+    if (distance <= 50) {
+      nearby.push({report, distance});
+    }
   }
 
   nearby.sort((a, b) => a.distance - b.distance);
@@ -2345,11 +2295,12 @@ async function assessRouteHazards(routeCoordinates) {
   let penalty = 0;
 
   nearby.forEach(({report, distance}) => {
-    const factor =
+    const proximityFactor =
       distance <= 15 ? 1 :
       distance <= 30 ? 0.7 : 0.4;
 
-    penalty += hazardPenalty(report.type) * factor;
+    penalty +=
+      hazardPenalty(report.type) * proximityFactor;
   });
 
   const score = Math.max(
@@ -2364,37 +2315,66 @@ async function assessRouteHazards(routeCoordinates) {
 
   $("routeScoreNumber").textContent = score + "/100";
   $("routeScoreFill").style.width = score + "%";
-  $("routeScoreFill").classList.toggle(
-    "moderate", score >= 60 && score < 80
-  );
-  $("routeScoreFill").classList.toggle("high", score < 60);
 
-  $("routeScoreSummary").textContent = nearby.length
-    ? nearby.length + " active reports found within 50 metres. " +
-      "The score reflects reported hazards and approximate proximity."
-    : "No active geolocated reports were found within 50 metres. " +
+  $("routeScoreFill").classList.toggle(
+    "moderate",
+    score >= 60 && score < 80
+  );
+
+  $("routeScoreFill").classList.toggle(
+    "high",
+    score < 60
+  );
+
+  if (!nearby.length) {
+    $("routeScoreSummary").textContent =
+      "No active, geolocated reports were found within 50 metres. " +
       "This is not evidence that the route is clear.";
+  } else {
+    $("routeScoreSummary").textContent =
+      nearby.length + " active report" +
+      (nearby.length === 1 ? " was" : "s were") +
+      " found within 50 metres of the route. " +
+      "The score reflects report type and approximate proximity.";
+  }
 
   const confidence = document.createElement("li");
   confidence.textContent =
     "Data confidence: low. No verified tactile-paving, curb-ramp, " +
     "crossing-signal or sidewalk-condition dataset is connected.";
+
   $("routeScoreDetails").appendChild(confidence);
 
-  nearby.slice(0, 5).forEach(({report, distance}) => {
-    const item = document.createElement("li");
-    item.textContent =
-      (report.type || "Accessibility issue") +
-      " — about " + Math.round(distance) + " m from route" +
-      (report.location ? " (" + report.location + ")" : "");
-    $("routeScoreDetails").appendChild(item);
-  });
+  if (nearby.length) {
+    nearby.slice(0, 5).forEach(({report, distance}) => {
+      const item = document.createElement("li");
 
-  if (nearby.length > 5) {
-    const more = document.createElement("li");
-    more.textContent =
-      "And " + (nearby.length - 5) + " more nearby reports.";
-    $("routeScoreDetails").appendChild(more);
+      item.textContent =
+        (report.type || "Accessibility issue") +
+        " — about " + Math.round(distance) +
+        " m from route" +
+        (report.location
+          ? " (" + report.location + ")"
+          : "");
+
+      $("routeScoreDetails").appendChild(item);
+    });
+
+    if (nearby.length > 5) {
+      const more = document.createElement("li");
+
+      more.textContent =
+        "And " + (nearby.length - 5) +
+        " more nearby reports.";
+
+      $("routeScoreDetails").appendChild(more);
+    }
+  } else {
+    const none = document.createElement("li");
+    none.textContent =
+      "Reports without coordinates cannot be included.";
+
+    $("routeScoreDetails").appendChild(none);
   }
 }
 
@@ -2402,14 +2382,19 @@ async function assessRouteHazards(routeCoordinates) {
 
 function getReports() {
   try {
-    return JSON.parse(localStorage.getItem(REPORTS_KEY) || "[]");
+    return JSON.parse(
+      localStorage.getItem(REPORTS_KEY) || "[]"
+    );
   } catch {
     return [];
   }
 }
 
 function saveReports(reports) {
-  localStorage.setItem(REPORTS_KEY, JSON.stringify(reports));
+  localStorage.setItem(
+    REPORTS_KEY,
+    JSON.stringify(reports)
+  );
 }
 
 /* REPORT PHOTOS */
@@ -2442,22 +2427,36 @@ $("reportPhoto").addEventListener("change", event => {
       let height = image.height;
 
       if (width > height && width > maxDimension) {
-        height = Math.round(height * maxDimension / width);
+        height = Math.round(
+          height * maxDimension / width
+        );
         width = maxDimension;
       } else if (height > maxDimension) {
-        width = Math.round(width * maxDimension / height);
+        width = Math.round(
+          width * maxDimension / height
+        );
         height = maxDimension;
       }
 
       const canvas = document.createElement("canvas");
       canvas.width = width;
       canvas.height = height;
-      canvas.getContext("2d").drawImage(image, 0, 0, width, height);
 
-      currentReportPhoto = canvas.toDataURL("image/jpeg", 0.72);
+      canvas.getContext("2d").drawImage(
+        image,
+        0,
+        0,
+        width,
+        height
+      );
+
+      currentReportPhoto =
+        canvas.toDataURL("image/jpeg", 0.72);
+
       $("photoPreview").src = currentReportPhoto;
       $("photoPreviewContainer").classList.remove("hidden");
-      $("gpsStatus").textContent = "Photo added to this report.";
+      $("gpsStatus").textContent =
+        "Photo added to this report.";
     };
 
     image.src = reader.result;
@@ -2475,14 +2474,16 @@ function addCurrentCoordinates() {
     return;
   }
 
-  $("gpsStatus").textContent = "Requesting location permission...";
+  $("gpsStatus").textContent =
+    "Requesting location permission...";
 
   navigator.geolocation.getCurrentPosition(position => {
     $("reportLocation").value =
       position.coords.latitude.toFixed(6) + ", " +
       position.coords.longitude.toFixed(6);
 
-    $("gpsStatus").textContent = "Current coordinates added.";
+    $("gpsStatus").textContent =
+      "Current coordinates added.";
   }, () => {
     $("gpsStatus").textContent =
       "Could not get location. Check your device permission.";
@@ -2493,9 +2494,18 @@ function addCurrentCoordinates() {
 }
 
 async function geocodeReportLocation(location) {
+  const coordinates = parseCoordinates(location);
+  if (coordinates) return coordinates;
+
   try {
-    const result = await geocode(location);
-    return {lat:result.lat, lng:result.lon};
+    const results = await searchPlace(location);
+
+    if (!results.length) return null;
+
+    return {
+      lat:Number(results[0].lat),
+      lng:Number(results[0].lon)
+    };
   } catch {
     return null;
   }
@@ -2557,6 +2567,7 @@ async function loadHazardMarkers() {
   }
 
   hazardLayer.clearLayers();
+
   const reports = await getAllReports();
 
   reports.forEach(report => {
@@ -2580,7 +2591,8 @@ async function loadHazardMarkers() {
 
     const title = document.createElement("strong");
     title.textContent =
-      "Reported hazard: " + (report.type || "Accessibility issue");
+      "Reported hazard: " +
+      (report.type || "Accessibility issue");
 
     const location = document.createElement("p");
     location.textContent =
@@ -2600,7 +2612,13 @@ async function loadHazardMarkers() {
       markProblemSolved(report.id);
     });
 
-    popup.append(title, location, details, solved);
+    popup.append(
+      title,
+      location,
+      details,
+      solved
+    );
+
     marker.bindPopup(popup);
     hazardLayer.addLayer(marker);
   });
@@ -2614,7 +2632,9 @@ async function markProblemSolved(id) {
   );
 
   if (voted.includes(String(id))) {
-    alert("You have already confirmed this report on this browser.");
+    alert(
+      "You have already confirmed this report on this browser."
+    );
     return;
   }
 
@@ -2627,11 +2647,17 @@ async function markProblemSolved(id) {
   const count = Number(report.solved_count || 0) + 1;
   const solved = count >= 2;
 
-  if (cloudClient && !String(id).startsWith("local_")) {
+  if (
+    cloudClient &&
+    !String(id).startsWith("local_")
+  ) {
     try {
       const {error} = await cloudClient
         .from("reports")
-        .update({solved_count:count, is_solved:solved})
+        .update({
+          solved_count:count,
+          is_solved:solved
+        })
         .eq("id", id);
 
       if (error) {
@@ -2647,6 +2673,7 @@ async function markProblemSolved(id) {
   }
 
   const localReports = getReports();
+
   const index = localReports.findIndex(item =>
     String(item.id) === String(id)
   );
@@ -2658,6 +2685,7 @@ async function markProblemSolved(id) {
   }
 
   voted.push(String(id));
+
   localStorage.setItem(
     "blindpath_solved_votes_v1",
     JSON.stringify(voted)
@@ -2683,6 +2711,7 @@ $("reportForm").addEventListener("submit", async event => {
   );
 
   submitButton.disabled = true;
+
   $("gpsStatus").textContent =
     "Saving report and locating it on the map...";
 
@@ -2715,10 +2744,16 @@ $("reportForm").addEventListener("submit", async event => {
         report.id = data[0].id;
         cloudSaved = true;
       } else if (error) {
-        console.warn("Cloud save failed; saving locally.", error);
+        console.warn(
+          "Cloud report save failed; saving locally.",
+          error
+        );
       }
     } catch (error) {
-      console.warn("Cloud save failed; saving locally.", error);
+      console.warn(
+        "Cloud report save failed; saving locally.",
+        error
+      );
     }
   }
 
@@ -2733,6 +2768,7 @@ $("reportForm").addEventListener("submit", async event => {
     } catch {
       $("gpsStatus").textContent =
         "Could not save the report. Browser storage may be full.";
+
       submitButton.disabled = false;
       return;
     }
@@ -2746,13 +2782,9 @@ $("reportForm").addEventListener("submit", async event => {
     ? "Report shared through the configured cloud backend."
     : "Report saved in this browser. Cloud sharing was unavailable.";
 
-  if (!coords) {
-    $("gpsStatus").textContent +=
-      " Location could not be matched; this report has no map marker.";
-  }
-
   renderReports();
   loadHazardMarkers();
+
   speak("Your accessibility report has been saved.");
 });
 
@@ -2763,6 +2795,7 @@ async function renderReports() {
   if (!list) return;
 
   list.replaceChildren();
+
   const reports = await getAllReports();
 
   if (!reports.length) {
@@ -2775,7 +2808,8 @@ async function renderReports() {
     item.className = "report-item";
 
     const title = document.createElement("strong");
-    title.textContent = report.type || "Accessibility issue";
+    title.textContent =
+      report.type || "Accessibility issue";
 
     const date = document.createElement("span");
     date.className = "pill";
@@ -2808,6 +2842,7 @@ async function renderReports() {
       photo.alt =
         "Photo attached to report: " +
         (report.type || "accessibility issue");
+
       item.appendChild(photo);
     }
 
@@ -2816,14 +2851,17 @@ async function renderReports() {
     solvedStatus.textContent =
       "Solved confirmations: " +
       Number(report.solved_count || 0) + "/2";
+
     item.appendChild(solvedStatus);
 
     const solvedButton = document.createElement("button");
     solvedButton.className = "secondary";
     solvedButton.textContent = "Confirm issue is solved";
+
     solvedButton.addEventListener("click", () => {
       markProblemSolved(report.id);
     });
+
     item.appendChild(solvedButton);
 
     if (String(report.id).startsWith("local_")) {
@@ -2831,9 +2869,11 @@ async function renderReports() {
       deleteButton.className = "danger";
       deleteButton.style.marginLeft = "8px";
       deleteButton.textContent = "Delete local report";
+
       deleteButton.addEventListener("click", () => {
         deleteReport(report.id);
       });
+
       item.appendChild(deleteButton);
     }
 
@@ -2851,9 +2891,9 @@ function deleteReport(id) {
 }
 
 function clearReports() {
-  if (!confirm("Delete all locally saved reports from this browser?")) {
-    return;
-  }
+  if (!confirm(
+    "Delete all locally saved reports from this browser?"
+  )) return;
 
   saveReports([]);
   renderReports();
@@ -2879,7 +2919,9 @@ function loadVoices() {
     speechSynthesis.getVoices().forEach((voice, index) => {
       const option = document.createElement("option");
       option.value = String(index);
-      option.textContent = voice.name + " (" + voice.lang + ")";
+      option.textContent =
+        voice.name + " (" + voice.lang + ")";
+
       select.appendChild(option);
     });
 
@@ -2918,7 +2960,10 @@ function speak(message, language = null) {
   const selectedVoice = $("voiceSelect").value;
   const voices = speechSynthesis.getVoices();
 
-  if (selectedVoice !== "" && voices[Number(selectedVoice)]) {
+  if (
+    selectedVoice !== "" &&
+    voices[Number(selectedVoice)]
+  ) {
     utterance.voice = voices[Number(selectedVoice)];
   }
 
@@ -2974,7 +3019,10 @@ window.addEventListener("load", () => {
   initUMPlaces();
 
   ["start", "destination", "mode"].forEach(id => {
-    $(id).addEventListener("change", invalidatePlannedRoute);
+    $(id).addEventListener(
+      "change",
+      invalidatePlannedRoute
+    );
   });
 
   initMap();
