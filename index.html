@@ -29,9 +29,9 @@ body {
   line-height:1.55;
 }
 button,input,select,textarea { font:inherit; }
-button,a { cursor:pointer; }
+button,a,summary { cursor:pointer; }
 button:focus-visible,input:focus-visible,select:focus-visible,
-textarea:focus-visible,a:focus-visible {
+textarea:focus-visible,a:focus-visible,summary:focus-visible {
   outline:3px solid var(--focus);
   outline-offset:3px;
 }
@@ -261,8 +261,91 @@ a { color:#145ca8; }
 }
 #directionList { padding-left:24px; }
 #directionList li { margin:10px 0; }
+summary {
+  cursor:pointer;
+  font-weight:700;
+  padding:8px 0;
+}
+.skip-link {
+  position:absolute;
+  left:12px;
+  top:-100px;
+  z-index:2000;
+  background:#fff;
+  color:#000;
+  padding:12px;
+}
+.skip-link:focus { top:12px; }
+.mode-choice {
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+.mode-card {
+  text-align:left;
+  min-height:170px;
+  padding:22px;
+  background:#fff;
+  color:#17231f;
+  border:3px solid #174c3c;
+  border-radius:14px;
+}
+.mode-card strong {
+  display:block;
+  font-size:1.35rem;
+  margin-bottom:8px;
+}
+.mode-card[aria-pressed="true"] {
+  background:#e9f4ee;
+}
+.mode-only-accessible { display:none; }
+
+/* ACCESSIBLE MODE */
+body.accessible-mode {
+  --green:#063b2c;
+  --light-green:#edf8f1;
+  --ink:#101810;
+  --muted:#334238;
+  --line:#69766b;
+  --bg:#fff;
+  font-size:20px;
+}
+body.accessible-mode button,
+body.accessible-mode input,
+body.accessible-mode select {
+  min-height:56px;
+}
+body.accessible-mode .home-grid {
+  grid-template-columns:1fr;
+}
+body.accessible-mode .home-action {
+  min-height:110px;
+  border-width:2px;
+}
+body.accessible-mode .home-action strong {
+  font-size:1.25rem;
+}
+body.accessible-mode .public-extra {
+  display:none;
+}
+body.accessible-mode .mode-only-accessible {
+  display:block;
+}
+body.accessible-mode .secondary {
+  border-width:2px;
+}
+body.accessible-mode :focus-visible {
+  outline:4px solid #174c3c;
+  outline-offset:4px;
+}
+body.accessible-mode header :focus-visible {
+  outline-color:#ffbf47;
+}
+
 @media(max-width:620px) {
-  .home-grid,.field-grid { grid-template-columns:1fr; }
+  .home-grid,.field-grid,.mode-choice {
+    grid-template-columns:1fr;
+  }
   .home-action { min-height:100px; }
   .header-inner { align-items:flex-start; }
   #map { height:300px; }
@@ -278,6 +361,8 @@ a { color:#145ca8; }
 </head>
 
 <body>
+<a class="skip-link" href="#mainContent">Skip to main content</a>
+
 <header>
   <div class="header-inner">
     <div>
@@ -288,9 +373,17 @@ a { color:#145ca8; }
     </div>
 
     <div class="button-row" style="margin-top:0">
-      <button class="nav-button" onclick="goTo('home')">Home</button>
+      <button class="nav-button" onclick="goTo('home')">
+        Home
+      </button>
+      <button class="nav-button" id="changeModeButton"
+              onclick="goTo('mode')">
+        Choose Mode
+      </button>
       <button class="nav-button" id="accountButton"
-              onclick="openAccount()">Login</button>
+              onclick="openAccount()">
+        Login
+      </button>
     </div>
   </div>
 </header>
@@ -328,10 +421,56 @@ window.addEventListener("unhandledrejection", function(event) {
 });
 </script>
 
-<main>
+<main id="mainContent" tabindex="-1">
+
+<!-- MODE SELECTION -->
+<section id="screen-mode" class="screen active"
+         aria-labelledby="modeHeading">
+  <div class="card">
+    <h1 id="modeHeading">How would you like to use BlindPath?</h1>
+
+    <p>
+      Choose the layout that works for you.
+      You can switch anytime.
+      No account or OKU verification is needed.
+    </p>
+
+    <div class="mode-choice">
+      <button class="mode-card" id="accessibleModeButton"
+              aria-pressed="false"
+              onclick="chooseAppMode('accessible')">
+        <strong>Accessible Mode</strong>
+        Larger controls, higher contrast and quick access to navigation,
+        reporting and voice settings.
+      </button>
+
+      <button class="mode-card" id="publicModeButton"
+              aria-pressed="false"
+              onclick="chooseAppMode('public')">
+        <strong>Public Mode</strong>
+        The standard map, community reports and full journey options.
+      </button>
+    </div>
+
+    <p id="appModeStatus" class="status"
+       role="status" aria-live="polite">
+      Select a mode to get started.
+    </p>
+
+    <p class="muted">
+      Modes change the interface, not the quality of map data.
+      Accessible Mode does not verify tactile paths or safe crossings.
+    </p>
+
+    <button id="keepModeButton" class="secondary hidden"
+            onclick="goTo('home')">
+      Keep Current Mode
+    </button>
+  </div>
+</section>
 
 <!-- HOME -->
-<section id="screen-home" class="screen active">
+<section id="screen-home" class="screen">
   <div class="card">
     <h1 id="homeTitle">How can BlindPath help you?</h1>
 
@@ -350,7 +489,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('navigation')">
         <span class="symbol" aria-hidden="true">🧭</span>
         <strong id="navCardTitle">Start Navigation</strong>
-        <small>Plan a walking, cycling or driving route</small>
+        <small>Plan a journey and hear spoken directions</small>
       </button>
 
       <button class="home-action" onclick="goTo('report')">
@@ -362,10 +501,11 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('settings')">
         <span class="symbol" aria-hidden="true">🔊</span>
         <strong id="settingsCardTitle">Voice & Settings</strong>
-        <small>Language and spoken guidance</small>
+        <small>Language, voice and interface preferences</small>
       </button>
 
-      <button class="home-action" onclick="goTo('community')">
+      <button class="home-action public-extra"
+              onclick="goTo('community')">
         <span class="symbol" aria-hidden="true">🤝</span>
         <strong id="communityCardTitle">Community</strong>
         <small>Review community accessibility reports</small>
@@ -373,10 +513,22 @@ window.addEventListener("unhandledrejection", function(event) {
     </div>
 
     <div class="button-row">
-      <button class="secondary" onclick="openAccount()">
+      <button class="secondary public-extra" onclick="openAccount()">
         My Profile / OKU Verification
       </button>
     </div>
+
+    <details class="mode-only-accessible good-note">
+      <summary>More options</summary>
+      <div class="button-row">
+        <button class="secondary" onclick="goTo('community')">
+          Community Reports
+        </button>
+        <button class="secondary" onclick="openAccount()">
+          My Profile / OKU Verification
+        </button>
+      </div>
+    </details>
 
     <div class="notice">
       <strong>Prototype notice:</strong>
@@ -390,7 +542,7 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-auth" class="screen">
   <div class="card">
     <h1>Welcome Back</h1>
-    <p class="muted">Log in to continue using BlindPath.</p>
+    <p class="muted">Log in to view your profile.</p>
 
     <form id="loginForm">
       <label for="loginEmail">Email</label>
@@ -405,7 +557,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Log In</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">Back to Home</button>
+                onclick="goTo('home')">
+          Back to Home
+        </button>
       </div>
     </form>
 
@@ -422,6 +576,7 @@ window.addEventListener("unhandledrejection", function(event) {
     <div class="notice">
       This is a hackathon demo account system.
       Do not use a real password.
+      Navigation and accessibility features do not require an account.
     </div>
   </div>
 </section>
@@ -432,7 +587,7 @@ window.addEventListener("unhandledrejection", function(event) {
     <h1>Create Your Account</h1>
 
     <p class="muted">
-      Join BlindPath for accessible navigation and community reporting.
+      Create a local prototype profile.
     </p>
 
     <form id="registerForm">
@@ -452,7 +607,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <div class="button-row">
         <button class="primary" type="submit">Register</button>
         <button class="secondary" type="button"
-                onclick="goTo('home')">Back to Home</button>
+                onclick="goTo('home')">
+          Back to Home
+        </button>
       </div>
     </form>
 
@@ -514,7 +671,8 @@ window.addEventListener("unhandledrejection", function(event) {
 
       <p>
         Request an OKU status review through this demonstration.
-        Accessibility settings remain available without verified status.
+        Both interface modes and accessibility features remain available
+        without verified status.
       </p>
 
       <div class="good-note">
@@ -625,23 +783,27 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <datalist id="umPlaceNames"></datalist>
 
-    <label for="mode">Travel Mode</label>
-    <select id="mode">
-      <option value="foot">Walking</option>
-      <option value="cycling">Cycling</option>
-      <option value="driving">Driving</option>
-    </select>
+    <details id="journeyOptions" class="good-note" open>
+      <summary>Journey options</summary>
 
-    <label for="rideThreshold">
-      Smart Ride Assist Threshold (km)
-    </label>
-    <input id="rideThreshold" type="number"
-           min="1" max="100" value="5" step="0.5">
+      <label for="mode">Travel Mode</label>
+      <select id="mode">
+        <option value="foot">Walking</option>
+        <option value="cycling">Cycling</option>
+        <option value="driving">Driving</option>
+      </select>
 
-    <p class="muted">
-      For longer routes, BlindPath offers a link to Grab.
-      It does not automatically book a ride.
-    </p>
+      <label for="rideThreshold">
+        Smart Ride Assist Threshold (km)
+      </label>
+      <input id="rideThreshold" type="number"
+             min="1" max="100" value="5" step="0.5">
+
+      <p class="muted">
+        For longer routes, BlindPath offers a link to Grab.
+        It does not automatically book a ride.
+      </p>
+    </details>
 
     <div class="button-row">
       <button class="primary" id="routeButton"
@@ -651,8 +813,12 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="secondary" onclick="useMyLocation()">
         Use My Location
       </button>
-      <button class="secondary" onclick="clearRoute()">Clear</button>
-      <button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
+      <button class="secondary" onclick="clearRoute()">
+        Clear
+      </button>
+      <button class="secondary" onclick="stopAllVoice()">
+        Stop Voice
+      </button>
     </div>
 
     <div id="routeStatus" class="status"
@@ -677,8 +843,8 @@ window.addEventListener("unhandledrejection", function(event) {
       <p>
         English turn-by-turn guidance. Start near your route's starting
         point and allow location access. Keep this page open.
-        GPS may be inaccurate; use your usual mobility aid and
-        check crossings independently.
+        GPS may be inaccurate; use your usual mobility aid and check
+        crossings independently.
       </p>
 
       <div class="button-row">
@@ -719,13 +885,16 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <div id="routeObstacles"></div>
 
-    <section id="routeScore" class="route-score-card hidden"
+    <section id="routeScore"
+             class="route-score-card hidden public-extra"
              aria-labelledby="routeScoreTitle" aria-live="polite">
       <div class="route-score-heading">
         <h2 id="routeScoreTitle" style="margin:0">
           Accessible Route Assessment
         </h2>
-        <span id="routeScoreLabel" class="pill">Not assessed</span>
+        <span id="routeScoreLabel" class="pill">
+          Not assessed
+        </span>
       </div>
 
       <div class="route-score-heading" style="margin-top:8px">
@@ -809,7 +978,9 @@ window.addEventListener("unhandledrejection", function(event) {
       <input id="reportLocation" required
              placeholder="e.g. KK8 entrance, or latitude, longitude">
 
-      <label for="reportDetails">Additional Details (optional)</label>
+      <label for="reportDetails">
+        Additional Details (optional)
+      </label>
       <textarea id="reportDetails" maxlength="500"
                 placeholder="Describe the problem. Do not include private information."></textarea>
 
@@ -844,7 +1015,9 @@ window.addEventListener("unhandledrejection", function(event) {
                 onclick="addCurrentCoordinates()">
           Add My Current Location
         </button>
-        <button type="submit" class="primary">Save Report</button>
+        <button type="submit" class="primary">
+          Save Report
+        </button>
       </div>
 
       <p id="gpsStatus" class="status"
@@ -870,6 +1043,13 @@ window.addEventListener("unhandledrejection", function(event) {
 <section id="screen-settings" class="screen">
   <div class="card">
     <h1>Voice & Accessibility Settings</h1>
+
+    <div class="good-note">
+      <p id="settingsModeLabel">Current mode: not selected.</p>
+      <button class="secondary" onclick="goTo('mode')">
+        Change Interface Mode
+      </button>
+    </div>
 
     <label for="language">Language / 语言 / Bahasa</label>
     <select id="language" onchange="applyLanguage()">
@@ -897,11 +1077,15 @@ window.addEventListener("unhandledrejection", function(event) {
            oninput="document.getElementById('speedValue').textContent=this.value+'×'">
 
     <div class="button-row">
-      <button class="primary" onclick="speakIntro()">Test Voice</button>
+      <button class="primary" onclick="speakIntro()">
+        Test Voice
+      </button>
       <button class="secondary" onclick="repeatSpeech()">
         Repeat Last Message
       </button>
-      <button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
+      <button class="secondary" onclick="stopAllVoice()">
+        Stop Voice
+      </button>
     </div>
 
     <div id="voiceStatus" class="status"
@@ -979,7 +1163,9 @@ const USERS_KEY = "blindpath_demo_users_v1";
 const CURRENT_USER_KEY = "blindpath_demo_current_user_v1";
 const REPORTS_KEY = "blindpath_accessibility_reports_v1";
 const UM_ENTRANCES_KEY = "blindpath_um_entrances_v1";
+const APP_MODE_KEY = "blindpath_interface_mode_v1";
 
+let appMode = null;
 let currentLang = "en";
 let currentUserEmail = localStorage.getItem(CURRENT_USER_KEY) || "";
 let lastSpokenMessage = "";
@@ -1051,6 +1237,97 @@ const MEDIA_TYPES = {
   "video/quicktime":"mov"
 };
 
+/* INTERFACE MODES */
+
+function setAppMode(mode) {
+  if (!["accessible", "public"].includes(mode)) return;
+
+  appMode = mode;
+
+  document.body.classList.toggle(
+    "accessible-mode",
+    mode === "accessible"
+  );
+
+  $("accessibleModeButton").setAttribute(
+    "aria-pressed",
+    String(mode === "accessible")
+  );
+
+  $("publicModeButton").setAttribute(
+    "aria-pressed",
+    String(mode === "public")
+  );
+
+  $("changeModeButton").textContent =
+    mode === "accessible"
+      ? "Accessible Mode · Switch"
+      : "Public Mode · Switch";
+
+  $("settingsModeLabel").textContent =
+    "Current mode: " +
+    (mode === "accessible" ? "Accessible Mode" : "Public Mode") +
+    ".";
+
+  $("appModeStatus").textContent =
+    "Selected: " +
+    (mode === "accessible" ? "Accessible Mode" : "Public Mode") +
+    ".";
+
+  $("keepModeButton").classList.remove("hidden");
+
+  $("journeyOptions").open = mode === "public";
+
+  if (mode === "accessible" && $("mode").value !== "foot") {
+    $("mode").value = "foot";
+    invalidatePlannedRoute();
+  }
+}
+
+function chooseAppMode(mode) {
+  if (!["accessible", "public"].includes(mode)) return;
+
+  stopAllVoice();
+  setAppMode(mode);
+
+  let saved = true;
+
+  try {
+    localStorage.setItem(APP_MODE_KEY, mode);
+  } catch {
+    saved = false;
+  }
+
+  goTo("home");
+
+  if (!saved) {
+    $("homeIntro").textContent +=
+      " Your mode could not be remembered on this browser.";
+  }
+
+  if (mode === "accessible") {
+    speak(
+      "Accessible Mode selected. Choose Start Navigation, " +
+      "Report an Issue, or Voice and Settings. " +
+      "More options contains community reports and your profile.",
+      "en-MY"
+    );
+  }
+}
+
+function initAppMode() {
+  let saved = null;
+
+  try {
+    saved = localStorage.getItem(APP_MODE_KEY);
+  } catch {}
+
+  if (["accessible", "public"].includes(saved)) {
+    setAppMode(saved);
+    goTo("home");
+  }
+}
+
 /* LANGUAGE */
 
 const languageText = {
@@ -1118,6 +1395,14 @@ function goTo(name) {
   });
 
   target.classList.add("active");
+
+  const heading = target.querySelector("h1");
+
+  if (heading) {
+    heading.setAttribute("tabindex", "-1");
+    heading.focus({preventScroll:true});
+  }
+
   stopSpeech();
 
   if (name === "navigation" && map) {
@@ -1521,7 +1806,7 @@ function initMap() {
     return;
   }
 
-  // Approximate campus map centre, not a verified college entrance.
+  // Approximate campus centre, not a verified college entrance.
   map = L.map("map").setView([3.122, 101.653], 15);
 
   L.tileLayer(
@@ -1682,7 +1967,6 @@ async function geocode(place) {
     for (const query of queries) {
       const results = await searchPlace(query);
 
-      // Broad UM vicinity filter, not entrance verification.
       const nearby = results.find(result =>
         Number(result.lat) >= 3.09 &&
         Number(result.lat) <= 3.16 &&
@@ -1820,10 +2104,7 @@ async function findRoute() {
       .addTo(map)
       .bindPopup("Destination: " + destinationText);
 
-    map.fitBounds(
-      routeLayer.getBounds(),
-      {padding:[24, 24]}
-    );
+    map.fitBounds(routeLayer.getBounds(), {padding:[24, 24]});
 
     $("routeStatus").textContent = "Route found.";
 
@@ -2205,7 +2486,6 @@ function updateGuidance(position) {
   const step = guidanceSteps[guidanceIndex];
   if (!step) return;
 
-  // OSRM maneuver coordinates use [longitude, latitude].
   const distance = distancePointToRouteMeters(
     lat,
     lon,
@@ -2566,7 +2846,6 @@ async function mediaForReport(report) {
 
       const url = URL.createObjectURL(file);
       mediaURLs.set(report.media_ref, url);
-
       return url;
     } catch {
       return null;
@@ -2601,7 +2880,6 @@ async function appendReportMedia(container, report) {
   } else {
     element.alt =
       "Attachment: " + (report.type || "Accessibility issue");
-
     element.loading = "lazy";
   }
 
@@ -3110,7 +3388,7 @@ $("reportForm").addEventListener("submit", async event => {
 
         shared = true;
       } catch {
-        // An interrupted response may follow a completed cloud save.
+        // A response can be interrupted after a cloud save.
         // Keep uploaded media intact and retain a local copy.
       }
     }
@@ -3548,6 +3826,7 @@ window.addEventListener("pagehide", () => {
 });
 
 window.addEventListener("load", () => {
+  initAppMode();
   initUMPlaces();
 
   ["start", "destination", "mode"].forEach(id => {
