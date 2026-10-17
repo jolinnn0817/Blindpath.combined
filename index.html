@@ -2,849 +2,659 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#174c3c">
 <title>BlindPath | Accessible Navigation</title>
-
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-
 <style>
-:root {
-  --green: #174c3c;
-  --light-green: #e9f4ee;
-  --ink: #17231f;
-  --muted: #5b6a63;
-  --line: #d8e2dc;
-  --bg: #f5f8f6;
-  --white: #fff;
-  --focus: #ffbf47;
-}
-
-* { box-sizing: border-box; }
-
-body {
-  margin: 0;
-  font-family: Arial, Helvetica, sans-serif;
-  background: var(--bg);
-  color: var(--ink);
-  line-height: 1.55;
-}
-
-button, input, select, textarea { font: inherit; }
-button, a { cursor: pointer; }
-
-button:focus-visible, input:focus-visible,
-select:focus-visible, textarea:focus-visible,
-a:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 3px;
-}
-
-header {
-  background: var(--green);
-  color: white;
-  padding: 16px;
-}
-
-.header-inner {
-  max-width: 1000px;
-  margin: auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.brand { font-size: 1.55rem; font-weight: 800; }
-.tagline { font-size: .92rem; }
-
-main {
-  max-width: 1000px;
-  margin: 22px auto;
-  padding: 0 14px 35px;
-}
-
-.screen { display: none; }
-.screen.active { display: block; }
-
-h1 { font-size: 1.65rem; line-height: 1.25; margin-top: 0; }
-h2 { font-size: 1.2rem; margin-top: 0; }
-p { margin: 7px 0 13px; }
-.muted { color: var(--muted); }
-
-.card {
-  background: var(--white);
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 20px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 8px #173c2c0a;
-}
-
-.home-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 20px;
-}
-
-.home-action {
-  min-height: 125px;
-  text-align: left;
-  padding: 18px;
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  background: white;
-  color: var(--ink);
-}
-
-.home-action:hover {
-  border-color: var(--green);
-  background: var(--light-green);
-}
-
-.home-action .symbol {
-  display: block;
-  font-size: 1.8rem;
-  margin-bottom: 8px;
-}
-
-.home-action strong { display: block; font-size: 1.08rem; }
-.home-action small { display: block; color: var(--muted); margin-top: 4px; }
-
-.primary, .secondary, .danger, .nav-button {
-  border-radius: 10px;
-  padding: 10px 14px;
-  border: 1px solid var(--green);
-  font-weight: 700;
-}
-
-.primary { background: var(--green); color: white; }
-.secondary { background: white; color: var(--green); }
-.danger { background: white; color: #9c2525; border-color: #c77; }
-.nav-button { background: transparent; color: white; border-color: #ffffffa0; }
-
-button:disabled { opacity: .55; cursor: not-allowed; }
-
-.button-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 9px;
-  margin-top: 12px;
-}
-
-label { display: block; font-weight: 700; margin: 12px 0 5px; }
-
-input, select, textarea {
-  width: 100%;
-  padding: 11px;
-  border: 1px solid #aebeb5;
-  border-radius: 9px;
-  background: white;
-  color: var(--ink);
-}
-
-textarea { min-height: 90px; resize: vertical; }
-
-.field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.notice, .good-note {
-  border-radius: 12px;
-  padding: 13px;
-  margin: 13px 0;
-}
-
-.notice {
-  background: #fff7df;
-  border: 1px solid #e5cb78;
-}
-
-.good-note {
-  background: var(--light-green);
-  border: 1px solid #b6d6c4;
-}
-
-.status {
-  padding: 10px 12px;
-  background: #f0f3f1;
-  border-radius: 9px;
-  margin-top: 12px;
-  overflow-wrap: anywhere;
-}
-
-.pill {
-  display: inline-block;
-  padding: 4px 9px;
-  border-radius: 99px;
-  background: var(--light-green);
-  color: var(--green);
-  font-weight: 700;
-  font-size: .85rem;
-}
-
-.pending { background: #fff2ce; color: #795500; }
-.verified { background: #dff4e5; color: #176536; }
-.rejected { background: #fde7e7; color: #9c2525; }
-
-#map {
-  height: 320px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  margin-top: 12px;
-}
-
-.report-item {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 13px;
-  margin: 10px 0;
-  background: white;
-  overflow-wrap: anywhere;
-}
-
-.report-item p { margin: 5px 0; }
-.hidden { display: none !important; }
-
-footer {
-  max-width: 1000px;
-  margin: auto;
-  padding: 0 14px 24px;
-  color: var(--muted);
-  font-size: .86rem;
-}
-
-a { color: #145ca8; }
-
-/* Voice-guided navigation enhancements */
-.navigation-hero {
-  background: linear-gradient(135deg, #174c3c, #23785b);
-  color: #fff;
-  border-radius: 16px;
-  padding: 18px;
-  margin-bottom: 16px;
-}
-.navigation-hero p { color: #e8f5ee; margin-bottom: 0; }
-.navigation-hero .eyebrow {
-  display: inline-block; font-size: .78rem; font-weight: 800;
-  letter-spacing: .08em; text-transform: uppercase; opacity: .9;
-}
-.guidance-panel {
-  border: 2px solid #b6d6c4;
-  background: #f0faf4;
-  border-radius: 16px;
-  padding: 16px;
-  margin: 14px 0;
-}
-.guidance-panel.active-guidance {
-  border-color: #1769aa;
-  background: #eef7ff;
-}
-.guidance-big {
-  font-size: 1.2rem;
-  font-weight: 800;
-  line-height: 1.4;
-  margin: 8px 0;
-}
-.guidance-meta { color: var(--muted); font-size: .92rem; }
-.guidance-list { padding-left: 24px; margin-bottom: 0; }
-.guidance-list li { padding: 5px 0; }
-.guidance-list li.current { font-weight: 800; color: #145ca8; }
-.guidance-control { min-height: 48px; }
-.gps-indicator { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; }
-.gps-dot { width: 10px; height: 10px; display: inline-block; border-radius: 50%; background: #9b9b9b; }
-.gps-dot.live { background: #16803d; box-shadow: 0 0 0 4px #16803d22; }
-.hazard-warning { background: #fff0ee; border: 1px solid #e2a29a; color: #7d2118; border-radius: 12px; padding: 12px; margin-top: 10px; }
-@media (prefers-contrast: more) {
-  :root { --line: #64736a; --muted: #34433b; }
-  .card, input, select, textarea, button { border-width: 2px; }
-}
-
-@media (max-width: 620px) {
-  .home-grid, .field-grid { grid-template-columns: 1fr; }
-  .home-action { min-height: 100px; }
-  .header-inner { align-items: flex-start; }
-  #map { height: 280px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    scroll-behavior: auto !important;
-    animation: none !important;
-    transition: none !important;
-  }
-}
-
-.hazard-marker {
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  width:32px;
-  height:32px;
-  border-radius:50%;
-  background:#fff;
-  border:2px solid #c62828;
-  color:#c62828;
-  font-size:17px;
-  box-shadow:0 2px 6px #0004;
-}
-
-.report-photo {
-  display:block;
-  max-width:100%;
-  max-height:220px;
-  object-fit:cover;
-  border-radius:9px;
-  border:1px solid var(--line);
-  margin-top:8px;
-}
+:root{--green:#174c3c;--pale:#e9f4ee;--ink:#17231f;--muted:#5b6a63;--line:#d8e2dc;--bg:#f5f8f6;--focus:#ffbf47}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.55 Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea{font:inherit}
+button,a{cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+header{background:var(--green);color:white;padding:16px}
+.header-inner,main,footer{max-width:1000px;margin:auto}
+.header-inner{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:1.55rem;font-weight:800}
+.tagline{font-size:.9rem}
+main{padding:22px 14px 35px}
+.screen{display:none}
+.screen.active{display:block}
+h1{font-size:1.65rem;line-height:1.25;margin-top:0}
+h2{font-size:1.2rem;margin-top:0}
+p{margin:7px 0 13px}
+.muted{color:var(--muted)}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:15px;box-shadow:0 2px 8px #173c2c0a}
+.home-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:20px}
+.home-action{min-height:115px;text-align:left;padding:17px;border:1px solid var(--line);border-radius:14px;background:white;color:var(--ink)}
+.home-action:hover{background:var(--pale);border-color:var(--green)}
+.home-action .symbol{display:block;font-size:1.8rem}
+.home-action strong,.home-action small{display:block}
+.home-action small{color:var(--muted);margin-top:4px}
+.primary,.secondary,.danger,.nav-button{border-radius:10px;padding:10px 14px;border:1px solid var(--green);font-weight:700}
+.primary{background:var(--green);color:white}
+.secondary{background:white;color:var(--green)}
+.danger{background:white;color:#9c2525;border-color:#c77}
+.nav-button{background:transparent;color:white;border-color:#ffffffa0}
+button:disabled{opacity:.55;cursor:not-allowed}
+.button-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+label{display:block;font-weight:700;margin:12px 0 5px}
+input,select,textarea{width:100%;padding:11px;border:1px solid #aebeb5;border-radius:9px;background:white;color:var(--ink)}
+textarea{min-height:90px;resize:vertical}
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.notice,.good-note,.status{border-radius:10px;padding:12px;margin:13px 0}
+.notice{background:#fff7df;border:1px solid #e5cb78}
+.good-note{background:var(--pale);border:1px solid #b6d6c4}
+.status{background:#f0f3f1;overflow-wrap:anywhere}
+.pill{display:inline-block;padding:4px 9px;border-radius:99px;background:var(--pale);color:var(--green);font-weight:700;font-size:.85rem}
+.pending{background:#fff2ce;color:#795500}
+.verified{background:#dff4e5;color:#176536}
+.rejected{background:#fde7e7;color:#9c2525}
+#map{height:320px;border-radius:12px;border:1px solid var(--line);margin-top:12px}
+.report-item{border:1px solid var(--line);border-radius:12px;padding:13px;margin:10px 0;background:white;overflow-wrap:anywhere}
+.report-photo{display:block;max-width:100%;max-height:220px;object-fit:cover;border-radius:9px;margin-top:8px}
+.hidden{display:none!important}
+.navigation-hero{background:linear-gradient(135deg,#174c3c,#23785b);color:white;border-radius:16px;padding:18px;margin-bottom:16px}
+.navigation-hero p{color:#e8f5ee}
+.guidance-panel{border:2px solid #b6d6c4;background:#f0faf4;border-radius:16px;padding:16px;margin:14px 0}
+.guidance-panel.active-guidance{border-color:#1769aa;background:#eef7ff}
+.guidance-big{font-size:1.2rem;font-weight:800;line-height:1.4;margin:8px 0}
+.guidance-meta{color:var(--muted);font-size:.92rem}
+.guidance-list{padding-left:24px}
+.guidance-list li{padding:5px 0}
+.guidance-list li.current{font-weight:800;color:#145ca8}
+.guidance-control{min-height:48px}
+.gps-indicator{display:flex;align-items:center;gap:8px;font-weight:700}
+.gps-dot{width:10px;height:10px;border-radius:50%;background:#999}
+.gps-dot.live{background:#16803d;box-shadow:0 0 0 4px #16803d22}
+.hazard-warning{background:#fff0ee;border:1px solid #e2a29a;color:#7d2118;border-radius:12px;padding:12px;margin-top:10px}
+.hazard-marker{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:white;border:2px solid #c62828;color:#c62828;font-size:17px}
+footer{padding:0 14px 24px;color:var(--muted);font-size:.86rem}
+a{color:#145ca8}
+@media(max-width:620px){.home-grid,.field-grid{grid-template-columns:1fr}.home-action{min-height:95px}#map{height:280px}}
+@media(prefers-contrast:more){:root{--line:#64736a;--muted:#34433b}button,input,select,textarea,.card{border-width:2px}}
 </style>
 </head>
-
 <body>
 <header>
   <div class="header-inner">
-    <div>
-      <div class="brand">BlindPath</div>
-      <div class="tagline" id="tagline">
-        Accessible journeys. More inclusive townships.
-      </div>
-    </div>
-
+    <div><div class="brand">BlindPath</div><div class="tagline" id="tagline">Accessible journeys. More inclusive townships.</div></div>
     <div class="button-row" style="margin-top:0">
       <button class="nav-button" onclick="goTo('home')">Home</button>
       <button class="nav-button" id="accountButton" onclick="openAccount()">Login</button>
     </div>
   </div>
 </header>
-<div id="runtimeError" role="alert" aria-live="assertive" style="display:none;max-width:1000px;margin:12px auto;padding:12px 16px;background:#fff0f0;border:1px solid #c62828;border-radius:10px;color:#7f1717">
-  BlindPath encountered a JavaScript error. Refresh the page; if this message remains, open the browser Console and share the red error message.
-</div>
-<script>
-// Display runtime errors instead of silently leaving the prototype unresponsive.
-window.addEventListener("error", function (event) {
-  const panel = document.getElementById("runtimeError");
-  if (panel) {
-    panel.style.display = "block";
-    panel.textContent = "BlindPath JavaScript error: " + (event.message || "Unknown error") +
-      (event.filename ? " (" + event.filename.split("/").pop() + ")" : "") +
-      ". Open the browser Console for details.";
-  }
-});
-window.addEventListener("unhandledrejection", function (event) {
-  const panel = document.getElementById("runtimeError");
-  if (panel) {
-    panel.style.display = "block";
-    const reason = event.reason && event.reason.message ? event.reason.message : String(event.reason || "Unknown error");
-    panel.textContent = "BlindPath async error: " + reason + ". Open the browser Console for details.";
-  }
-});
-</script>
+<div id="runtimeError" role="alert" style="display:none;max-width:1000px;margin:12px auto;padding:12px;background:#fff0f0;color:#7f1717"></div>
 
 <main>
-
-<!-- HOME PAGE -->
 <section id="screen-home" class="screen active">
   <div class="card">
     <h1 id="homeTitle">How can BlindPath help you?</h1>
-    <p class="muted" id="homeIntro">
-      Choose one action to get started. BlindPath is designed with accessibility in mind.
-    </p>
-
-    <div class="good-note">
-      <strong>Tactile-path priority</strong><br>
-      BlindPath aims to support routes with verified tactile paving (盲道).
-      This prototype does not contain a complete, verified tactile-path map.
-    </div>
-
+    <p id="homeIntro" class="muted">Choose an action to get started.</p>
+    <div class="good-note"><strong>Tactile-path priority</strong><br>BlindPath aims to support accessible journeys. This prototype does not contain a complete, verified tactile-path map.</div>
     <div class="home-grid">
-      <button class="home-action" onclick
-    a taxi or ride-hailing option if configured in your browser.
-    </p>
+      <button class="home-action" onclick="goTo('navigation')"><span class="symbol">🧭</span><strong id="navCardTitle">Start Navigation</strong><small>Plan a route and hear spoken directions</small></button>
+      <button class="home-action" onclick="goTo('report')"><span class="symbol">⚑</span><strong id="reportCardTitle">Report an Issue</strong><small>Report blocked or damaged paths</small></button>
+      <button class="home-action" onclick="goTo('settings')"><span class="symbol">🔊</span><strong id="settingsCardTitle">Voice & Settings</strong><small>Choose language and speech speed</small></button>
+      <button class="home-action" onclick="goTo('community')"><span class="symbol">🤝</span><strong id="communityCardTitle">Community</strong><small>View reports and hazard updates</small></button>
+      <button class="home-action" onclick="openAccount()"><span class="symbol">👤</span><strong>Profile & Account</strong><small>Manage your local demo profile</small></button>
+    </div>
+    <div id="connectionStatus" class="status" role="status">Checking services…</div>
+  </div>
+</section>
 
+<section id="screen-navigation" class="screen">
+  <div class="card">
+    <div class="navigation-hero">
+      <div style="font-size:.8rem;font-weight:800;letter-spacing:.08em">VOICE-GUIDED NAVIGATION</div>
+      <h1 style="margin:5px 0">Navigate with confidence</h1>
+      <p>Hear route instructions, repeat a direction, and receive warnings about nearby community reports.</p>
+    </div>
+    <label for="startLocation">Starting point or address</label>
+    <input id="startLocation" placeholder="e.g. KL Sentral">
+    <div class="button-row"><button class="secondary" onclick="useMyLocation()">Use My Current Location</button></div>
+    <label for="destination">Destination</label>
+    <input id="destination" placeholder="e.g. National Museum, Kuala Lumpur">
+    <label for="travelMode">Travel mode</label>
+    <select id="travelMode"><option value="foot">Walking</option><option value="driving">Driving</option></select>
     <div class="button-row">
       <button class="primary" onclick="findRoute()">Find Route</button>
-      <button class="secondary" onclick="useMyLocation()">Use My Current Location</button>
+      <button class="secondary" onclick="clearRoute()">Clear Route</button>
     </div>
-
-    <div id="routeStatus" class="status" role="status" aria-live="polite">
-      Enter a route to get started.
-    </div>
-
-    <div id="map" aria-label="Map showing route and reported hazards"></div>
-
+    <div id="routeStatus" class="status" role="status" aria-live="polite">Enter a destination and find a route.</div>
+    <div id="map" aria-label="Map displaying route and reported hazards"></div>
     <div class="guidance-panel" id="guidancePanel">
-      <div class="gps-indicator">
-        <span class="gps-dot" id="gpsDot"></span>
-        <span id="gpsLabel">GPS not active</span>
-      </div>
-      <div class="guidance-big" id="currentInstruction" aria-live="assertive">
-        Your spoken directions will appear here after finding a route.
-      </div>
-      <div class="guidance-meta" id="instructionMeta">
-        Find a route first, then start voice guidance.
-      </div>
+      <div class="gps-indicator"><span class="gps-dot" id="gpsDot"></span><span id="gpsLabel">GPS not active</span></div>
+      <div class="guidance-big" id="currentInstruction" aria-live="assertive">Find a route to see instructions.</div>
+      <div class="guidance-meta" id="instructionMeta">Voice guidance has not started.</div>
       <div class="button-row">
         <button class="primary guidance-control" id="startGuidanceButton" onclick="startGuidance()">Start Voice Guidance</button>
         <button class="secondary guidance-control" onclick="repeatCurrentInstruction()">Repeat Instruction</button>
         <button class="secondary guidance-control" onclick="nextInstruction()">Next Instruction</button>
         <button class="danger guidance-control" onclick="stopGuidance()">Stop Guidance</button>
       </div>
-      <p id="guidanceStatus" class="status" role="status" aria-live="polite">Voice guidance is stopped.</p>
+      <div id="guidanceStatus" class="status" role="status" aria-live="polite">Voice guidance is stopped.</div>
       <div id="hazardWarnings" aria-live="polite"></div>
     </div>
-
     <h2>Route Instructions</h2>
-    <ol id="guidanceSteps" class="guidance-list">
-      <li>Route instructions will appear here.</li>
-    </ol>
-
-    <div id="rideAssist" class="notice hidden">
-      <strong>Long-distance journey detected</strong>
-      <p>This route may be more suitable for a ride service. Check the route and fare independently.</p>
-      <div class="button-row">
-        <button class="primary" onclick="openRideService()">Open Ride Service</button>
-      </div>
-    </div>
-
-    <div class="notice">
-      <strong>Navigation safety notice:</strong> GPS can be inaccurate, community reports may be old or unverified, and the route provider does not guarantee tactile paving, accessible crossings or step-free access. Stay aware of your surroundings and use your own judgement.
-    </div>
+    <ol id="guidanceSteps" class="guidance-list"><li>Route instructions will appear here.</li></ol>
+    <div class="notice"><strong>Safety notice:</strong> GPS can be inaccurate. Community reports may be outdated or unverified. Routing services do not guarantee tactile paving, step-free access or safe crossings. Stay aware of your surroundings.</div>
   </div>
 </section>
 
-<!-- REPORT ISSUE -->
 <section id="screen-report" class="screen">
   <div class="card">
     <h1>Report an Accessibility Issue</h1>
-    <p class="muted">
-      Help other people by reporting blocked tactile paving, damaged paths,
-      obstacles, or inaccessible crossings.
-    </p>
-
+    <p class="muted">Help others by reporting blocked tactile paving, obstacles, damaged paths or inaccessible crossings.</p>
     <form id="reportForm">
-      <label for="issueType">Issue Type</label>
+      <label for="issueType">Issue type</label>
       <select id="issueType" required>
-        <option value="Blocked tactile paving">Blocked tactile paving</option>
-        <option value="Damaged tactile paving">Damaged tactile paving</option>
-        <option value="Missing tactile paving">Missing tactile paving</option>
-        <option value="Unsafe crossing">Unsafe crossing</option>
-        <option value="Obstacle on footpath">Obstacle on footpath</option>
-        <option value="Other accessibility issue">Other accessibility issue</option>
+        <option>Blocked tactile paving</option><option>Damaged tactile paving</option>
+        <option>Missing tactile paving</option><option>Unsafe crossing</option>
+        <option>Obstacle on footpath</option><option>Other accessibility issue</option>
       </select>
-
-      <label for="reportLocation">Location or Landmark</label>
-      <input id="reportLocation" required maxlength="180"
-             placeholder="e.g. outside a station entrance">
-
-      <label for="reportDetails">Additional Details</label>
-      <textarea id="reportDetails" maxlength="1200"
-                placeholder="Describe the issue and nearby landmarks"></textarea>
-
-      <label for="reportPhoto">Optional Photo</label>
+      <label for="reportLocation">Location or landmark</label>
+      <input id="reportLocation" maxlength="180" required placeholder="e.g. outside a station entrance">
+      <label for="reportDetails">Additional details</label>
+      <textarea id="reportDetails" maxlength="1200" placeholder="Describe the issue and nearby landmarks"></textarea>
+      <label for="reportPhoto">Optional photo</label>
       <input id="reportPhoto" type="file" accept="image/*">
       <div id="photoPreview"></div>
-
-      <div class="button-row">
-        <button class="primary" type="submit">Submit Report</button>
-        <button class="secondary" type="button" onclick="goTo('home')">Cancel</button>
-      </div>
+      <div class="button-row"><button class="primary" type="submit">Submit Report</button><button class="secondary" type="button" onclick="goTo('home')">Cancel</button></div>
     </form>
-
-    <p id="gpsStatus" class="status" role="status" aria-live="polite">
-      Your report will be saved to the cloud if Supabase is configured; otherwise it will be saved on this device.
-    </p>
+    <div id="gpsStatus" class="status" role="status" aria-live="polite">Reports are shared through Supabase when available; otherwise they are saved on this browser.</div>
   </div>
 </section>
 
-<!-- COMMUNITY -->
 <section id="screen-community" class="screen">
   <div class="card">
     <h1>Community Reports</h1>
-    <p class="muted">
-      View reports from the configured cloud backend and reports saved on this browser.
-    </p>
-
-    <div class="button-row">
-      <button class="primary" onclick="renderReports()">Refresh Reports</button>
-      <button class="secondary" onclick="loadHazardMarkers()">Refresh Map Markers</button>
-      <button class="danger" onclick="clearReports()">Clear Local Reports</button>
-    </div>
-
+    <p class="muted">Reports may be submitted by other users and may need verification.</p>
+    <div class="button-row"><button class="primary" onclick="renderReports()">Refresh Reports</button><button class="secondary" onclick="loadHazardMarkers()">Refresh Map Markers</button><button class="danger" onclick="clearReports()">Clear Local Reports</button></div>
     <div id="reportList" aria-live="polite"></div>
-
-    <div class="notice">
-      Reports are community-submitted and may be inaccurate or out of date.
-      A report being marked solved is not a guarantee that a route is safe.
-    </div>
-
-    <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
-    </div>
+    <div class="notice">A report being marked solved does not guarantee the route is safe.</div>
   </div>
 </section>
 
-<!-- SETTINGS -->
 <section id="screen-settings" class="screen">
   <div class="card">
     <h1>Voice & Accessibility Settings</h1>
-
     <label for="languageSelect">Language</label>
-    <select id="languageSelect" onchange="changeLanguage()">
-      <option value="en">English</option>
-      <option value="ms">Bahasa Melayu</option>
-      <option value="zh">中文</option>
-    </select>
-
-    <label for="voiceSelect">Device Voice</label>
-    <select id="voiceSelect"></select>
-
-    <label for="speechSpeed">Speech Speed</label>
-    <select id="speechSpeed">
-      <option value="0.75">Slow</option>
-      <option value="1" selected>Normal</option>
-      <option value="1.2">Fast</option>
-    </select>
-
-    <div class="button-row">
-      <button class="primary" onclick="speakIntro()">Test Voice</button>
-      <button class="secondary" onclick="repeatSpeech()">Repeat Last Message</button>
-      <button class="danger" onclick="stopSpeech()">Stop Speech</button>
-    </div>
-
-    <p id="voiceStatus" class="status" role="status" aria-live="polite">
-      Voice settings ready.
-    </p>
-
-    <div class="good-note">
-      <strong>Accessibility tips</strong>
-      <ul>
-        <li>Use your device’s screen reader if you need spoken access to the entire page.</li>
-        <li>Allow location permission only when you want GPS-based guidance.</li>
-        <li>Use headphones only if you can still hear traffic and your surroundings safely.</li>
-      </ul>
-    </div>
-
-    <div class="button-row">
-      <button class="secondary" onclick="goTo('home')">Back to Home</button>
-    </div>
+    <select id="languageSelect" onchange="changeLanguage()"><option value="en">English</option><option value="ms">Bahasa Melayu</option><option value="zh">中文</option></select>
+    <label for="voiceSelect">Device voice</label><select id="voiceSelect"></select>
+    <label for="speechSpeed">Speech speed</label>
+    <select id="speechSpeed"><option value=".75">Slow</option><option value="1" selected>Normal</option><option value="1.2">Fast</option></select>
+    <div class="button-row"><button class="primary" onclick="speakIntro()">Test Voice</button><button class="secondary" onclick="repeatSpeech()">Repeat Last Message</button><button class="danger" onclick="stopSpeech()">Stop Speech</button></div>
+    <div id="voiceStatus" class="status" role="status" aria-live="polite">Voice settings ready.</div>
+    <div class="good-note"><strong>Accessibility tips</strong><ul><li>Use your device's screen reader if needed.</li><li>Allow location access when you want GPS-based guidance.</li><li>Use headphones only if you can still hear your surroundings safely.</li></ul></div>
   </div>
 </section>
 
-</main>
+<section id="screen-auth" class="screen">
+  <div class="card">
+    <h1>Login or Register</h1>
+    <p class="notice">This prototype uses local demo accounts, not production authentication. Do not reuse a real password.</p>
+    <h2>Login</h2>
+    <form id="loginForm">
+      <label for="loginEmail">Email</label><input id="loginEmail" type="email" required>
+      <label for="loginPassword">Demo password</label><input id="loginPassword" type="password" required>
+      <div class="button-row"><button class="primary">Login</button></div>
+    </form>
+    <div id="authStatus" class="status" role="status"></div>
+    <hr>
+    <h2>Create demo account</h2>
+    <form id="registerForm">
+      <label for="registerName">Name</label><input id="registerName" required maxlength="100">
+      <label for="registerEmail">Email</label><input id="registerEmail" type="email" required>
+      <label for="registerPassword">Demo password</label><input id="registerPassword" type="password" required minlength="4">
+      <div class="button-row"><button class="primary">Create Account</button></div>
+    </form>
+    <div id="registerStatus" class="status" role="status"></div>
+  </div>
+</section>
 
-<footer>
-  BlindPath is a hackathon prototype. It is not an emergency service and does not guarantee accessible or safe routes.
-</footer>
+<section id="screen-profile" class="screen">
+  <div class="card">
+    <h1>My Profile</h1><div id="profileSummary" class="status"></div>
+    <div id="profileContent">
+      <label for="profileName">Name</label><input id="profileName">
+      <label for="profileEmail">Email</label><input id="profileEmail" disabled>
+      <label for="accessibilityPreference">Accessibility preference</label>
+      <select id="accessibilityPreference"><option>Prefer not to say</option><option>Blind or low vision</option><option>Mobility assistance</option><option>Hearing assistance</option><option>Other accessibility need</option></select>
+      <div class="button-row"><button class="primary" onclick="saveProfile()">Save Profile</button><button class="danger" onclick="logout()">Logout</button></div>
+      <hr>
+      <h2>Demo OKU verification workflow</h2>
+      <p>This is a simulated workflow only and is not official verification.</p>
+      <span id="verificationBadge" class="pill">Not requested</span>
+      <p id="verificationExplanation" class="muted"></p>
+      <div class="button-row"><button class="secondary" id="requestVerificationButton" onclick="requestVerification()">Request Demo Review</button><button class="secondary" onclick="cancelVerification()">Cancel Request</button></div>
+      <details><summary>Demo reviewer controls</summary><p>For presentation only; these controls do not verify real documents.</p><div class="button-row"><button class="secondary" onclick="setDemoVerification('verified_demo')">Simulate Approval</button><button class="danger" onclick="setDemoVerification('unable')">Simulate Unable to Verify</button></div><div id="demoReviewerStatus" class="status"></div></details>
+    </div>
+  </div>
+</section>
+</main>
+<footer>BlindPath is a hackathon prototype. It is not an emergency service and does not guarantee accessible or safe routes.</footer>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 "use strict";
 
-/* SUPABASE CONFIGURATION
-   Replace these with your project's URL and publishable/anon key if needed.
-   Never place a service_role key in public browser code.
-*/
-const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co";
-const SUPABASE_KEY = "sb_publishable_7-BmS0Azcvescq78tsvJ6g_UQ5k-hk2";
+/* Supabase browser configuration. Never use a service_role key here. */
+const SUPABASE_URL="https://tdlngsxtcyfnlbzdkmlm.supabase.co";
+const SUPABASE_KEY="sb_publishable_7-BmS0Azcvescq78tsvJ6g_UQ5k-hk2";
+let cloudClient=null;
+try{if(window.supabase)cloudClient=window.supabase.createClient(SUPABASE_URL,SUPABASE_KEY)}catch(e){console.warn("Supabase unavailable",e)}
 
-let cloudClient = null;
-if (window.supabase && SUPABASE_URL && SUPABASE_KEY) {
-  try {
-    cloudClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  } catch (error) {
-    console.warn("Supabase initialization failed; local mode will be used.", error);
-  }
-}
+const $=id=>document.getElementById(id);
+let currentLang=localStorage.getItem("blindpath_language")||"en";
+let map=null,routeLayer=null,hazardLayer=null;
+let rawRouteSteps=[],guidanceSteps=[],currentStepIndex=0;
+let guidanceActive=false,locationWatchId=null,currentPosition=null;
+let currentRouteCoordinates=[],routeDistanceMetres=0;
+let currentReportPhoto="",lastSpokenMessage="";
+let reportCache=[],lastHazardWarnings=new Set(),lastHazardWarningAt=0;
+let startCoords=null,destinationCoords=null;
 
-const $ = id => document.getElementById(id);
-
-let currentLang = localStorage.getItem("blindpath_language") || "en";
-let lastSpokenMessage = "";
-let currentReportPhoto = "";
-let map = null;
-let routeLayer = null;
-let hazardLayer = null;
-let reportCache = [];
-let rawRouteSteps = [];
-let guidanceSteps = [];
-let currentStepIndex = 0;
-let guidanceActive = false;
-let locationWatchId = null;
-let currentPosition = null;
-let lastHazardWarnings = new Set();
-let lastHazardWarningAt = 0;
-let currentRouteCoordinates = [];
-let routeDistanceMetres = 0;
-
-const LANGUAGE_COPY = {
-  en: {
-    tagline: "Accessible journeys. More inclusive townships.",
-    homeTitle: "How can BlindPath help you?",
-    homeIntro: "Choose one action to get started. BlindPath is designed with accessibility in mind.",
-    nav: "Start Navigation",
-    report: "Report an Issue",
-    settings: "Voice & Settings",
-    community: "Community"
-  },
-  ms: {
-    tagline: "Perjalanan mudah diakses. Komuniti lebih inklusif.",
-    homeTitle: "Bagaimana BlindPath boleh membantu anda?",
-    homeIntro: "Pilih satu tindakan untuk bermula. BlindPath direka dengan mengambil kira kebolehcapaian.",
-    nav: "Mula Navigasi",
-    report: "Laporkan Isu",
-    settings: "Suara & Tetapan",
-    community: "Komuniti"
-  },
-  zh: {
-    tagline: "无障碍出行，让社区更包容。",
-    homeTitle: "BlindPath 可以怎样帮助您？",
-    homeIntro: "选择一项功能开始使用。BlindPath 注重无障碍体验。",
-    nav: "开始导航",
-    report: "报告问题",
-    settings: "语音与设置",
-    community: "社区"
-  }
+const COPY={
+ en:{tagline:"Accessible journeys. More inclusive townships.",home:"How can BlindPath help you?",intro:"Choose an action to get started.",nav:"Start Navigation",report:"Report an Issue",settings:"Voice & Settings",community:"Community"},
+ ms:{tagline:"Perjalanan mudah diakses. Komuniti lebih inklusif.",home:"Bagaimana BlindPath boleh membantu anda?",intro:"Pilih satu tindakan untuk bermula.",nav:"Mula Navigasi",report:"Laporkan Isu",settings:"Suara & Tetapan",community:"Komuniti"},
+ zh:{tagline:"无障碍出行，让社区更包容。",home:"BlindPath 可以怎样帮助您？",intro:"选择一项功能开始使用。",nav:"开始导航",report:"报告问题",settings:"语音与设置",community:"社区"}
 };
 
-function goTo(page) {
-  document.querySelectorAll(".screen").forEach(screen => {
-    screen.classList.toggle("active", screen.id === "screen-" + page);
-  });
-
-  if (page === "community") renderReports();
-  if (page === "profile") renderProfile();
-  if (page === "navigation") {
-    setTimeout(() => { if (map) map.invalidateSize(); }, 100);
-    loadHazardMarkers();
-  }
-
-  window.scrollTo({ top: 0, behavior: "auto" });
+function goTo(page){
+ document.querySelectorAll(".screen").forEach(s=>s.classList.toggle("active",s.id==="screen-"+page));
+ if(page==="community")renderReports();
+ if(page==="profile")renderProfile();
+ if(page==="navigation"){setTimeout(()=>{if(map)map.invalidateSize()},100);loadHazardMarkers()}
+ window.scrollTo({top:0,behavior:"auto"});
 }
+function openAccount(){goTo(getCurrentUser()?"profile":"auth")}
+function getCurrentUser(){try{return JSON.parse(localStorage.getItem("blindpath_current_user")||"null")}catch(e){return null}}
+function setCurrentUser(u){localStorage.setItem("blindpath_current_user",JSON.stringify(u));updateAccountButton()}
+function updateAccountButton(){$("accountButton").textContent=getCurrentUser()?"My Profile":"Login"}
+function getUsers(){try{return JSON.parse(localStorage.getItem("blindpath_users")||"[]")}catch(e){return []}}
+function saveUsers(a){localStorage.setItem("blindpath_users",JSON.stringify(a))}
+function getProfiles(){try{return JSON.parse(localStorage.getItem("blindpath_profiles")||"{}")}catch(e){return {}}}
+function getProfile(u){return getProfiles()[u.email]||{name:u.name,email:u.email,preference:"Prefer not to say",verification:"not_requested"}}
+function saveProfileData(p){const a=getProfiles();a[p.email]=p;localStorage.setItem("blindpath_profiles",JSON.stringify(a))}
 
-function openAccount() {
-  if (getCurrentUser()) goTo("profile");
-  else goTo("auth");
-}
-
-function updateAccountButton() {
-  const user = getCurrentUser();
-  $("accountButton").textContent = user ? "My Profile" : "Login";
-}
-
-function getCurrentUser() {
-  try {
-    return JSON.parse(localStorage.getItem("blindpath_current_user") || "null");
-  } catch {
-    return null;
-  }
-}
-
-function setCurrentUser(user) {
-  localStorage.setItem("blindpath_current_user", JSON.stringify(user));
-  updateAccountButton();
-}
-
-function getUsers() {
-  try {
-    return JSON.parse(localStorage.getItem("blindpath_users") || "[]");
-  } catch {
-    return [];
-  }
-}
-
-function saveUsers(users) {
-  localStorage.setItem("blindpath_users", JSON.stringify(users));
-}
-
-function getProfile(user) {
-  try {
-    const profiles = JSON.parse(localStorage.getItem("blindpath_profiles") || "{}");
-    return profiles[user.email] || {
-      name: user.name,
-      email: user.email,
-      preference: "Prefer not to say",
-      verification: "not_requested"
-    };
-  } catch {
-    return {
-      name: user.name,
-      email: user.email,
-      preference: "Prefer not to say",
-      verification: "not_requested"
-    };
-  }
-}
-
-function saveProfileData(profile) {
-  const profiles = JSON.parse(localStorage.getItem("blindpath_profiles") || "{}");
-  profiles[profile.email] = profile;
-  localStorage.setItem("blindpath_profiles", JSON.stringify(profiles));
-}
-
-$("loginForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const email = $("loginEmail").value.trim().toLowerCase();
-  const password = $("loginPassword").value;
-  const user = getUsers().find(item => item.email === email && item.password === password);
-
-  if (!user) {
-    $("authStatus").textContent = "Login failed. Check the email and demo password, or create an account.";
-    return;
-  }
-
-  setCurrentUser({ name: user.name, email: user.email });
-  $("authStatus").textContent = "Login successful.";
-  goTo("profile");
+$("loginForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const email=$("loginEmail").value.trim().toLowerCase(),password=$("loginPassword").value;
+ const u=getUsers().find(x=>x.email===email&&x.password===password);
+ if(!u){$("authStatus").textContent="Login failed. Check your demo details or create an account.";return}
+ setCurrentUser({name:u.name,email:u.email});goTo("profile");renderProfile()
 });
-
-$("registerForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const name = $("registerName").value.trim();
-  const email = $("registerEmail").value.trim().toLowerCase();
-  const password = $("registerPassword").value;
-
-  if (!name || !email || !password) return;
-
-  const users = getUsers();
-  if (users.some(user => user.email === email)) {
-    $("registerStatus").textContent = "An account with this email already exists on this browser.";
-    return;
-  }
-
-  users.push({ name, email, password });
-  saveUsers(users);
-
-  const user = { name, email };
-  setCurrentUser(user);
-  saveProfileData({
-    name, email,
-    preference: "Prefer not to say",
-    verification: "not_requested"
-  });
-
-  $("registerStatus").textContent = "Account created on this device.";
-  goTo("profile");
+$("registerForm").addEventListener("submit",e=>{
+ e.preventDefault();
+ const name=$("registerName").value.trim(),email=$("registerEmail").value.trim().toLowerCase(),password=$("registerPassword").value;
+ const users=getUsers();
+ if(users.some(u=>u.email===email)){$("registerStatus").textContent="An account with this email already exists on this browser.";return}
+ users.push({name,email,password});saveUsers(users);
+ setCurrentUser({name,email});saveProfileData({name,email,preference:"Prefer not to say",verification:"not_requested"});
+ goTo("profile");renderProfile()
 });
+function renderProfile(){
+ const u=getCurrentUser();$("profileContent").classList.toggle("hidden",!u);
+ if(!u){$("profileSummary").textContent="Please log in to view your profile.";return}
+ const p=getProfile(u);
+ $("profileSummary").textContent="Signed in as "+u.email+". Demo profile stored on this browser.";
+ $("profileName").value=p.name||u.name;$("profileEmail").value=u.email;
+ $("accessibilityPreference").value=p.preference||"Prefer not to say";renderVerification(p)
+}
+function saveProfile(){
+ const u=getCurrentUser();if(!u)return goTo("auth");
+ const p=getProfile(u);p.name=$("profileName").value.trim()||u.name;p.preference=$("accessibilityPreference").value;
+ saveProfileData(p);setCurrentUser({name:p.name,email:u.email});
+ const users=getUsers(),i=users.findIndex(x=>x.email===u.email);if(i>=0){users[i].name=p.name;saveUsers(users)}
+ $("profileSummary").textContent="Profile saved on this browser."
+}
+function logout(){localStorage.removeItem("blindpath_current_user");updateAccountButton();goTo("home")}
+function renderVerification(p){
+ const states={
+ not_requested:["Not requested","No demo request has been submitted.",""],
+ pending:["Pending","Your demo request is awaiting review.","pending"],
+ verified_demo:["Demo approved","Simulated approval only. This is not official OKU verification.","verified"],
+ unable:["Unable to verify","This demo could not verify the request. Accessibility features remain available.","rejected"]
+ };
+ const s=states[p.verification]||states.not_requested;
+ $("verificationBadge").textContent=s[0];$("verificationBadge").className="pill "+s[2];
+ $("verificationExplanation").textContent=s[1];
+ $("requestVerificationButton").disabled=p.verification==="pending"||p.verification==="verified_demo"
+}
+function updateVerification(v){
+ const u=getCurrentUser();if(!u)return goTo("auth");
+ const p=getProfile(u);p.verification=v;saveProfileData(p);renderVerification(p)
+}
+function requestVerification(){updateVerification("pending");$("demoReviewerStatus").textContent="Demo request set to Pending."}
+function cancelVerification(){updateVerification("not_requested");$("demoReviewerStatus").textContent="Demo request cancelled."}
+function setDemoVerification(v){updateVerification(v);$("demoReviewerStatus").textContent="Demo verification status updated."}
 
-function renderProfile() {
-  const user = getCurrentUser();
-  const summary = $("profileSummary");
-  const content = $("profileContent");
-
-  if (!user) {
-    summary.textContent = "Please log in to view your profile.";
-    content.classList.add("hidden");
-    return;
-  }
-
-  content.classList.remove("hidden");
-  const profile = getProfile(user);
-  $("profileName").value = profile.name || user.name || "";
-  $("profileEmail").value = user.email;
-  $("accessibilityPreference").value = profile.preference || "Prefer not to say";
-
-  summary.textContent = "Signed in as " + user.email + ". Profile data is stored on this browser.";
-  renderVerification(profile);
+function changeLanguage(){
+ currentLang=$("languageSelect").value;localStorage.setItem("blindpath_language",currentLang);
+ const c=COPY[currentLang]||COPY.en;
+ $("tagline").textContent=c.tagline;$("homeTitle").textContent=c.home;$("homeIntro").textContent=c.intro;
+ $("navCardTitle").textContent=c.nav;$("reportCardTitle").textContent=c.report;
+ $("settingsCardTitle").textContent=c.settings;$("communityCardTitle").textContent=c.community;
+ guidanceSteps=rawRouteSteps.map((s,i)=>makeStepInstruction(s,i));renderGuidanceSteps();
+ if(guidanceSteps.length)showGuidanceStep(currentStepIndex,false);
+ speak(currentLang==="zh"?"语言已更改。":currentLang==="ms"?"Bahasa telah ditukar.":"Language changed.")
 }
 
-function saveProfile() {
-  const user = getCurrentUser();
-  if (!user) return goTo("auth");
-
-  const profile = getProfile(user);
-  profile.name = $("profileName").value.trim() || user.name;
-  profile.preference = $("accessibilityPreference").value;
-  saveProfileData(profile);
-  setCurrentUser({ name: profile.name, email: user.email });
-
-  const users = getUsers();
-  const index = users.findIndex(item => item.email === user.email);
-  if (index >= 0) {
-    users[index].name = profile.name;
-    saveUsers(users);
-  }
-
-  $("profileSummary").textContent = "Profile saved on this browser.";
+function initMap(){
+ if(!window.L){$("routeStatus").textContent="Map library failed to load. Check your internet connection.";return}
+ map=L.map("map").setView([3.139,101.6869],13);
+ L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(map);
+ routeLayer=L.layerGroup().addTo(map);hazardLayer=L.layerGroup().addTo(map)
+}
+function useMyLocation(){
+ $("routeStatus").textContent="Requesting your current location…";
+ if(!navigator.geolocation){$("routeStatus").textContent="Geolocation is not supported by this browser.";return}
+ navigator.geolocation.getCurrentPosition(pos=>{
+  currentPosition={lat:pos.coords.latitude,lng:pos.coords.longitude};
+  startCoords=[currentPosition.lat,currentPosition.lng];
+  $("startLocation").value="My current location";
+  $("routeStatus").textContent="Current location found. Accuracy approximately "+Math.round(pos.coords.accuracy)+" metres.";
+  if(map)map.setView(startCoords,16)
+ },err=>{$("routeStatus").textContent="Could not get location: "+err.message+" Use an address instead."},{enableHighAccuracy:true,timeout:12000,maximumAge:5000})
+}
+async function geocodeAddress(q){
+ const url="https://nominatim.openstreetmap.org/search?format=json&limit=1&q="+encodeURIComponent(q);
+ const r=await fetch(url,{headers:{"Accept-Language":"en"}});
+ if(!r.ok)throw new Error("Address lookup failed");
+ const data=await r.json();if(!data.length)throw new Error("Address not found: "+q);
+ return {lat:Number(data[0].lat),lng:Number(data[0].lon),name:data[0].display_name}
+}
+async function findRoute(){
+ const startText=$("startLocation").value.trim(),destText=$("destination").value.trim();
+ if(!destText){$("routeStatus").textContent="Please enter a destination.";return}
+ $("routeStatus").textContent="Finding route…";
+ try{
+  if(startText.toLowerCase().includes("current location")&&currentPosition)startCoords=[currentPosition.lat,currentPosition.lng];
+  else if(startText) {const p=await geocodeAddress(startText);startCoords=[p.lat,p.lng]}
+  else if(currentPosition)startCoords=[currentPosition.lat,currentPosition.lng];
+  else throw new Error("Enter a starting point or choose Use My Current Location.");
+  const d=await geocodeAddress(destText);destinationCoords=[d.lat,d.lng];
+  const mode=$("travelMode").value;
+  const profile=mode==="driving"?"driving":"foot";
+  const url=`https://router.project-osrm.org/route/v1/${profile}/${startCoords[1]},${startCoords[0]};${destinationCoords[1]},${destinationCoords[0]}?overview=full&geometries=geojson&steps=true`;
+  const response=await fetch(url);if(!response.ok)throw new Error("Routing service unavailable");
+  const result=await response.json();if(result.code!=="Ok"||!result.routes.length)throw new Error("No route was found");
+  const route=result.routes[0];routeDistanceMetres=route.distance;
+  currentRouteCoordinates=route.geometry.coordinates.map(c=>[c[1],c[0]]);
+  rawRouteSteps=route.legs.flatMap(leg=>leg.steps||[]);
+  guidanceSteps=rawRouteSteps.map((s,i)=>makeStepInstruction(s,i));currentStepIndex=0;
+  routeLayer.clearLayers();L.polyline(currentRouteCoordinates,{color:"#1769aa",weight:6,opacity:.85}).addTo(routeLayer);
+  L.marker(startCoords).addTo(routeLayer).bindPopup("Starting point");
+  L.marker(destinationCoords).addTo(routeLayer).bindPopup("Destination");
+  map.fitBounds(L.latLngBounds(currentRouteCoordinates),{padding:[25,25]});
+  renderGuidanceSteps();showGuidanceStep(0,false);
+  $("routeStatus").textContent=`Route found: ${(route.distance/1000).toFixed(1)} km, estimated ${(route.duration/60).toFixed(0)} minutes.`;
+  await loadHazardMarkers();
+ }catch(e){$("routeStatus").textContent=e.message||"Could not find route. Please try again."}
+}
+function clearRoute(){
+ stopGuidance();routeLayer&&routeLayer.clearLayers();rawRouteSteps=[];guidanceSteps=[];currentRouteCoordinates=[];
+ $("guidanceSteps").replaceChildren();$("currentInstruction").textContent="Find a route to see instructions.";
+ $("instructionMeta").textContent="Voice guidance has not started.";$("routeStatus").textContent="Route cleared."
 }
 
-function logout() {
-  localStorage.removeItem("blindpath_current_user");
-  updateAccountButton();
-  goTo("home");
+function distanceMetres(a,b){
+ const rad=n=>n*Math.PI/180,R=6371000;
+ const dLat=rad(b[0]-a[0]),dLon=rad(b[1]-a[1]),lat1=rad(a[0]),lat2=rad(b[0]);
+ const h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLon/2)**2;
+ return 2*R*Math.asin(Math.sqrt(h))
 }
-
-function renderVerification(profile) {
-  const badge = $("verificationBadge");
-  const explanation = $("verificationExplanation");
-  const button = $("requestVerificationButton");
-
-  const labels = {
-    not_requested: ["Not requested", "No verification request has been submitted.", ""],
-    pending: ["Pending", "Your demo request is awaiting review.", "pending"],
-    verified_demo: ["Demo approved", "This is a simulated approval only; it is not official OKU verification.", "verified"],
-    unable: ["Unable to verify", "This demo could not verify the request. It does not affect access to accessibility features.", "rejected"]
+function formatDistance(m){
+ if(!Number.isFinite(m)||m<1)return "";
+ return m>=1000?(m/1000).toFixed(1)+" kilometres":Math.round(m)+" metres"
+}
+function makeStepInstruction(step,index){
+ const type=step.maneuver?.type||"continue",mod=step.maneuver?.modifier||"";
+ const street=step.name?` onto ${step.name}`:"";
+ const dist=formatDistance(step.distance);
+ let phrase;
+ if(type==="depart")phrase=currentLang==="zh"?"开始行走":currentLang==="ms"?"Mulakan perjalanan":"Start moving";
+ else if(type==="arrive")phrase=currentLang==="zh"?"您已到达目的地":currentLang==="ms"?"Anda telah tiba di destinasi":"You have arrived at your destination";
+ else if(type==="turn"||type==="end of road"||type==="fork"||type==="on ramp"||type==="off ramp"){
+  const dirs={
+   left:currentLang==="zh"?"左转":currentLang==="ms"?"belok kiri":"turn left",
+   right:currentLang==="zh"?"右转":currentLang==="ms"?"belok kanan":"turn right",
+   "slight left":currentLang==="zh"?"稍向左转":currentLang==="ms"?"belok sedikit ke kiri":"turn slightly left",
+   "slight right":currentLang==="zh"?"稍向右转":currentLang==="ms"?"belok sedikit ke kanan":"turn slightly right",
+   straight:currentLang==="zh"?"直行":currentLang==="ms"?"teruskan perjalanan":"continue straight",
+   uturn:currentLang==="zh"?"掉头":currentLang==="ms"?"buat pusingan U":"make a U-turn"
   };
-
-  const state = labels[profile.verification] ? profile.verification : "not_requested";
-  const [label, text, className] = labels[state];
-  badge.textContent = label;
-  badge.className = "pill " + className;
-  explanation.textContent = text;
-  button.disabled = state === "pending" || state === "verified_demo";
+  phrase=dirs[mod]|| (currentLang==="zh"?"继续前进":currentLang==="ms"?"teruskan perjalanan":"continue");
+ }else if(type==="roundabout"||type==="rotary"){
+  phrase=currentLang==="zh"?"进入环岛并按路线行驶":currentLang==="ms"?"Masuk bulatan dan ikut laluan":"Enter the roundabout and follow the route";
+ }else phrase=currentLang==="zh"?"继续前进":currentLang==="ms"?"Teruskan perjalanan":"Continue straight";
+ if(street)phrase+=street;
+ if(dist)phrase+=currentLang==="zh"?`，距离 ${dist}`:currentLang==="ms"?`, dalam ${dist}`:`, for ${dist}`;
+ return {text:phrase,raw:step,index,coordinate:step.maneuver?.location?[step.maneuver.location[1],step.maneuver.location[0]]:null}
+}
+function renderGuidanceSteps(){
+ const list=$("guidanceSteps");list.replaceChildren();
+ if(!guidanceSteps.length){const li=document.createElement("li");li.textContent="Route instructions will appear here.";list.appendChild(li);return}
+ guidanceSteps.forEach((s,i)=>{const li=document.createElement("li");li.textContent=s.text;li.dataset.index=i;if(i===currentStepIndex)li.classList.add("current");list.appendChild(li)})
+}
+function showGuidanceStep(index,shouldSpeak=true){
+ if(!guidanceSteps.length)return;
+ currentStepIndex=Math.max(0,Math.min(index,guidanceSteps.length-1));
+ const s=guidanceSteps[currentStepIndex];
+ $("currentInstruction").textContent=s.text;
+ $("instructionMeta").textContent=`Instruction ${currentStepIndex+1} of ${guidanceSteps.length}`+(s.raw?.distance?` · ${formatDistance(s.raw.distance)}`:"");
+ $("guidanceSteps").querySelectorAll("li").forEach((li,i)=>li.classList.toggle("current",i===currentStepIndex));
+ if(shouldSpeak)speak(s.text);
+}
+function startGuidance(){
+ if(!guidanceSteps.length){$("guidanceStatus").textContent="Find a route before starting guidance.";return}
+ guidanceActive=true;lastHazardWarnings=new Set();
+ $("guidancePanel").classList.add("active-guidance");
+ $("guidanceStatus").textContent="Voice guidance is active. Keep aware of your surroundings.";
+ $("startGuidanceButton").textContent="Guidance Active";
+ showGuidanceStep(currentStepIndex,true);
+ if(navigator.geolocation){
+  locationWatchId=navigator.geolocation.watchPosition(onGuidancePosition,err=>{
+   $("gpsLabel").textContent="GPS unavailable";$("gpsDot").classList.remove("live");
+   $("guidanceStatus").textContent="Voice guidance continues, but GPS auto-advance is unavailable. Use Next Instruction.";
+  },{enableHighAccuracy:true,maximumAge:3000,timeout:15000})
+ }else $("guidanceStatus").textContent="GPS unavailable. Use Next Instruction to advance."
+}
+function stopLocationWatch(){if(locationWatchId!==null&&navigator.geolocation)navigator.geolocation.clearWatch(locationWatchId);locationWatchId=null}
+function stopGuidance(){
+ guidanceActive=false;stopLocationWatch();stopSpeech();
+ $("guidancePanel").classList.remove("active-guidance");$("startGuidanceButton").textContent="Start Voice Guidance";
+ $("guidanceStatus").textContent="Voice guidance is stopped.";$("gpsLabel").textContent="GPS not active";$("gpsDot").classList.remove("live")
+}
+function repeatCurrentInstruction(){
+ if(!guidanceSteps.length){speak("Find a route before requesting instructions.");return}
+ speak(guidanceSteps[currentStepIndex].text)
+}
+function nextInstruction(){
+ if(!guidanceSteps.length)return;
+ if(currentStepIndex<guidanceSteps.length-1)showGuidanceStep(currentStepIndex+1,true);
+ else {speak(currentLang==="zh"?"您已到达路线终点。":currentLang==="ms"?"Anda telah sampai ke hujung laluan.":"You have reached the end of the route.");$("guidanceStatus").textContent="End of route instructions."}
+}
+function onGuidancePosition(pos){
+ currentPosition={lat:pos.coords.latitude,lng:pos.coords.longitude};
+ $("gpsDot").classList.add("live");$("gpsLabel").textContent="GPS active · accuracy "+Math.round(pos.coords.accuracy)+" m";
+ if(!guidanceActive)return;
+ const s=guidanceSteps[currentStepIndex];
+ if(s?.coordinate){
+  const dist=distanceMetres([currentPosition.lat,currentPosition.lng],s.coordinate);
+  if(currentStepIndex<guidanceSteps.length-1&&dist<28)showGuidanceStep(currentStepIndex+1,true)
+ }
+ warnNearbyHazards()
 }
 
-function updateVerification(state) {
-  const user = getCurrentUser();
-  if (!user) return goTo("auth");
+/* REPORTS: use existing public.reports columns. */
+function getReports(){try{return JSON.parse(localStorage.getItem("blindpath_reports")||"[]")}catch(e){return []}}
+function saveReports(r){localStorage.setItem("blindpath_reports",JSON.stringify(r))}
+async function getAllReports(){
+ let cloud=[];
+ if(cloudClient){
+  try{
+   const {data,error}=await cloudClient.from("reports").select("*").order("created_at",{ascending:false}).limit(200);
+   if(!error&&Array.isArray(data))cloud=data;
+   else if(error)console.warn("Supabase report fetch failed",error.message)
+  }catch(e){console.warn(e)}
+ }
+ const local=getReports();
+ const seen=new Set(cloud.map(r=>String(r.id)));
+ const combined=[...cloud,...local.filter(r=>!seen.has(String(r.id)))];
+ reportCache=combined;return combined
+}
+async function geocodeReportLocation(q){
+ try{const p=await geocodeAddress(q);return {lat:p.lat,lng:p.lng}}catch(e){return null}
+}
+$("reportPhoto").addEventListener("change",()=>{
+ const f=$("reportPhoto").files?.[0];currentReportPhoto="";
+ if(!f){$("photoPreview").replaceChildren();return}
+ if(!f.type.startsWith("image/")){alert("Please select an image.");$("reportPhoto").value="";return}
+ if(f.size>1200000){alert("Please use an image smaller than 1.2 MB.");$("reportPhoto").value="";return}
+ const reader=new FileReader();
+ reader.onload=()=>{currentReportPhoto=reader.result;$("photoPreview").replaceChildren();const img=document.createElement("img");img.className="report-photo";img.src=currentReportPhoto;img.alt="Selected report photo preview";$("photoPreview").appendChild(img)};
+ reader.readAsDataURL(f)
+});
+$("reportForm").addEventListener("submit",async e=>{
+ e.preventDefault();
+ const button=$("reportForm").querySelector('button[type="submit"]');button.disabled=true;
+ $("gpsStatus").textContent="Saving report…";
+ const location=$("reportLocation").value.trim();
+ const coords=await geocodeReportLocation(location);
+ const report={
+  type:$("issueType").value,location,details:$("reportDetails").value.trim(),
+  photo:currentReportPhoto,author:getCurrentUser()?.name||"Anonymous",
+  lat:coords?.lat??null,lng:coords?.lng??null,solved_count:0,is_solved:false,
+  created_at:new Date().toISOString()
+ };
+ let cloudSaved=false;
+ if(cloudClient){
+  try{
+   const {data,error}=await cloudClient.from("reports").insert([report]).select();
+   if(!error&&data?.[0]){report.id=data[0].id;cloudSaved=true}
+   else console.warn("Supabase insert failed; saving locally.",error?.message)
+  }catch(err){console.warn(err)}
+ }
+ if(!cloudSaved){
+  report.id="local_"+Date.now();
+  try{const local=getReports();local.unshift(report);saveReports(local)}
+  catch(err){$("gpsStatus").textContent="Could not save locally. Browser storage may be full.";button.disabled=false;return}
+ }
+ $("reportForm").reset();currentReportPhoto="";$("photoPreview").replaceChildren();button.disabled=false;
+ $("gpsStatus").textContent=cloudSaved?"Report shared through Supabase.":"Report saved on this browser. Cloud sharing was unavailable.";
+ renderReports();loadHazardMarkers();speak("Your accessibility report has been saved.")
+});
+async function renderReports(){
+ const list=$("reportList");if(!list)return;
+ list.replaceChildren();const reports=await getAllReports();
+ if(!reports.length){list.textContent="No reports found.";return}
+ reports.forEach(r=>{
+  const item=document.createElement("div");item.className="report-item";
+  const title=document.createElement("strong");title.textContent=r.type||"Accessibility issue";item.appendChild(title);
+  const pill=document.createElement("span");pill.className="pill";pill.textContent=r.created_at?new Date(r.created_at).toLocaleString():"Date unavailable";item.append(" ",pill);
+  const loc=document.createElement("p");loc.textContent="Location: "+(r.location||"Not provided");item.appendChild(loc);
+  if(r.details){const d=document.createElement("p");d.textContent="Details: "+r.details;item.appendChild(d)}
+  if(r.photo){const img=document.createElement("img");img.className="report-photo";img.src=r.photo;img.alt="Photo attached to report";item.appendChild(img)}
+  const status=document.createElement("p");status.className="muted";status.textContent="Solved confirmations: "+Number(r.solved_count||0)+"/2";item.appendChild(status);
+  const solved=document.createElement("button");solved.className="secondary";solved.textContent="Confirm issue is solved";solved.addEventListener("click",()=>markProblemSolved(r.id));item.appendChild(solved);
+  if(String(r.id).startsWith("local_")){const del=document.createElement("button");del.className="danger";del.style.marginLeft="8px";del.textContent="Delete local report";del.addEventListener("click",()=>deleteReport(r.id));item.appendChild(del)}
+  list.appendChild(item)
+ })
+}
+async function markProblemSolved(id){
+ const voted=JSON.parse(localStorage.getItem("blindpath_solved_votes")||"[]");
+ if(voted.includes(String(id))){alert("You already confirmed this report on this browser.");return}
+ const r=reportCache.find(x=>String(x.id)===String(id));if(!r)return;
+ const count=Number(r.solved_count||0)+1,solved=count>=2;
+ if(cloudClient&&!String(id).startsWith("local_")){
+  try{const {error}=await cloudClient.from("reports").update({solved_count:count,is_solved:solved}).eq("id",id);if(error)console.warn(error.message)}catch(e){console.warn(e)}
+ }
+ const local=getReports(),i=local.findIndex(x=>String(x.id)===String(id));
+ if(i>=0){local[i].solved_count=count;local[i].is_solved=solved;saveReports(local)}
+ voted.push(String(id));localStorage.setItem("blindpath_solved_votes",JSON.stringify(voted));
+ alert(solved?"Two confirmations recorded.":"Thank you. One confirmation recorded; another is needed.");
+ renderReports();loadHazardMarkers()
+}
+function deleteReport(id){saveReports(getReports().filter(r=>String(r.id)!==String(id)));renderReports();loadHazardMarkers()}
+function clearReports(){if(!confirm("Delete all locally saved reports from this browser?"))return;saveReports([]);renderReports();loadHazardMarkers()}
 
-  const profile = getProfile(user);
-  profile.verification = state;
-  saveProfileData(profile);
-  renderVerification(profile);
+function createHazardIcon(){return L.divIcon({className:"",html:'<div class="hazard-marker" aria-label="Reported hazard">!</div>',iconSize:[32,32],iconAnchor:[16,16]})}
+async function loadHazardMarkers(){
+ if(!map||!hazardLayer)return;
+ hazardLayer.clearLayers();const reports=await getAllReports();
+ reports.filter(r=>!r.is_solved&&r.lat!=null&&r.lng!=null).forEach(r=>{
+  const lat=Number(r.lat),lng=Number(r.lng);if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
+  const marker=L.marker([lat,lng],{icon:createHazardIcon()});
+  const popup=document.createElement("div"),title=document.createElement("strong");
+  title.textContent="Reported hazard: "+(r.type||"Accessibility issue");popup.appendChild(title);
+  const p=document.createElement("p");p.textContent=r.location||"Location not provided";popup.appendChild(p);
+  const d=document.createElement("p");d.textContent=r.details||"";popup.appendChild(d);
+  const b=document.createElement("button");b.className="secondary";b.textContent="Confirm issue solved";b.addEventListener("click",()=>markProblemSolved(r.id));popup.appendChild(b);
+  marker.bindPopup(popup);hazardLayer.addLayer(marker)
+ })
+}
+async function warnNearbyHazards(){
+ if(!currentPosition||!guidanceActive)return;
+ const reports=(await getAllReports()).filter(r=>!r.is_solved&&r.lat!=null&&r.lng!=null);
+ const nearby=reports.filter(r=>distanceMetres([currentPosition.lat,currentPosition.lng],[Number(r.lat),Number(r.lng)])<70);
+ const fresh=nearby.filter(r=>!lastHazardWarnings.has(String(r.id)));
+ if(!fresh.length||Date.now()-lastHazardWarningAt<8000)return;
+ fresh.forEach(r=>lastHazardWarnings.add(String(r.id)));lastHazardWarningAt=Date.now();
+ const r=fresh[0],msg=currentLang==="zh"?"警告，附近有社区报告的无障碍问题："+(r.type||"障碍物"):
+ currentLang==="ms"?"Amaran, terdapat laporan isu kebolehcapaian berhampiran: "+(r.type||"halangan"):
+ "Warning, a community accessibility issue was reported nearby: "+(r.type||"hazard");
+ $("hazardWarnings").replaceChildren();const w=document.createElement("div");w.className="hazard-warning";w.textContent=msg+" — "+(r.location||"location not specified");$("hazardWarnings").appendChild(w);speak(msg)
 }
 
-function requestVerification() {
-  updateVerification("pending");
-  $("demoReviewerStatus").textContent = "Demo request set to Pending.";
+/* Web Speech API */
+function loadVoices(){
+ if(!("speechSynthesis"in window))return;
+ const populate=()=>{
+  const select=$("voiceSelect"),old=select.value;select.replaceChildren();
+  const opt=document.createElement("option");opt.value="";opt.textContent="Default device voice";select.appendChild(opt);
+  speechSynthesis.getVoices().forEach((v,i)=>{const o=document.createElement("option");o.value=String(i);o.textContent=v.name+" ("+v.lang+")";select.appendChild(o)});
+  if([...select.options].some(o=>o.value===old))select.value=old
+ };
+ populate();speechSynthesis.onvoiceschanged=populate
 }
-
-function cancelVerification() {
-  updateVerification("not_requested");
-  $("demoReviewerStatus").textContent = "Demo request cancelled.";
+function speak(message){
+ lastSpokenMessage=message;
+ if(!("speechSynthesis"in window)){$("voiceStatus").textContent="Speech is not supported by this browser.";return}
+ speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(message);
+ u.lang=currentLang==="zh"?"zh-CN":currentLang==="ms"?"ms-MY":"en-MY";
+ u.rate=Number($("speechSpeed").value)||1;
+ const voice=$("voiceSelect").value,voices=speechSynthesis.getVoices();if(voice!==""&&voices[Number(voice)])u.voice=voices[Number(voice)];
+ u.onstart=()=>{$("voiceStatus").textContent="Speaking…"};u.onend=()=>{$("voiceStatus").textContent="Speech finished."};
+ u.onerror=()=>{$("voiceStatus").textContent="Speech could not be played. Try another voice."};speechSynthesis.speak(u)
 }
-
-function setDemoVerification(state) {
-  updateVerification(state);
-  $("demoReviewerStatus").textContent = "Demo verification status updated.";
+function speakIntro(){
+ const m=currentLang==="zh"?"欢迎使用 BlindPath。您可以开始导航、报告无障碍问题或查看社区报告。":
+ currentLang==="ms"?"Selamat datang ke BlindPath. Anda boleh mula navigasi, melaporkan isu kebolehcapaian atau melihat laporan komuniti.":
+ "Welcome to BlindPath. You can start navigation, report accessibility issues, or view community reports.";
+ speak(m)
 }
+function repeatSpeech(){speak(lastSpokenMessage||"Welcome to BlindPath.")}
+function stopSpeech(){if("speechSynthesis"in window)speechSynthesis.cancel();$("voiceStatus").textContent="Speech stopped."}
 
-function changeLanguage() {
-  currentLang = $("languageSelect").value;
-  localStorage.setItem("blindpath_language", currentLang);
-  const copy = LANGUAGE_COPY[currentLang] || LANGUAGE_COPY.en;
-
-  $("tagline").textContent = copy.tagline;
-  $("homeTitle").textContent = copy.homeTitle;
-  $("homeIntro").textContent = copy.homeIntro;
-  $("navCardTitle").textContent = copy.nav;
-  $("reportCardTitle").textContent = copy.report;
-  $("settingsCardTitle").textContent = copy.settings;
-  $("communityCardTitle").textContent = copy.community;
-
-  guidanceSteps = rawRouteSteps.map((step, index) => makeStepInstruction(step, index));
-  renderGuidanceSteps();
-  if (guidanceSteps.length) showGuidanceStep(currentStepIndex, false);
-  speak(currentLang === "zh" ? "语言已更改。" : currentLang === "ms" ? "Bahasa telah ditukar." : "Language changed.");
-}
-
-**Important correction:** the continuation above got mixed with another version of the page, so please **do not combine those pasted sections**.
-
-Use the verified complete file here instead: [BlindPath_Voice_Guided.html](sandbox:/mnt/data/BlindPath_Voice_Guided.html).
-
-It contains the full HTML, CSS and JavaScript in one file. I don’t want to give you mismatched code that makes your buttons stop working again.
+/* Startup and runtime diagnostics */
+window.addEventListener("error",e=>{
+ const p=$("runtimeError");if(p){p.style.display="block";p.textContent="BlindPath JavaScript error: "+(e.message||"Unknown error")+". Open the browser Console for details."}
+});
+window.addEventListener("unhandledrejection",e=>{
+ const p=$("runtimeError");if(p){p.style.display="block";p.textContent="BlindPath async error: "+(e.reason?.message||String(e.reason||"Unknown error"))}
+});
+window.addEventListener("load",async()=>{
+ $("languageSelect").value=COPY[currentLang]?currentLang:"en";changeLanguage();
+ initMap();loadVoices();updateAccountButton();renderReports();
+ $("connectionStatus").textContent=cloudClient?"Supabase client initialized. Reports sync when table permissions allow.":"Supabase unavailable; local report storage will be used.";
+ if(getCurrentUser())renderProfile()
+});
+window.addEventListener("beforeunload",()=>{stopLocationWatch();if("speechSynthesis"in window)speechSynthesis.cancel()});
+</script>
+</body>
+</html>
