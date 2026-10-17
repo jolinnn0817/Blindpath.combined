@@ -88,10 +88,12 @@ textarea { min-height:90px; resize:vertical; }
 .pending { background:#fff2ce; color:#795500; }
 .verified { background:#dff4e5; color:#176536; }
 .rejected { background:#fde7e7; color:#9c2525; }
-#map,#managementMap {
-  position:relative; overflow:hidden; z-index:0; height:350px;
-  border-radius:12px; border:1px solid var(--line); margin-top:12px;
+#map,#managementMap,#reportLocationMap {
+  position:relative; overflow:hidden; z-index:0;
+  height:350px; border-radius:12px;
+  border:1px solid var(--line); margin-top:12px;
 }
+#reportLocationMap { height:230px; margin:12px 0; }
 .route-score-card {
   border:1px solid var(--line); border-radius:12px;
   padding:15px; margin:13px 0; background:#fff;
@@ -143,7 +145,8 @@ summary { cursor:pointer; font-weight:700; padding:8px 0; }
 .mode-choice { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .mode-card {
   text-align:left; min-height:170px; padding:22px;
-  background:#fff; color:#17231f; border:3px solid #174c3c; border-radius:14px;
+  background:#fff; color:#17231f;
+  border:3px solid #174c3c; border-radius:14px;
 }
 .mode-card strong { display:block; font-size:1.35rem; margin-bottom:8px; }
 .mode-card[aria-pressed="true"] { background:#e9f4ee; }
@@ -172,6 +175,18 @@ body.accessible-mode header :focus-visible { outline-color:#ffbf47; }
   border-radius:12px; background:var(--light-green);
 }
 .dashboard-stat strong { display:block; font-size:1.8rem; }
+.confirm-location {
+  display:flex; align-items:flex-start; gap:12px; padding:12px;
+  border:1px solid var(--line); border-radius:10px;
+}
+.confirm-location input {
+  width:24px; height:24px; min-height:24px !important;
+  flex-shrink:0; margin-top:3px;
+}
+.review-details dt { font-weight:700; margin-top:12px; }
+.review-details dd {
+  margin:4px 0 12px; white-space:pre-wrap; overflow-wrap:anywhere;
+}
 @media(max-width:620px) {
   .home-grid,.field-grid,.mode-choice { grid-template-columns:1fr; }
   .dashboard-stats { grid-template-columns:1fr 1fr; }
@@ -245,7 +260,6 @@ window.addEventListener("unhandledrejection", function(event) {
       Choose the layout that works for you. You can switch anytime.
       No account or OKU verification is needed.
     </p>
-
     <div class="mode-choice">
       <button class="mode-card" id="accessibleModeButton"
               aria-pressed="false" onclick="chooseAppMode('accessible')">
@@ -253,14 +267,12 @@ window.addEventListener("unhandledrejection", function(event) {
         Larger controls, higher contrast and quick access to navigation,
         reporting and voice settings.
       </button>
-
       <button class="mode-card" id="publicModeButton"
               aria-pressed="false" onclick="chooseAppMode('public')">
         <strong>Public Mode</strong>
         The standard map, community reports and full journey options.
       </button>
     </div>
-
     <p id="appModeStatus" class="status" role="status" aria-live="polite">
       Select a mode to get started.
     </p>
@@ -298,7 +310,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <button class="home-action" onclick="goTo('report')">
         <span class="symbol" aria-hidden="true">⚑</span>
         <strong id="reportCardTitle">Report an Issue</strong>
-        <small>Report obstacles with an optional photo or video</small>
+        <small>Review your report before submitting</small>
       </button>
       <button class="home-action" onclick="goTo('settings')">
         <span class="symbol" aria-hidden="true">🔊</span>
@@ -421,6 +433,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <div id="profileContent" class="hidden">
       <h2>Profile Details</h2>
+
       <label for="profileName">Display Name</label>
       <input id="profileName" maxlength="60">
 
@@ -482,8 +495,7 @@ window.addEventListener("unhandledrejection", function(event) {
           These controls do not verify a person's actual OKU status.
         </p>
         <div class="button-row">
-          <button class="primary"
-                  onclick="setDemoVerification('verified_demo')">
+          <button class="primary" onclick="setDemoVerification('verified_demo')">
             Simulate Approval
           </button>
           <button class="danger" onclick="setDemoVerification('unable')">
@@ -534,6 +546,7 @@ window.addEventListener("unhandledrejection", function(event) {
 
     <details id="journeyOptions" class="good-note" open>
       <summary>Journey options</summary>
+
       <label for="mode">Travel Mode</label>
       <select id="mode">
         <option value="foot">Walking</option>
@@ -544,6 +557,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <label for="rideThreshold">Smart Ride Assist Threshold (km)</label>
       <input id="rideThreshold" type="number" min="1" max="100"
              value="5" step="0.5">
+
       <p class="muted">
         For longer routes, BlindPath offers a link to Grab.
         It does not automatically book a ride.
@@ -564,6 +578,7 @@ window.addEventListener("unhandledrejection", function(event) {
     <p class="muted">
       Type a college name or KK number, or tap the map to choose your destination.
     </p>
+
     <div id="map" aria-label="Route map"></div>
     <div id="routeResult" class="good-note hidden" aria-live="polite"></div>
 
@@ -629,11 +644,13 @@ window.addEventListener("unhandledrejection", function(event) {
     </section>
 
     <div id="rideAssist" class="notice hidden"></div>
+
     <div class="notice">
       <strong>Safety note:</strong>
       This prototype does not detect obstacles, verify tactile paths or confirm
       traffic signals. A route is not a guarantee of an accessible or safe journey.
     </div>
+
     <div class="button-row">
       <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
@@ -645,7 +662,7 @@ window.addEventListener("unhandledrejection", function(event) {
   <div class="card">
     <h1>Report an Accessibility Issue</h1>
     <p class="muted">
-      Help identify problems with tactile paths and pedestrian access.
+      Enter the details, review the location, then confirm your submission.
     </p>
 
     <form id="reportForm">
@@ -672,6 +689,7 @@ window.addEventListener("unhandledrejection", function(event) {
       <input id="reportPhoto" type="file"
              accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime"
              capture="environment">
+
       <p class="muted">
         JPG, PNG, WebP, MP4, WebM or MOV. Video playback depends on your browser.
       </p>
@@ -690,10 +708,74 @@ window.addEventListener("unhandledrejection", function(event) {
         <button type="button" class="secondary" onclick="addCurrentCoordinates()">
           Add My Current Location
         </button>
-        <button type="submit" class="primary">Save Report</button>
+        <button type="submit" id="reviewReportButton" class="primary">
+          Review Report
+        </button>
       </div>
+
       <p id="gpsStatus" class="status" role="status" aria-live="polite"></p>
     </form>
+
+    <section id="reportReviewPanel" class="card hidden"
+             aria-labelledby="reportReviewHeading">
+      <h2 id="reportReviewHeading" tabindex="-1">Review your report</h2>
+
+      <p>
+        Nothing has been submitted yet.
+        Check the issue, location and attachment before confirming.
+      </p>
+
+      <dl class="review-details">
+        <dt>Issue</dt>
+        <dd id="reportReviewIssue"></dd>
+
+        <dt>Location you entered</dt>
+        <dd id="reportReviewEntered"></dd>
+
+        <dt>Matched place</dt>
+        <dd id="reportReviewMatched"></dd>
+
+        <dt>Coordinates</dt>
+        <dd id="reportReviewCoordinates"></dd>
+
+        <dt>Description</dt>
+        <dd id="reportReviewDescription"></dd>
+      </dl>
+
+      <div id="reportLocationMap" class="hidden"
+           aria-label="Location to be reported"></div>
+
+      <p class="muted">
+        A search result may point to a building centre rather than its entrance.
+        Edit the location if this is not where the issue occurred.
+      </p>
+
+      <div id="reportReviewMedia"></div>
+
+      <button class="secondary" type="button" onclick="readReportReview()">
+        Read Review Aloud
+      </button>
+
+      <form id="reportConfirmForm">
+        <label class="confirm-location" for="confirmReportLocation">
+          <input id="confirmReportLocation" type="checkbox" required>
+          <span id="confirmLocationLabel">I checked the report location.</span>
+        </label>
+
+        <div class="button-row">
+          <button class="primary" id="confirmReportButton" type="submit">
+            Confirm and Submit
+          </button>
+          <button class="secondary" id="editReportButton"
+                  type="button" onclick="cancelReportReview()">
+            Edit Report
+          </button>
+        </div>
+      </form>
+
+      <p id="reportReviewStatus" class="status"
+         role="status" aria-live="polite"></p>
+    </section>
 
     <div class="notice">
       Reports and attachments are shared when cloud access is available.
@@ -701,6 +783,7 @@ window.addEventListener("unhandledrejection", function(event) {
       Reports are not automatically sent to authorities.
       Do not include private information in public attachments.
     </div>
+
     <div class="button-row">
       <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
@@ -729,8 +812,8 @@ window.addEventListener("unhandledrejection", function(event) {
     </select>
 
     <p class="muted">
-      Voices depend on your device and browser. Turn-by-turn directions and
-      obstacle alerts currently use English.
+      Voices depend on your device and browser. Turn-by-turn directions,
+      report reviews and obstacle alerts currently use English.
     </p>
 
     <label for="speechSpeed">Speech Speed: <span id="speedValue">1.0×</span></label>
@@ -746,10 +829,12 @@ window.addEventListener("unhandledrejection", function(event) {
     <div id="voiceStatus" class="status" role="status" aria-live="polite">
       Select Test Voice to hear the introduction.
     </div>
+
     <div class="good-note">
       Test with visually impaired users and assistive technologies before
       real-world use.
     </div>
+
     <div class="button-row">
       <button class="secondary" onclick="goTo('home')">Back to Home</button>
     </div>
@@ -764,6 +849,7 @@ window.addEventListener("unhandledrejection", function(event) {
       Reports from both prototypes appear when their cloud connections are
       available. Browser reports remain on this device.
     </p>
+
     <div class="good-note">
       Reports are unverified. No report does not mean a path is clear or safe.
       Older reports use solved confirmations. Shared reports can be marked
@@ -797,25 +883,21 @@ window.addEventListener("unhandledrejection", function(event) {
     <p class="muted">
       This is a snapshot of reports loaded in this browser, not a complete
       incident history. Counts describe the demonstration workflow.
-      Sample records, when added, are fictional and included in these counts.
+      Sample records are fictional and included in these counts.
     </p>
 
     <div class="dashboard-stats">
       <div class="dashboard-stat">
-        Loaded records
-        <strong id="dashTotal">0</strong>
+        Loaded records <strong id="dashTotal">0</strong>
       </div>
       <div class="dashboard-stat">
-        Open in demo workflow
-        <strong id="dashOpen">0</strong>
+        Open in demo workflow <strong id="dashOpen">0</strong>
       </div>
       <div class="dashboard-stat">
-        Awaiting verification
-        <strong id="dashReview">0</strong>
+        Awaiting verification <strong id="dashReview">0</strong>
       </div>
       <div class="dashboard-stat">
-        Verified in demo workflow
-        <strong id="dashVerified">0</strong>
+        Verified in demo workflow <strong id="dashVerified">0</strong>
       </div>
     </div>
 
@@ -981,6 +1063,13 @@ let selectedDashboardId = null;
 let managementMap = null;
 let managementMarkers = null;
 
+let pendingReport = null;
+let reportReviewGeneration = 0;
+let reportSaving = false;
+let reviewMediaURL = null;
+let reviewLocationMap = null;
+let reviewLocationMarker = null;
+
 /* EXISTING PUBLIC SUPABASE CONFIGURATIONS */
 
 const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co";
@@ -1074,6 +1163,7 @@ function chooseAppMode(mode) {
 function initAppMode() {
   let saved = null;
   try { saved = localStorage.getItem(APP_MODE_KEY); } catch {}
+
   if (["accessible","public"].includes(saved)) {
     setAppMode(saved);
     goTo("home");
@@ -1108,8 +1198,8 @@ const languageText = {
 function applyLanguage() {
   currentLang = $("language").value;
   document.documentElement.lang = currentLang === "zh" ? "zh-CN" : currentLang;
-  const text = languageText[currentLang];
 
+  const text = languageText[currentLang];
   $("tagline").textContent = text.tagline;
   $("homeTitle").textContent = text.homeTitle;
   $("homeIntro").textContent = text.homeIntro;
@@ -1129,6 +1219,8 @@ function applyLanguage() {
 /* PAGE NAVIGATION */
 
 function goTo(name) {
+  if (name !== "report") cancelReportReview(false);
+
   const target = $("screen-" + name);
   if (!target) return;
 
@@ -1220,6 +1312,7 @@ $("registerForm").addEventListener("submit", event => {
   $("authStatus").textContent = "Registration successful. Please log in.";
   $("loginEmail").value = email;
   $("loginPassword").value = "";
+
   updateAccountButton();
   goTo("auth");
 });
@@ -1242,6 +1335,7 @@ $("loginForm").addEventListener("submit", event => {
   currentUserEmail = email;
   localStorage.setItem(CURRENT_USER_KEY, email);
   $("loginForm").reset();
+
   updateAccountButton();
   renderProfile();
   goTo("profile");
@@ -1257,6 +1351,7 @@ function saveProfile() {
 
   users[index].name = $("profileName").value.trim() || user.name;
   users[index].accessibilityPreference = $("accessibilityPreference").value;
+
   saveUsers(users);
   renderProfile();
   $("profileSummary").textContent = "Profile saved in this browser.";
@@ -1333,6 +1428,7 @@ function requestVerification() {
 
   users[index].verificationStatus = "pending";
   users[index].verificationRequestedAt = new Date().toISOString();
+
   saveUsers(users);
   renderProfile();
 
@@ -1356,6 +1452,7 @@ function cancelVerification() {
 
   users[index].verificationStatus = "not_requested";
   users[index].verificationRequestedAt = null;
+
   saveUsers(users);
   renderProfile();
   $("demoReviewerStatus").textContent = "The demo request has been cancelled.";
@@ -1418,6 +1515,7 @@ function matchUMCollege(value) {
 
   return UM_COLLEGES.find(college => {
     const number = college.id.slice(2);
+
     return [
       college.id, umLabel(college), college.name,
       "KK " + number, "Kolej Kediaman " + number,
@@ -1460,12 +1558,14 @@ function initMap() {
 
   map.on("click", event => {
     if (guidanceWatch !== null) return;
+
     invalidatePlannedRoute();
 
     $("destination").value =
       event.latlng.lat.toFixed(6) + ", " + event.latlng.lng.toFixed(6);
 
     if (endMarker) map.removeLayer(endMarker);
+
     endMarker = L.marker(event.latlng).addTo(map);
 
     $("routeStatus").textContent =
@@ -1476,6 +1576,7 @@ function initMap() {
 function invalidatePlannedRoute() {
   stopGuidance(false);
   stopSpeech();
+
   guidanceSteps = [];
   currentRouteCoordinates = [];
 
@@ -1496,6 +1597,7 @@ function invalidatePlannedRoute() {
 
 function clearRoute() {
   invalidatePlannedRoute();
+
   $("start").value = "";
   $("destination").value = "";
 
@@ -1504,6 +1606,7 @@ function clearRoute() {
 
   startMarker = null;
   endMarker = null;
+
   $("routeStatus").textContent =
     "Route cleared. Enter a start and destination.";
 }
@@ -1568,6 +1671,7 @@ async function geocode(place) {
 
   if (college) {
     const saved = readUMEntrances()[college.id];
+
     if (saved && parseCoordinates(saved.lat+", "+saved.lng)) {
       return {lat:saved.lat,lon:saved.lng,name:umLabel(college)};
     }
@@ -1579,6 +1683,7 @@ async function geocode(place) {
 
     for (const query of queries) {
       const results = await searchPlace(query);
+
       const nearby = results.find(result =>
         Number(result.lat)>=3.09 && Number(result.lat)<=3.16 &&
         Number(result.lon)>=101.63 && Number(result.lon)<=101.69
@@ -1586,7 +1691,8 @@ async function geocode(place) {
 
       if (nearby) {
         return {
-          lat:Number(nearby.lat), lon:Number(nearby.lon),
+          lat:Number(nearby.lat),
+          lon:Number(nearby.lon),
           name:nearby.display_name
         };
       }
@@ -1599,6 +1705,7 @@ async function geocode(place) {
   }
 
   const results = await searchPlace(place);
+
   if (!results.length) {
     throw new Error(
       "Place not found. Try its full name and city, choose a map point, or use coordinates."
@@ -1606,7 +1713,8 @@ async function geocode(place) {
   }
 
   return {
-    lat:Number(results[0].lat), lon:Number(results[0].lon),
+    lat:Number(results[0].lat),
+    lon:Number(results[0].lon),
     name:results[0].display_name
   };
 }
@@ -1632,6 +1740,7 @@ async function findRoute() {
 
   stopGuidance(false);
   guidanceSteps = [];
+
   const generation = ++routeRequestGeneration;
 
   $("routeButton").disabled = true;
@@ -1662,6 +1771,7 @@ async function findRoute() {
     if (!response.ok) throw new Error("Routing service unavailable.");
 
     const data = await response.json();
+
     if (data.code!=="Ok" || !data.routes || !data.routes.length) {
       throw new Error("No route was returned.");
     }
@@ -1670,6 +1780,7 @@ async function findRoute() {
 
     const route = data.routes[0];
     currentRouteCoordinates = route.geometry.coordinates;
+
     prepareGuidance(route);
 
     const distanceKm = route.distance/1000;
@@ -1747,14 +1858,17 @@ async function findRoute() {
 
       const heading = document.createElement("strong");
       heading.textContent = "Smart Ride Assist";
+
       const message = document.createElement("p");
       message.textContent =
         "This route exceeds your selected threshold. Consider another transport option if needed.";
+
       const grab = document.createElement("a");
       grab.href = "https://www.grab.com/my/";
       grab.target = "_blank";
       grab.rel = "noopener noreferrer";
       grab.textContent = "Open Grab Malaysia";
+
       $("rideAssist").append(heading,message,grab);
 
       speak(
@@ -1788,6 +1902,7 @@ function useMyLocation() {
   navigator.geolocation.getCurrentPosition(position => {
     const lat = position.coords.latitude;
     const lon = position.coords.longitude;
+
     invalidatePlannedRoute();
 
     $("start").value = lat.toFixed(6)+", "+lon.toFixed(6);
@@ -1795,7 +1910,9 @@ function useMyLocation() {
 
     if (map) {
       map.setView([lat,lon],16);
+
       if (startMarker) map.removeLayer(startMarker);
+
       startMarker = L.marker([lat,lon]).addTo(map).bindPopup("Your location");
     }
   }, () => {
@@ -1808,6 +1925,7 @@ function useMyLocation() {
 
 function directionText(step) {
   const maneuver = step.maneuver;
+
   const modifier = {
     left:"turn left", right:"turn right",
     "slight left":"bear left", "slight right":"bear right",
@@ -1826,8 +1944,10 @@ function directionText(step) {
       "north","northeast","east","southeast",
       "south","southwest","west","northwest"
     ];
+
     const heading = Number.isFinite(maneuver.bearing_after)
       ? " heading "+bearings[Math.round(maneuver.bearing_after/45)%8] : "";
+
     return "Start"+heading+
       (step.name ? " on "+step.name : " along the route")+".";
   }
@@ -1839,6 +1959,7 @@ function directionText(step) {
 
   if (maneuver.type==="merge") return "Merge and "+modifier+road+".";
   if (maneuver.type==="fork") return "At the fork, "+modifier+road+".";
+
   return modifier.charAt(0).toUpperCase()+modifier.slice(1)+road+".";
 }
 
@@ -1854,6 +1975,7 @@ function prepareGuidance(route) {
   guidanceRoute = route.geometry.coordinates;
   guidanceIndex = 0;
   guidanceApproach = -1;
+
   $("voiceNavigation").classList.remove("hidden");
   $("startGuidance").disabled = !guidanceSteps.length;
   $("directionList").replaceChildren();
@@ -1877,6 +1999,7 @@ function announceDirection(message) {
 
 function repeatDirection() {
   if (!guidanceSteps.length) return;
+
   announceDirection(
     guidanceWarning ||
     directionText(guidanceSteps[Math.min(guidanceIndex,guidanceSteps.length-1)])
@@ -1885,9 +2008,14 @@ function repeatDirection() {
 
 function stopGuidance(announce=true) {
   guidanceGeneration++;
-  if (guidanceWatch!==null) navigator.geolocation.clearWatch(guidanceWatch);
+
+  if (guidanceWatch!==null) {
+    navigator.geolocation.clearWatch(guidanceWatch);
+  }
+
   guidanceWatch = null;
   guidanceWarning = "";
+
   $("startGuidance").disabled = !guidanceSteps.length;
   $("stopGuidance").disabled = true;
 
@@ -1900,6 +2028,7 @@ function stopGuidance(announce=true) {
 
 function startGuidance() {
   if (!guidanceSteps.length) return;
+
   stopGuidance(false);
 
   if (!navigator.geolocation || !window.isSecureContext) {
@@ -1911,6 +2040,7 @@ function startGuidance() {
 
   guidanceIndex=0;
   guidanceApproach=-1;
+
   $("startGuidance").disabled=true;
   $("stopGuidance").disabled=false;
 
@@ -1925,7 +2055,9 @@ function startGuidance() {
     updateGuidance(position);
   },error=>{
     if (generation!==guidanceGeneration) return;
+
     stopGuidance(false);
+
     announceDirection(error.code===1
       ? "Location permission was denied. Allow location access and start navigation again."
       : "Location is unavailable. Check your GPS signal and start navigation again."
@@ -1953,6 +2085,7 @@ function updateGuidance(position) {
 
   const resumed=Boolean(guidanceWarning);
   guidanceWarning="";
+
   const step=guidanceSteps[guidanceIndex];
   if (!step) return;
 
@@ -1961,18 +2094,23 @@ function updateGuidance(position) {
   if (distance<=20) {
     announceDirection(directionText(step)+
       (step.distance>0 ? " Continue for "+Math.round(step.distance)+" metres." : ""));
+
     guidanceIndex++;
     if (guidanceIndex===guidanceSteps.length) stopGuidance(false);
+
   } else if (guidanceIndex===0) {
     if (guidanceApproach!==0||resumed) {
       announceDirection("Move to the route starting point, approximately "+
         Math.round(distance)+" metres away. Guidance will begin there.");
     }
     guidanceApproach=0;
+
   } else if (distance<=60&&(guidanceApproach!==guidanceIndex||resumed)) {
     announceDirection("In approximately "+Math.round(distance)+
       " metres: "+directionText(step));
+
     guidanceApproach=guidanceIndex;
+
   } else if (resumed) {
     announceDirection("GPS guidance resumed. Next direction: "+directionText(step));
   }
@@ -2002,10 +2140,12 @@ function distancePointToRouteMeters(pointLat,pointLng,coordinates) {
     const by=coordinates[i][1]*110540;
     const vx=bx-ax,vy=by-ay;
     const lengthSquared=vx*vx+vy*vy;
+
     const t=lengthSquared===0 ? 0 : Math.max(0,Math.min(1,
       ((px-ax)*vx+(py-ay)*vy)/lengthSquared));
 
     minimum=Math.min(minimum,Math.hypot(px-(ax+t*vx),py-(ay+t*vy)));
+
     if (minimum<=2) return minimum;
   }
 
@@ -2016,11 +2156,13 @@ function distancePointToRouteMeters(pointLat,pointLng,coordinates) {
 
 function hazardPenalty(type) {
   const value=String(type||"").toLowerCase();
+
   if (value.includes("blocked")||value.includes("blocking")) return 25;
   if (value.includes("construction")) return 20;
   if (value.includes("damaged")) return 18;
   if (value.includes("missing")) return 20;
   if (value.includes("crossing")) return 15;
+
   return 8;
 }
 
@@ -2037,12 +2179,15 @@ async function assessRouteHazards(routeCoordinates) {
 
   for (const report of reports) {
     if (!validReportCoordinates(report)) continue;
+
     const distance=distancePointToRouteMeters(
       Number(report.lat),Number(report.lng),routeCoordinates);
+
     if (distance<=50) nearby.push({report,distance});
   }
 
   nearby.sort((a,b)=>a.distance-b.distance);
+
   let penalty=0;
 
   nearby.forEach(({report,distance})=>{
@@ -2051,8 +2196,10 @@ async function assessRouteHazards(routeCoordinates) {
   });
 
   const score=Math.max(0,Math.min(100,Math.round(100-penalty)));
+
   $("routeScoreLabel").textContent=score>=80 ? "Fewer reported hazards" :
     score>=60 ? "Some reported hazards" : "More reported hazards";
+
   $("routeScoreNumber").textContent=score+"/100";
   $("routeScoreFill").style.width=score+"%";
   $("routeScoreFill").classList.toggle("moderate",score>=60&&score<80);
@@ -2084,8 +2231,8 @@ async function assessRouteHazards(routeCoordinates) {
 /* LOCAL REPORT STORAGE */
 
 function getReports() {
-  try {return JSON.parse(localStorage.getItem(REPORTS_KEY)||"[]");}
-  catch {return [];}
+  try { return JSON.parse(localStorage.getItem(REPORTS_KEY)||"[]"); }
+  catch { return []; }
 }
 
 function saveReports(reports) {
@@ -2102,19 +2249,30 @@ function validReportCoordinates(report) {
 function mediaStore(operation,key,value) {
   return new Promise((resolve,reject)=>{
     const open=indexedDB.open("blindpath_media_v1",1);
+
     open.onupgradeneeded=()=>open.result.createObjectStore("files");
     open.onerror=()=>reject(open.error);
 
     open.onsuccess=()=>{
       const db=open.result;
+
       const transaction=db.transaction(
         "files",operation==="get" ? "readonly" : "readwrite");
+
       const store=transaction.objectStore("files");
       const request=operation==="put" ? store.put(value,key) :
         operation==="delete" ? store.delete(key) : store.get(key);
 
-      transaction.oncomplete=()=>{db.close();resolve(request.result);};
-      transaction.onerror=()=>{db.close();reject(transaction.error);};
+      transaction.oncomplete=()=>{
+        db.close();
+        resolve(request.result);
+      };
+
+      transaction.onerror=()=>{
+        db.close();
+        reject(transaction.error);
+      };
+
       transaction.onabort=()=>{
         db.close();
         reject(transaction.error||new Error("Media storage failed."));
@@ -2133,12 +2291,15 @@ function removeReportPhoto() {
   $("videoPreview").removeAttribute("src");
   $("videoPreview").load();
   $("photoPreviewContainer").classList.add("hidden");
+
   if (previewMediaURL) URL.revokeObjectURL(previewMediaURL);
+
   previewMediaURL=null;
 }
 
 $("reportPhoto").addEventListener("change",event=>{
   const file=event.target.files?.[0];
+
   removeReportPhoto();
   if (!file) return;
 
@@ -2150,29 +2311,40 @@ $("reportPhoto").addEventListener("change",event=>{
 
   selectedMedia=file;
   previewMediaURL=URL.createObjectURL(file);
+
   const video=file.type.startsWith("video/");
 
   $("photoPreview").classList.toggle("hidden",video);
   $("videoPreview").classList.toggle("hidden",!video);
   $(video ? "videoPreview" : "photoPreview").src=previewMediaURL;
+
   $("photoPreviewContainer").classList.remove("hidden");
+
   $("gpsStatus").textContent=file.name+" selected ("+
     (file.size/1048576).toFixed(2)+" MB).";
 });
 
 async function mediaForReport(report) {
   if (report.media_ref) {
-    if (mediaURLs.has(report.media_ref)) return mediaURLs.get(report.media_ref);
+    if (mediaURLs.has(report.media_ref)) {
+      return mediaURLs.get(report.media_ref);
+    }
+
     try {
       const file=await mediaStore("get",report.media_ref);
       if (!file) return null;
+
       const url=URL.createObjectURL(file);
       mediaURLs.set(report.media_ref,url);
       return url;
-    } catch {return null;}
+
+    } catch {
+      return null;
+    }
   }
 
   const url=report.media_url||report.photo;
+
   return typeof url==="string" &&
     (/^https:\/\//i.test(url)||/^data:image\/(jpeg|png|webp);base64,/i.test(url))
     ? url : null;
@@ -2184,6 +2356,7 @@ async function appendReportMedia(container,report) {
 
   const video=report.media_type==="video";
   const element=document.createElement(video ? "video" : "img");
+
   element.className="report-photo";
   element.src=url;
 
@@ -2213,27 +2386,23 @@ function addCurrentCoordinates() {
   navigator.geolocation.getCurrentPosition(position=>{
     $("reportLocation").value=position.coords.latitude.toFixed(6)+", "+
       position.coords.longitude.toFixed(6);
+
     $("gpsStatus").textContent=
       "Location added. GPS uncertainty approximately "+
       Math.round(position.coords.accuracy)+
       " metres. Check the location before submitting.";
+
   },()=>{
     $("gpsStatus").textContent=
       "Could not get location. Enter it manually; the map centre will not be used automatically.";
   },{enableHighAccuracy:true,timeout:10000,maximumAge:0});
 }
 
-async function geocodeReportLocation(location) {
-  try {
-    const result=await geocode(location);
-    return {lat:result.lat,lng:result.lon};
-  } catch {return null;}
-}
-
 /* NORMALISE CLOUD SCHEMA */
 
 function normalizeSharedReport(report) {
   const labels=[...$("issueType").options].map(option=>option.value);
+
   const prefix=labels.find(label=>
     String(report.description||"").startsWith(label+": "));
 
@@ -2265,10 +2434,14 @@ async function getAllReports(force=false) {
     const failures=[];
 
     async function read(client,table) {
-      if (!client) {failures.push(table);return [];}
+      if (!client) {
+        failures.push(table);
+        return [];
+      }
 
       try {
         let query=client.from(table).select("*");
+
         query=table==="reports"
           ? query.eq("is_solved",false)
           : query.eq("status","open");
@@ -2279,8 +2452,13 @@ async function getAllReports(force=false) {
           .abortSignal(AbortSignal.timeout(12000));
 
         if (error) throw error;
+
         return data||[];
-      } catch {failures.push(table);return [];}
+
+      } catch {
+        failures.push(table);
+        return [];
+      }
     }
 
     const [legacy,shared]=await Promise.all([
@@ -2306,14 +2484,18 @@ async function getAllReports(force=false) {
     return reportCache;
   })();
 
-  try {return await reportFetch;}
-  finally {reportFetch=null;}
+  try {
+    return await reportFetch;
+  } finally {
+    reportFetch=null;
+  }
 }
 
 async function refreshReports() {
   await getAllReports(true);
   await renderReports();
   await loadHazardMarkers();
+
   renderRouteObstacles();
   renderDashboard();
 
@@ -2326,6 +2508,7 @@ async function refreshReports() {
 
 function reportSummary(report) {
   const box=document.createElement("div");
+
   const title=document.createElement("strong");
   title.textContent=report.type||"Accessibility issue";
 
@@ -2350,8 +2533,9 @@ function reportSummary(report) {
   button.addEventListener("click",async event=>{
     event.stopPropagation();
     button.disabled=true;
-    try {await markProblemSolved(report.id);}
-    finally {button.disabled=false;}
+
+    try { await markProblemSolved(report.id); }
+    finally { button.disabled=false; }
   });
 
   box.append(title,details,date,location,button);
@@ -2362,7 +2546,8 @@ function createHazardIcon() {
   return L.divIcon({
     className:"",
     html:'<span class="hazard-marker" aria-label="Reported accessibility hazard">×</span>',
-    iconSize:[32,32],iconAnchor:[16,16]
+    iconSize:[32,32],
+    iconAnchor:[16,16]
   });
 }
 
@@ -2371,13 +2556,16 @@ async function loadHazardMarkers() {
 
   const generation=++reportLoadGeneration;
   const reports=await getAllReports();
+
   if (generation!==reportLoadGeneration) return;
 
   if (!hazardLayer) hazardLayer=L.layerGroup().addTo(map);
+
   hazardLayer.clearLayers();
 
   for (const report of reports) {
     if (!validReportCoordinates(report)) continue;
+
     const popup=reportSummary(report);
     void appendReportMedia(popup,report);
 
@@ -2390,6 +2578,7 @@ async function loadHazardMarkers() {
 function renderRouteObstacles() {
   const container=$("routeObstacles");
   container.replaceChildren();
+
   if (!currentRouteCoordinates.length) return;
 
   const nearby=reportCache.filter(report=>
@@ -2403,7 +2592,8 @@ function renderRouteObstacles() {
 
   if (!nearby.length) {
     const note=document.createElement("p");
-    note.textContent="No matching reports found. This does not mean the route is clear.";
+    note.textContent=
+      "No matching reports found. This does not mean the route is clear.";
     container.appendChild(note);
   }
 
@@ -2427,14 +2617,20 @@ async function markProblemSolved(id) {
 
     try {
       const {data,error}=await reportingClient.from("tactile_reports")
-        .update({status:"resolved"}).eq("id",report.raw_id)
-        .select("id").abortSignal(AbortSignal.timeout(12000));
+        .update({status:"resolved"})
+        .eq("id",report.raw_id)
+        .select("id")
+        .abortSignal(AbortSignal.timeout(12000));
 
-      if (error||!data?.length) throw new Error("Update was not confirmed.");
+      if (error||!data?.length) {
+        throw new Error("Update was not confirmed.");
+      }
+
     } catch {
       alert("Could not confirm the cloud update. The report has not been removed.");
       return;
     }
+
   } else {
     const voted=JSON.parse(
       localStorage.getItem("blindpath_solved_votes_v1")||"[]");
@@ -2450,28 +2646,36 @@ async function markProblemSolved(id) {
       try {
         const {data,error}=await cloudClient.from("reports")
           .update({solved_count:count,is_solved:count>=2})
-          .eq("id",report.raw_id).select("id")
+          .eq("id",report.raw_id)
+          .select("id")
           .abortSignal(AbortSignal.timeout(12000));
 
-        if (error||!data?.length) throw new Error("Update was not confirmed.");
+        if (error||!data?.length) {
+          throw new Error("Update was not confirmed.");
+        }
+
       } catch {
         alert("Could not confirm the cloud update. Please try again.");
         return;
       }
+
     } else {
       saveReports(getReports().map(item=>
         String(item.id)===String(id)
-          ? {...item,solved_count:count,is_solved:count>=2} : item));
+          ? {...item,solved_count:count,is_solved:count>=2}
+          : item));
     }
 
     voted.push(String(id));
-    localStorage.setItem("blindpath_solved_votes_v1",JSON.stringify(voted));
+
+    localStorage.setItem(
+      "blindpath_solved_votes_v1",
+      JSON.stringify(voted)
+    );
   }
 
   await refreshReports();
 }
-
-/* NEW REPORT SUBMISSION */
 
 function issueCode(type) {
   if (/vehicle/i.test(type)) return "blocked_vehicle";
@@ -2480,112 +2684,359 @@ function issueCode(type) {
   return "other_obstacle";
 }
 
+/* REVIEW BEFORE SUBMISSION */
+
+function clearReviewMedia() {
+  const container=$("reportReviewMedia");
+
+  container.querySelectorAll("video").forEach(video=>video.pause());
+  container.replaceChildren();
+
+  if (reviewMediaURL) URL.revokeObjectURL(reviewMediaURL);
+
+  reviewMediaURL=null;
+}
+
+function cancelReportReview(focus=true) {
+  if (reportSaving) return;
+
+  reportReviewGeneration++;
+  pendingReport=null;
+  clearReviewMedia();
+
+  $("reportReviewPanel").classList.add("hidden");
+  $("reportForm").classList.remove("hidden");
+  $("reviewReportButton").disabled=false;
+  $("confirmReportLocation").checked=false;
+
+  if (focus) {
+    $("reportLocation").focus();
+    $("gpsStatus").textContent=
+      "Edit your report, then review it again. Nothing has been submitted.";
+  }
+}
+
+function reportDraftUnchanged(draft) {
+  return (
+    draft.type===$("issueType").value &&
+    draft.location===$("reportLocation").value.trim() &&
+    draft.details===$("reportDetails").value.trim().slice(0,500) &&
+    draft.file===selectedMedia
+  );
+}
+
 $("reportForm").addEventListener("submit",async event=>{
   event.preventDefault();
+  if (reportSaving) return;
 
-  const button=$("reportForm").querySelector('button[type="submit"]');
-  button.disabled=true;
-  let localMediaKey=null;
+  const generation=++reportReviewGeneration;
 
-  try {
-    if (selectedMedia&&
-        (selectedMedia.size>20*1048576||!MEDIA_TYPES[selectedMedia.type])) {
-      throw new Error("Unsupported attachment or file larger than 20 MB.");
+  const draft={
+    id:"local_"+crypto.randomUUID(),
+    type:$("issueType").value,
+    location:$("reportLocation").value.trim(),
+    details:$("reportDetails").value.trim().slice(0,500),
+    file:selectedMedia
+  };
+
+  if (!draft.location) {
+    $("gpsStatus").textContent="Enter the location before reviewing.";
+    return;
+  }
+
+  if (draft.file&&
+      (draft.file.size>20*1048576||!MEDIA_TYPES[draft.file.type])) {
+    $("gpsStatus").textContent="Choose a supported attachment up to 20 MB.";
+    return;
+  }
+
+  $("reviewReportButton").disabled=true;
+  $("gpsStatus").textContent=
+    "Looking up the location for your review. Nothing is being submitted.";
+
+  let match=null;
+
+  try { match=await geocode(draft.location); } catch {}
+
+  if (generation!==reportReviewGeneration||
+      !reportDraftUnchanged(draft)) return;
+
+  draft.coords=match ? {lat:match.lat,lng:match.lon} : null;
+  draft.matchedName=match?.name||"Location not found";
+
+  pendingReport=draft;
+
+  $("reportReviewIssue").textContent=draft.type;
+  $("reportReviewEntered").textContent=draft.location;
+
+  $("reportReviewMatched").textContent=draft.coords
+    ? draft.matchedName
+    : "Not found. This report can only be saved on this browser without a map marker or nearby alerts. Edit the location to try again.";
+
+  $("reportReviewCoordinates").textContent=draft.coords
+    ? draft.coords.lat.toFixed(6)+", "+draft.coords.lng.toFixed(6)
+    : "Unavailable";
+
+  $("reportReviewDescription").textContent=
+    draft.details||"No additional description.";
+
+  $("confirmLocationLabel").textContent=draft.coords
+    ? "I checked that this is the intended report location."
+    : "I understand this will be saved locally without a mapped location or nearby alerts.";
+
+  $("confirmReportLocation").checked=false;
+  $("reportReviewStatus").textContent=
+    "Check the details below. Nothing has been submitted yet.";
+
+  clearReviewMedia();
+
+  if (draft.file) {
+    const note=document.createElement("p");
+    note.textContent="Attachment: "+draft.file.name+" ("+
+      (draft.file.size/1048576).toFixed(2)+" MB).";
+
+    $("reportReviewMedia").appendChild(note);
+
+    reviewMediaURL=URL.createObjectURL(draft.file);
+
+    const video=draft.file.type.startsWith("video/");
+    const element=document.createElement(video ? "video" : "img");
+
+    element.src=reviewMediaURL;
+    element.className="report-photo";
+
+    if (video) {
+      element.controls=true;
+      element.playsInline=true;
+      element.preload="metadata";
+    } else {
+      element.alt="Attachment to be submitted with this report";
     }
 
-    $("gpsStatus").textContent="Locating and saving your report...";
+    $("reportReviewMedia").appendChild(element);
 
-    const location=$("reportLocation").value.trim();
-    const coords=await geocodeReportLocation(location);
+  } else {
+    $("reportReviewMedia").textContent="No attachment selected.";
+  }
 
+  $("reportForm").classList.add("hidden");
+  $("reportReviewPanel").classList.remove("hidden");
+  $("reportReviewHeading").focus();
+
+  $("reportLocationMap").classList.toggle("hidden",!draft.coords);
+
+  if (draft.coords&&window.L) {
+    if (!reviewLocationMap) {
+      reviewLocationMap=L.map("reportLocationMap");
+
+      L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {maxZoom:19,attribution:"© OpenStreetMap contributors"}
+      ).addTo(reviewLocationMap);
+    }
+
+    reviewLocationMap.setView([draft.coords.lat,draft.coords.lng],18);
+
+    if (reviewLocationMarker) {
+      reviewLocationMap.removeLayer(reviewLocationMarker);
+    }
+
+    reviewLocationMarker=L.marker([
+      draft.coords.lat,draft.coords.lng
+    ]).addTo(reviewLocationMap);
+
+    setTimeout(()=>reviewLocationMap.invalidateSize(),100);
+  }
+});
+
+["input","change"].forEach(eventName=>{
+  $("reportForm").addEventListener(eventName,()=>{
+    if (reportSaving) return;
+
+    if (pendingReport||$("reviewReportButton").disabled) {
+      cancelReportReview(false);
+    }
+  });
+});
+
+function readReportReview() {
+  if (!pendingReport) return;
+
+  const draft=pendingReport;
+
+  speak(
+    "Review your report. Issue: "+draft.type+
+    ". Entered location: "+draft.location+". "+
+    (draft.coords
+      ? "Matched location: "+draft.matchedName+
+        ". Coordinates: "+draft.coords.lat.toFixed(6)+
+        ", "+draft.coords.lng.toFixed(6)+". "
+      : "Location not found. This can only be saved on this browser without a map marker or nearby alerts. ")+
+    "Description: "+(draft.details||"None.")+
+    " Attachment: "+(draft.file ? draft.file.name : "None.")+
+    " Check the location confirmation, then choose Confirm and Submit, or Edit Report.",
+    "en-MY"
+  );
+}
+
+$("reportConfirmForm").addEventListener("submit",async event=>{
+  event.preventDefault();
+
+  if (reportSaving||!pendingReport) return;
+
+  if (!$("confirmReportLocation").checked) {
+    $("reportReviewStatus").textContent=
+      "Confirm the location or the unmapped-location notice before submitting.";
+    return;
+  }
+
+  const draft=pendingReport;
+
+  if (!reportDraftUnchanged(draft)) {
+    cancelReportReview(false);
+    $("gpsStatus").textContent=
+      "Your report changed. Review the updated details before submitting.";
+    return;
+  }
+
+  reportSaving=true;
+
+  $("confirmReportButton").disabled=true;
+  $("editReportButton").disabled=true;
+  $("reportReviewStatus").textContent=
+    "Saving the report you reviewed...";
+
+  let localMediaKey=null;
+  let saved=false;
+
+  try {
     const report={
-      id:"local_"+crypto.randomUUID(),
-      type:$("issueType").value,
-      location,
-      details:$("reportDetails").value.trim().slice(0,500),
+      id:draft.id,
+      type:draft.type,
+      location:draft.location,
+      details:draft.details,
       author:getCurrentUser()?.name||"Anonymous",
-      lat:coords?.lat??null,
-      lng:coords?.lng??null,
+      lat:draft.coords?.lat??null,
+      lng:draft.coords?.lng??null,
       created_at:new Date().toISOString(),
       solved_count:0,
       is_solved:false,
-      media_type:selectedMedia?.type.startsWith("video/") ? "video" : "image"
+      media_type:draft.file?.type.startsWith("video/") ? "video" : "image"
     };
 
     let shared=false;
 
-    if (reportingClient&&coords) {
+    if (reportingClient&&draft.coords) {
       try {
         let mediaUrl=null;
 
-        if (selectedMedia) {
-          const path="reports/"+crypto.randomUUID()+"."+MEDIA_TYPES[selectedMedia.type];
+        if (draft.file) {
+          const path="reports/"+crypto.randomUUID()+"."+
+            MEDIA_TYPES[draft.file.type];
 
           const {error}=await reportingClient.storage
             .from("tactile-report-media")
-            .upload(path,selectedMedia,{
-              contentType:selectedMedia.type,upsert:false
+            .upload(path,draft.file,{
+              contentType:draft.file.type,
+              upsert:false
             });
 
           if (error) throw error;
 
           mediaUrl=reportingClient.storage
-            .from("tactile-report-media").getPublicUrl(path).data.publicUrl;
+            .from("tactile-report-media")
+            .getPublicUrl(path).data.publicUrl;
         }
 
-        const {data,error}=await reportingClient.from("tactile_reports")
+        const {data,error}=await reportingClient
+          .from("tactile_reports")
           .insert([{
             issue_type:issueCode(report.type),
             description:report.type+": "+report.details,
-            latitude:coords.lat,longitude:coords.lng,status:"open",
+            latitude:draft.coords.lat,
+            longitude:draft.coords.lng,
+            status:"open",
             media_url:mediaUrl,
             media_type:mediaUrl ? report.media_type : null
           }])
-          .select("id").abortSignal(AbortSignal.timeout(12000));
+          .select("id")
+          .abortSignal(AbortSignal.timeout(12000));
 
-        if (error||!data?.length) throw new Error("Cloud save was not confirmed.");
+        if (error||!data?.length) {
+          throw new Error("Cloud save was not confirmed.");
+        }
+
         shared=true;
+
       } catch {
-        // An interrupted response may follow a completed cloud save.
-        // Keep uploaded media intact and retain a local copy.
+        // Preserve uploaded media if a cloud response was interrupted.
       }
     }
 
     if (!shared) {
-      if (selectedMedia) {
+      if (draft.file) {
         localMediaKey=report.id;
-        await mediaStore("put",localMediaKey,selectedMedia);
+        await mediaStore("put",localMediaKey,draft.file);
         report.media_ref=localMediaKey;
       }
 
-      const reports=getReports();
+      const reports=getReports().filter(item=>item.id!==report.id);
       reports.unshift(report);
       saveReports(reports);
     }
 
+    saved=true;
+    pendingReport=null;
+    reportReviewGeneration++;
+
+    clearReviewMedia();
+
+    $("reportReviewPanel").classList.add("hidden");
+    $("reportForm").classList.remove("hidden");
     $("reportForm").reset();
+
     removeReportPhoto();
 
     $("gpsStatus").textContent=shared
       ? "Report shared. Attachments are public through the reporting backend."
-      : "Report saved on this browser only. Cloud sharing was unavailable.";
+      : "Report saved on this browser only. It was not confirmed as shared to the cloud.";
 
-    if (!coords) {
+    if (!draft.coords) {
       $("gpsStatus").textContent+=
-        " Location was not found, so no map marker or nearby alert is available for this report.";
+        " No location was matched, so this report has no map marker or nearby alerts.";
     }
 
-    speak(shared ? "Your report was shared." :
-      "Your report was saved on this device.");
+    speak(shared
+      ? "Your report was shared."
+      : "Your report was saved on this device.");
 
-    await refreshReports();
+    if ($("screen-report").classList.contains("active")) {
+      $("gpsStatus").setAttribute("tabindex","-1");
+      $("gpsStatus").focus();
+    }
+
+    try {
+      await refreshReports();
+    } catch {
+      $("gpsStatus").textContent+=
+        " The report list could not be refreshed.";
+    }
+
   } catch (error) {
-    if (localMediaKey) {
-      try {await mediaStore("delete",localMediaKey);} catch {}
+    if (localMediaKey&&!saved) {
+      try { await mediaStore("delete",localMediaKey); } catch {}
     }
-    $("gpsStatus").textContent="Report was not saved. "+error.message;
+
+    $("reportReviewStatus").textContent=
+      "Report was not saved. "+error.message+
+      ". Your reviewed details are still available; edit or try again.";
+
   } finally {
-    button.disabled=false;
+    reportSaving=false;
+
+    $("confirmReportButton").disabled=false;
+    $("editReportButton").disabled=false;
+    $("reviewReportButton").disabled=false;
   }
 });
 
@@ -2622,10 +3073,12 @@ async function renderReports() {
 
 async function deleteReport(id) {
   const report=getReports().find(item=>String(item.id)===String(id));
+
   saveReports(getReports().filter(item=>String(item.id)!==String(id)));
 
   if (report?.media_ref) {
-    try {await mediaStore("delete",report.media_ref);} catch {}
+    try { await mediaStore("delete",report.media_ref); } catch {}
+
     const url=mediaURLs.get(report.media_ref);
     if (url) URL.revokeObjectURL(url);
     mediaURLs.delete(report.media_ref);
@@ -2644,9 +3097,12 @@ async function clearReports() {
 
   for (const report of reports) {
     if (!report.media_ref) continue;
-    try {await mediaStore("delete",report.media_ref);} catch {}
+
+    try { await mediaStore("delete",report.media_ref); } catch {}
+
     const url=mediaURLs.get(report.media_ref);
     if (url) URL.revokeObjectURL(url);
+
     mediaURLs.delete(report.media_ref);
   }
 
@@ -2657,7 +3113,10 @@ async function clearReports() {
 
 function stopNearbyAlerts() {
   nearbyGeneration++;
-  if (nearbyWatch!==null) navigator.geolocation.clearWatch(nearbyWatch);
+
+  if (nearbyWatch!==null) {
+    navigator.geolocation.clearWatch(nearbyWatch);
+  }
 
   nearbyWatch=null;
   clearInterval(nearbyTimer);
@@ -2681,6 +3140,7 @@ function toggleNearbyAlerts() {
   }
 
   const generation=++nearbyGeneration;
+
   warnedReports.clear();
   lastNearbySpeech=0;
 
@@ -2689,16 +3149,21 @@ function toggleNearbyAlerts() {
   $("nearbyStatus").textContent="Requesting location for obstacle alerts...";
 
   void refreshReports();
+
   nearbyTimer=setInterval(()=>void refreshReports(),60000);
 
   nearbyWatch=navigator.geolocation.watchPosition(position=>{
     if (generation!==nearbyGeneration) return;
     updateNearbyAlerts(position);
+
   },()=>{
     if (generation!==nearbyGeneration) return;
+
     stopNearbyAlerts();
+
     $("nearbyStatus").textContent=
       "Location unavailable. Allow permission and enable alerts again.";
+
   },{enableHighAccuracy:true,maximumAge:0,timeout:15000});
 }
 
@@ -2726,6 +3191,7 @@ function updateNearbyAlerts(position) {
   }
 
   const nearest=nearby[0];
+
   $("nearbyStatus").textContent="Reported nearby: "+nearest.report.type+
     ", approximately "+Math.round(nearest.distance)+
     " metres away. Report not verified.";
@@ -2743,6 +3209,7 @@ function updateNearbyAlerts(position) {
   );
 
   if (navigator.vibrate) navigator.vibrate([100,80,100]);
+
   warnedReports.set(String(candidate.report.id),Date.now());
   lastNearbySpeech=Date.now();
 }
@@ -2753,12 +3220,12 @@ function stopAllVoice() {
   $("nearbyStatus").textContent="Obstacle alerts are off.";
 }
 
-/* MANAGEMENT DEMONSTRATION
-   Review changes never update live cloud reports. */
+/* MANAGEMENT DEMONSTRATION */
 
 function initDashboard() {
   try {
     const saved=JSON.parse(localStorage.getItem(DASHBOARD_KEY)||"{}");
+
     if (saved&&typeof saved==="object"&&!Array.isArray(saved)) {
       dashboardRecords=saved;
     }
@@ -2800,8 +3267,10 @@ function captureDashboardReports(reports) {
     };
   }
 
-  try {persistDashboard();}
-  catch {
+  try {
+    persistDashboard();
+
+  } catch {
     $("dashboardStatus").textContent=
       "The dashboard could not be saved. Browser storage may be full; export your review records before leaving.";
   }
@@ -2829,7 +3298,9 @@ function filteredDashboardItems() {
 
 function dashboardAge(record) {
   const time=Date.parse(record.created_at);
+
   if (!Number.isFinite(time)) return "Report age unavailable";
+
   return Math.max(0,Math.floor((Date.now()-time)/86400000))+
     " days since report";
 }
@@ -2838,10 +3309,13 @@ function renderDashboard() {
   const records=dashboardItems();
 
   $("dashTotal").textContent=records.length;
+
   $("dashOpen").textContent=records.filter(record=>
     !["reported_resolved","verified_resolved"].includes(record.status)).length;
+
   $("dashReview").textContent=records.filter(record=>
     record.status==="reported_resolved").length;
+
   $("dashVerified").textContent=records.filter(record=>
     record.status==="verified_resolved").length;
 
@@ -2867,6 +3341,7 @@ function renderDashboard() {
 
   const filtered=filteredDashboardItems();
   const list=$("dashboardList");
+
   list.replaceChildren();
 
   $("dashboardCount").textContent=
@@ -2919,6 +3394,7 @@ function renderDashboardClusters(records) {
 
     const key=Number(record.lat).toFixed(3)+", "+Number(record.lng).toFixed(3);
     const groupKey=(record.is_example ? "sample:" : "report:")+key;
+
     const group=groups.get(groupKey)||{
       count:0,label:key,sample:record.is_example
     };
@@ -2932,7 +3408,8 @@ function renderDashboardClusters(records) {
 
   const clusters=[...groups.values()]
     .filter(group=>group.count>1)
-    .sort((a,b)=>b.count-a.count).slice(0,5);
+    .sort((a,b)=>b.count-a.count)
+    .slice(0,5);
 
   if (!clusters.length) {
     const item=document.createElement("li");
@@ -2960,9 +3437,11 @@ function renderManagementMap(records) {
 
   if (!managementMap) {
     managementMap=L.map("managementMap").setView([3.122,101.653],15);
+
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{
       maxZoom:19,attribution:"© OpenStreetMap contributors"
     }).addTo(managementMap);
+
     managementMarkers=L.layerGroup().addTo(managementMap);
   }
 
@@ -2976,6 +3455,7 @@ function renderManagementMap(records) {
     coordinates.push(coords);
 
     const popup=document.createElement("div");
+
     const title=document.createElement("strong");
     title.textContent=(record.is_example ? "SAMPLE · " : "")+record.type;
 
@@ -2999,6 +3479,7 @@ function renderManagementMap(records) {
 
   setTimeout(()=>{
     managementMap.invalidateSize();
+
     if (coordinates.length) {
       managementMap.fitBounds(L.latLngBounds(coordinates),{
         padding:[25,25],maxZoom:17
@@ -3012,8 +3493,8 @@ function selectDashboardReport(key,focus=true) {
   if (!record) return;
 
   selectedDashboardId=key;
-  $("dashboardReviewPanel").classList.remove("hidden");
 
+  $("dashboardReviewPanel").classList.remove("hidden");
   $("dashboardReviewTitle").textContent=
     (record.is_example ? "SAMPLE · " : "")+record.type;
 
@@ -3030,9 +3511,11 @@ function selectDashboardReport(key,focus=true) {
 
   Object.entries(REVIEW_STAGES).forEach(([value,label])=>{
     if (!allowed.has(value)) return;
+
     const option=document.createElement("option");
     option.value=value;
     option.textContent=label;
+
     $("reviewStage").appendChild(option);
   });
 
@@ -3049,11 +3532,13 @@ function selectDashboardReport(key,focus=true) {
 
   for (const event of record.history) {
     const item=document.createElement("li");
+
     item.textContent=new Date(event.at).toLocaleString()+
       " · "+REVIEW_STAGES[event.status]+
       (event.assignee ? " · "+event.assignee : "")+
       (event.notes ? " · "+event.notes : "")+
       (event.evidence ? " · Evidence: "+event.evidence : "");
+
     history.appendChild(item);
   }
 
@@ -3085,6 +3570,7 @@ $("dashboardReviewForm").addEventListener("submit",event=>{
   const allowed=new Set([
     record.status,NEXT_REVIEW_STAGE[record.status]
   ]);
+
   if (record.status!=="submitted") allowed.add("under_review");
 
   if (!allowed.has(status)) {
@@ -3123,6 +3609,7 @@ $("dashboardReviewForm").addEventListener("submit",event=>{
 
   try {
     persistDashboard();
+
   } catch {
     dashboardRecords[selectedDashboardId]=previous;
     $("reviewStatus").textContent=
@@ -3171,17 +3658,26 @@ function addDashboardSamples() {
 
     if (!dashboardRecords[key]) {
       dashboardRecords[key]={
-        ...sample,key,source:"example",is_example:true,
+        ...sample,
+        key,
+        source:"example",
+        is_example:true,
         created_at:new Date(now-(index+1)*86400000).toISOString(),
-        status:"submitted",assignee:"",notes:"",evidence:"",history:[]
+        status:"submitted",
+        assignee:"",
+        notes:"",
+        evidence:"",
+        history:[]
       };
     }
   });
 
   try {
     persistDashboard();
+
     $("dashboardStatus").textContent=
       "Added fictional sample reports to this browser's dashboard only.";
+
   } catch {
     dashboardRecords=before;
     $("dashboardStatus").textContent="Samples could not be saved.";
@@ -3203,6 +3699,7 @@ function removeDashboardSamples() {
 
   try {
     persistDashboard();
+
   } catch {
     dashboardRecords=before;
     $("dashboardStatus").textContent="Could not save the change.";
@@ -3226,16 +3723,23 @@ function exportDashboardCSV() {
 
   filteredDashboardItems().forEach(record=>{
     rows.push([
-      record.source,record.is_example ? "YES" : "NO",
-      record.type,record.location,record.created_at||"",
-      REVIEW_STAGES[record.status],record.assignee,
-      record.notes,record.evidence
+      record.source,
+      record.is_example ? "YES" : "NO",
+      record.type,
+      record.location,
+      record.created_at||"",
+      REVIEW_STAGES[record.status],
+      record.assignee,
+      record.notes,
+      record.evidence
     ]);
   });
 
   const escape=value=>{
     let text=String(value??"");
+
     if (/^[\s]*[=+@-]/.test(text)) text="'"+text;
+
     return '"'+text.replace(/"/g,'""')+'"';
   };
 
@@ -3245,11 +3749,14 @@ function exportDashboardCSV() {
 
   const url=URL.createObjectURL(blob);
   const link=document.createElement("a");
+
   link.href=url;
   link.download="blindpath-management-demo.csv";
+
   document.body.appendChild(link);
   link.click();
   link.remove();
+
   setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 
@@ -3261,6 +3768,7 @@ function loadVoices() {
   const populate=()=>{
     const select=$("voiceSelect");
     const previousValue=select.value;
+
     select.replaceChildren();
 
     const defaultOption=document.createElement("option");
@@ -3313,9 +3821,11 @@ function speak(message,language=null,interrupt=true) {
   utterance.onstart=()=>{
     $("voiceStatus").textContent="Speaking...";
   };
+
   utterance.onend=()=>{
     $("voiceStatus").textContent="Speech finished.";
   };
+
   utterance.onerror=()=>{
     $("voiceStatus").textContent=
       "Speech could not be played. Try another voice.";
