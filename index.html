@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#174c3c">
@@ -1807,4 +1808,17 @@ window.addEventListener("load", () => {
 });
 </script>
 </body>
+  
+<script>
+  const SUPABASE_URL = "https://tdlngsxtcyfnlbzdkmlm.supabase.co/rest/v1/";
+  const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2";
+
+  const blindpathSupabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_PUBLISHABLE_KEY
+  );
+
+  console.log("BlindPath Supabase client initialized");
+</script>
+
 </html>
