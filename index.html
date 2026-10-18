@@ -1116,4 +1116,1654 @@ e&&(o("reportLocation").focus(),o("gpsStatus").textContent="Edit your report, th
 }
 function De(e){
 return e.type===o("issueType").value&&e.location===o("reportLocation").value.trim()&&
-e.details===o("reportDetails").value.trim().sli
+e.details===o("reportDetails").value.trim().slice(0,500)&&e.file===ae;
+}
+function readReportReview(){
+if(!pendingReport)return;const e=pendingReport;
+je("Review your report. Issue: "+e.type+". Entered location: "+e.location+". "+
+(e.coords?"Matched location: "+e.matchedName+". Coordinates: "+e.coords.lat.toFixed(6)+", "+e.coords.lng.toFixed(6)+".":
+"Location not found. This can only be saved on this browser without a map marker or nearby alerts.")+
+" Description: "+(e.details||"None.")+" Attachment: "+(e.file?e.file.name:"None.")+
+" Check the location confirmation, then choose Confirm and Submit, or Edit Report.","en-MY");
+}
+async function Ie(){
+const e=o("reportList");if(!e)return;const t=await Se();e.replaceChildren();
+if(t.length)for(const n of t){
+const t=_e(n);t.className="report-item";
+if("local"===n.cloud_source){
+const e=document.createElement("button");e.className="danger";e.textContent="Delete Local Report";
+e.addEventListener("click",()=>Oe(n.id));t.appendChild(e);
+}
+e.appendChild(t);ye(t,n);
+}else e.textContent="No active reports found.";
+}
+async function Oe(e){
+const t=getReports().find(t=>String(t.id)===String(e))||Ge().find(t=>String(t.id)===String(e));
+Ve(e);saveReports(getReports().filter(t=>String(t.id)!==String(e)));
+if(t?.media_ref){
+try{await ve("delete",t.media_ref)}catch{}
+const e=ce.get(t.media_ref);e&&URL.revokeObjectURL(e);ce.delete(t.media_ref);
+}
+await refreshReports();
+}
+async function clearReports(){
+if(!confirm("Delete this browser's reports and their local attachments? Cloud reports will remain."))return;
+const e=getReports();saveReports([]);
+for(const t of e){
+Ve(t.id);
+if(t.media_ref){try{await ve("delete",t.media_ref)}catch{}
+const e=ce.get(t.media_ref);e&&URL.revokeObjectURL(e);ce.delete(t.media_ref)}
+}
+await refreshReports();
+}
+function stopAllVoice(){stopGuidance();Be();o("nearbyStatus").textContent="Obstacle alerts are off."}
+function clearRoute(){
+D();o("start").value="";o("destination").value="";
+s&&c&&s.removeLayer(c);s&&d&&s.removeLayer(d);c=null;d=null;
+o("routeStatus").textContent="Route cleared. Enter a start and destination.";
+}
+function Be(){
+ue++;null!==de&&navigator.geolocation.clearWatch(de);de=null;clearInterval(me);me=null;
+o("nearbyAlertButton").textContent="Enable Obstacle Alerts";o("nearbyAlertButton").setAttribute("aria-pressed","false");
+}
+function toggleNearbyAlerts(){
+if(null!==de)return Be(),void(o("nearbyStatus").textContent="Obstacle alerts are off.");
+if(!navigator.geolocation||!window.isSecureContext)return void(o("nearbyStatus").textContent="Allow location access on HTTPS or localhost to use alerts.");
+const e=++ue;pe.clear();he=0;
+o("nearbyAlertButton").textContent="Disable Obstacle Alerts";o("nearbyAlertButton").setAttribute("aria-pressed","true");
+o("nearbyStatus").textContent="Requesting location for obstacle alerts...";
+refreshReports();me=setInterval(()=>{refreshReports()},6e4);
+de=navigator.geolocation.watchPosition(t=>{e===ue&&Fe(t)},()=>{
+e===ue&&(Be(),o("nearbyStatus").textContent="Location unavailable. Allow permission and enable alerts again.");
+},{enableHighAccuracy:!0,maximumAge:0,timeout:15e3});
+}
+function Fe(e){
+const{latitude:t,longitude:n,accuracy:a}=e.coords;
+if(!Number.isFinite(a)||a>30||Date.now()-e.timestamp>15e3||!fe(t+","+n))
+return void(o("nearbyStatus").textContent="GPS accuracy is too low for nearby alerts. Waiting for a reliable position.");
+const i=p.filter(ge).map(e=>({report:e,distance:W(t,n,[[Number(e.lng),Number(e.lat)]])})).filter(e=>e.distance<=50).sort((e,t)=>e.distance-t.distance);
+if(!i.length)return void(o("nearbyStatus").textContent="No loaded reports within 50 metres. This does not mean the path is clear.");
+const r=i[0];
+o("nearbyStatus").textContent="Reported nearby: "+r.report.type+", approximately "+Math.round(r.distance)+" metres away. Report not verified.";
+const s=i.find(e=>Date.now()-(pe.get(String(e.report.id))||0)>12e4);
+if(!s||Date.now()-he<15e3)return;
+if("speechSynthesis"in window&&speechSynthesis.pending)return;
+je("Caution. "+s.report.type+" was reported approximately "+Math.round(s.distance)+" metres away. This report is unverified.","en-MY",!1);
+navigator.vibrate&&navigator.vibrate([100,80,100]);pe.set(String(s.report.id),Date.now());he=Date.now();
+}
+function Ue(){
+if(!("speechSynthesis"in window))return;
+const e=()=>{
+const e=o("voiceSelect"),t=e.value;e.replaceChildren();
+const n=document.createElement("option");n.value="";n.textContent="Default device voice";e.appendChild(n);
+speechSynthesis.getVoices().forEach((t,n)=>{
+const o=document.createElement("option");o.value=String(n);o.textContent=t.name+" ("+t.lang+")";e.appendChild(o);
+});
+[...e.options].some(e=>e.value===t)&&(e.value=t);
+};
+e();speechSynthesis.onvoiceschanged=e;
+}
+function je(e,t=null,n=!0){
+r=e;
+if(!("speechSynthesis"in window))return void(o("voiceStatus").textContent="Speech is not supported by this browser.");
+n&&speechSynthesis.cancel();
+const i=new SpeechSynthesisUtterance(e);i.lang=t||("zh"===a?"zh-CN":"ms"===a?"ms-MY":"en-MY");
+i.rate=Number(o("speechSpeed").value)||1;
+const s=o("voiceSelect").value,l=speechSynthesis.getVoices();
+""!==s&&l[Number(s)]&&(i.voice=l[Number(s)]);
+i.onstart=()=>{o("voiceStatus").textContent="Speaking..."};
+i.onend=()=>{o("voiceStatus").textContent="Speech finished."};
+i.onerror=()=>{o("voiceStatus").textContent="Speech could not be played. Try another voice."};
+speechSynthesis.speak(i);
+}
+function speakIntro(){
+je("zh"===a?"欢迎使用 BlindPath。你可以开始导航、报告盲道问题、调整语音设置，或查看社区报告。":
+"ms"===a?"Selamat datang ke BlindPath. Anda boleh mula navigasi, melaporkan masalah laluan sentuhan, mengubah tetapan suara atau melihat laporan komuniti.":
+"Welcome to BlindPath. You can start navigation, report a tactile path issue, change voice settings, or view community reports.");
+}
+function repeatSpeech(){je(r||("zh"===a?"欢迎使用 BlindPath。":"ms"===a?"Selamat datang ke BlindPath.":"Welcome to BlindPath."))}
+function qe(){"speechSynthesis"in window&&speechSynthesis.cancel();o("voiceStatus").textContent="Speech stopped."}
+
+o("reportForm").addEventListener("submit",async e=>{
+e.preventDefault();if(reportSaving)return;
+const t=++Re,n={id:"local_"+crypto.randomUUID(),type:o("issueType").value,location:o("reportLocation").value.trim(),
+details:o("reportDetails").value.trim().slice(0,500),file:ae};
+if(!n.location)return void(o("gpsStatus").textContent="Enter the location before reviewing.");
+if(n.file&&(n.file.size>20971520||!te[n.file.type]))return void(o("gpsStatus").textContent="Choose a supported attachment up to 20 MB.");
+o("reviewReportButton").disabled=!0;o("gpsStatus").textContent="Looking up the location for your review. Nothing is being submitted.";
+let a=null;try{a=await O(n.location)}catch{}
+if(t!==Re||!De(n))return;
+n.coords=a?{lat:a.lat,lng:a.lon}:null;n.matchedName=a?.name||"Location not found";pendingReport=n;
+o("reportReviewIssue").textContent=n.type;o("reportReviewEntered").textContent=n.location;
+o("reportReviewMatched").textContent=n.coords?n.matchedName:
+"Not found. This report can only be saved on this browser without a map marker or nearby alerts. Edit the location to try again.";
+o("reportReviewCoordinates").textContent=n.coords?n.coords.lat.toFixed(6)+", "+n.coords.lng.toFixed(6):"Unavailable";
+o("reportReviewDescription").textContent=n.details||"No additional description.";
+o("confirmLocationLabel").textContent=n.coords?"I checked that this is the intended report location.":
+"I understand this will be saved locally without a mapped location or nearby alerts.";
+o("confirmReportLocation").checked=!1;o("reportReviewStatus").textContent="Check the details below. Nothing has been submitted yet.";
+Te();
+if(n.file){
+const e=document.createElement("p");e.textContent="Attachment: "+n.file.name+" ("+(n.file.size/1048576).toFixed(2)+" MB).";
+o("reportReviewMedia").appendChild(e);Me=URL.createObjectURL(n.file);
+const t=n.file.type.startsWith("video/"),a=document.createElement(t?"video":"img");a.src=Me;a.className="report-photo";
+t?(a.controls=!0,a.playsInline=!0,a.preload="metadata"):a.alt="Attachment to be submitted with this report";
+o("reportReviewMedia").appendChild(a);
+}else o("reportReviewMedia").textContent="No attachment selected.";
+o("reportForm").classList.add("hidden");o("reportReviewPanel").classList.remove("hidden");o("reportReviewHeading").focus();
+o("reportLocationMap").classList.toggle("hidden",!n.coords);
+if(n.coords&&window.L){
+Ae||(Ae=L.map("reportLocationMap"),L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(Ae));
+Ae.setView([n.coords.lat,n.coords.lng],18);Pe&&Ae.removeLayer(Pe);
+Pe=L.marker([n.coords.lat,n.coords.lng]).addTo(Ae);setTimeout(()=>Ae.invalidateSize(),100);
+}
+});
+
+["input","change"].forEach(e=>o("reportForm").addEventListener(e,()=>{
+reportSaving||(pendingReport||o("reviewReportButton").disabled)&&cancelReportReview(!1);
+}));
+
+o("reportConfirmForm").addEventListener("submit",async e=>{
+e.preventDefault();if(reportSaving||!pendingReport)return;
+if(!o("confirmReportLocation").checked)return void(o("reportReviewStatus").textContent="Confirm the location or the unmapped-location notice before submitting.");
+const t=pendingReport;
+if(!De(t))return cancelReportReview(!1),void(o("gpsStatus").textContent="Your report changed. Review the updated details before submitting.");
+reportSaving=!0;o("confirmReportButton").disabled=!0;o("editReportButton").disabled=!0;
+o("reportReviewStatus").textContent="Saving the report you reviewed...";
+try{
+const e={id:t.id,type:t.type,location:t.location,details:t.details,author:w()?.name||"Anonymous",
+lat:t.coords?.lat??null,lng:t.coords?.lng??null,created_at:(new Date).toISOString(),solved_count:0,is_solved:!1,
+media_type:t.file?.type.startsWith("video/")?"video":"image"},a=(await Ke(e,t.file)).shared;
+pendingReport=null;Re++;Te();o("reportReviewPanel").classList.add("hidden");o("reportForm").classList.remove("hidden");
+o("reportForm").reset();removeReportPhoto();
+o("gpsStatus").textContent=a?"Report shared. Attachments are public through the reporting backend.":
+"Report saved on this browser only. It was not confirmed as shared to the cloud.";
+t.coords||(o("gpsStatus").textContent+=" No location was matched, so this report has no map marker or nearby alerts.");
+je(a?"Your report was shared.":"Your report was saved on this device.");
+o("screen-report").classList.contains("active")&&(o("gpsStatus").setAttribute("tabindex","-1"),o("gpsStatus").focus());
+try{await refreshReports()}catch{o("gpsStatus").textContent+=" The report list could not be refreshed."}
+}catch(e){o("reportReviewStatus").textContent="Report was not saved. "+e.message+". Your reviewed details are still available; edit or try again."}
+finally{
+reportSaving=!1;o("confirmReportButton").disabled=!1;o("editReportButton").disabled=!1;o("reviewReportButton").disabled=!1;
+}
+});
+
+// MY REPORTS: durable browser receipts and explicit cloud-sharing states.
+const ze="blindpath_submission_receipts_v1",sharingReports=new Set;
+
+function getMyReportReceipts(){
+try{return JSON.parse(localStorage.getItem(ze)||"[]")}catch{return[]}
+}
+function Ye(e){
+const t=getMyReportReceipts(),n=t.findIndex(t=>t.id===e.id);
+n<0?t.unshift(e):t[n]={...t[n],...e};
+localStorage.setItem(ze,JSON.stringify(t));
+}
+function Ve(e){
+localStorage.setItem(ze,JSON.stringify(getMyReportReceipts().filter(t=>String(t.id)!==String(e))));
+}
+function Ge(){
+const e=new Map(getMyReportReceipts().map(e=>[String(e.id),e]));
+for(const t of getReports())e.has(String(t.id))||e.set(String(t.id),{...t,sharing_state:"local",legacy_local:!0});
+return[...e.values()].sort((e,t)=>String(t.created_at||"").localeCompare(String(e.created_at||"")));
+}
+async function Ke(e,t){
+t&&(e.media_ref=e.id,await ve("put",e.media_ref,t));
+let n={...e,sharing_state:"local",remote_id:null,remote_status:null,local_saved_at:(new Date).toISOString()};
+try{
+const t=getReports().filter(t=>t.id!==e.id);t.unshift(e);saveReports(t);
+}catch(t){
+if(e.media_ref)try{await ve("delete",e.media_ref)}catch{}
+throw t;
+}
+try{Ye(n)}catch{}
+if(!X||!ge(e))return{shared:!1,receipt:n};
+sharingReports.add(e.id);
+try{
+const e=await Je(n,t,!1);return{shared:"shared"===e.sharing_state,receipt:e};
+}catch{return{shared:!1,receipt:getMyReportReceipts().find(t=>t.id===e.id)||n}}
+finally{sharingReports.delete(e.id)}
+}
+async function Je(e,t,n=!0){
+if(!X)throw new Error("Cloud sharing is unavailable. Your local copy is retained.");
+if(!ge(e))throw new Error("This report has no matched location. Create a new report with a confirmed location before sharing.");
+const o=e.type+": "+(e.details||"");
+let a=null;
+if(n){
+const{data:t,error:n}=await X.from("tactile_reports")
+.select("id,status,media_url,media_type")
+.eq("latitude",Number(e.lat)).eq("longitude",Number(e.lng))
+.eq("description",o).eq("created_at",e.created_at).limit(1)
+.abortSignal(AbortSignal.timeout(12e3));
+if(n)throw new Error("Could not check for an existing cloud copy. Nothing new was uploaded; try again when cloud access works.");
+a=t?.[0]||null;
+}
+if(!a){
+let n=e.uploaded_media_url||null;
+if(t&&!n){
+const o=e.upload_path||"reports/"+crypto.randomUUID()+"."+te[t.type];
+Ye(e={...e,upload_path:o});
+const{error:a}=await X.storage.from("tactile-report-media").upload(o,t,{contentType:t.type,upsert:!1});
+if(a&&"409"!==String(a.statusCode)&&!/already exists|duplicate/i.test(a.message||""))
+throw new Error("Attachment upload could not be confirmed. Your local copy is retained.");
+n=X.storage.from("tactile-report-media").getPublicUrl(o).data.publicUrl;
+Ye(e={...e,uploaded_media_url:n});
+}
+Ye(e={...e,sharing_state:"unconfirmed"});
+const{data:i,error:r}=await X.from("tactile_reports").insert([{
+issue_type:Ne(e.type),description:o,latitude:Number(e.lat),longitude:Number(e.lng),
+created_at:e.created_at,status:"open",media_url:n,media_type:n?e.media_type:null
+}]).select("id,status,media_url,media_type").abortSignal(AbortSignal.timeout(12e3));
+if(r||!i?.length)throw new Error("Cloud submission was not confirmed. A local copy is retained; a retry will check for a matching cloud report first.");
+a=i[0];
+}
+const i={...e,sharing_state:"shared",remote_id:a.id,remote_status:a.status||"open",
+media_url:a.media_url||e.uploaded_media_url||null,media_type:a.media_type||e.media_type,
+shared_at:(new Date).toISOString(),last_error:null};
+Ye(i);saveReports(getReports().filter(t=>t.id!==e.id));return i;
+}
+
+async function We(e){
+if(sharingReports.has(e))return;
+let t=Ge().find(t=>String(t.id)===String(e));
+if(!t||"shared"===t.sharing_state)return;
+if(t.legacy_local){
+o("myReportsStatus").textContent="This report came from an older version without a reliable sharing receipt. Review and submit a new report instead of retrying it automatically.";
+return;
+}
+sharingReports.add(e);renderMyReports();
+o("myReportsStatus").textContent="Checking for a matching cloud copy before sharing...";
+try{
+let e=null;
+if(t.media_ref&&(e=await ve("get",t.media_ref),!e))
+throw new Error("The local attachment is missing. Nothing was shared. Create a new report if needed.");
+await Je(t,e,!0);
+o("myReportsStatus").textContent="Sharing confirmed. The report remains in this browser's submission history.";
+await refreshReports();
+}catch(e){
+const n=getMyReportReceipts().find(e=>e.id===t.id)||t;
+try{Ye({...n,last_error:e.message})}catch{}
+o("myReportsStatus").textContent=e.message;
+}finally{sharingReports.delete(e);renderMyReports()}
+}
+
+async function refreshMyReportStatuses(){
+if(!X)return void(o("myReportsStatus").textContent="Cloud status is unavailable. Your browser history is still visible.");
+o("refreshMyReportsButton").disabled=!0;
+let e=0,t=0;
+try{
+for(const n of getMyReportReceipts().filter(e=>"shared"===e.sharing_state&&null!=e.remote_id)){
+try{
+const{data:t,error:o}=await X.from("tactile_reports").select("id,status").eq("id",n.remote_id).limit(1).abortSignal(AbortSignal.timeout(12e3));
+if(o||!t?.length)throw new Error("Report is not readable.");
+Ye({...n,remote_status:t[0].status,status_checked_at:(new Date).toISOString(),status_unavailable:!1});e++;
+}catch{t++;try{Ye({...n,status_unavailable:!0})}catch{}}
+}
+o("myReportsStatus").textContent=e+" cloud status checks completed."+
+(t?" "+t+" could not be checked; the last known status is retained.":"");
+}finally{o("refreshMyReportsButton").disabled=!1;renderMyReports()}
+}
+
+function renderMyReports(){
+const e=Ge(),t=o("myReportsFilter").value,
+n=e.filter(e=>!t||("shared"===t?"shared"===e.sharing_state:"shared"!==e.sharing_state));
+o("myReportsCount").textContent=n.length+" submission"+(1===n.length?"":"s")+" shown.";
+const a=o("myReportsList");a.replaceChildren();
+if(!n.length){a.textContent="No matching submissions on this browser yet.";return}
+for(const e of n){
+const t=document.createElement("article");t.className="report-item";
+const n=document.createElement("strong");n.textContent=e.type||"Accessibility issue";
+const o=document.createElement("p");
+o.textContent="shared"===e.sharing_state?"Shared successfully":
+"unconfirmed"===e.sharing_state?"Cloud sharing unconfirmed — local copy retained":"Saved on this device";
+const i=document.createElement("p");i.className="muted";
+i.textContent=e.created_at?new Date(e.created_at).toLocaleString():e.created||"Date unavailable";
+const r=document.createElement("p");r.textContent="Location: "+(e.location||"Not provided");
+const s=document.createElement("p");s.textContent=e.details||"No additional description.";
+t.append(n,o,i,r,s);
+if("shared"===e.sharing_state){
+const n=document.createElement("p");
+n.textContent="Last known cloud report status: "+
+("resolved"===e.remote_status?"Marked resolved":"open"===e.remote_status?"Open":e.remote_status||"Not checked")+
+(e.status_unavailable?". Latest check unavailable.":"")+" This is not an authenticated management review.";
+t.appendChild(n);
+}else if(ge(e)){
+if(e.legacy_local){
+const e=document.createElement("p");
+e.textContent="Older local report. Sharing history is unknown; submit a new reviewed report if needed.";t.appendChild(e);
+}else{
+const n=document.createElement("button");n.className="secondary";
+n.textContent=sharingReports.has(e.id)?"Sharing...":"Retry Sharing";n.disabled=sharingReports.has(e.id);
+n.addEventListener("click",()=>We(e.id));t.appendChild(n);
+}
+}else{
+const e=document.createElement("p");
+e.textContent="No mapped location. Create a new report with a confirmed location to share it.";t.appendChild(e);
+}
+if(e.last_error){
+const n=document.createElement("p");n.className="muted";n.textContent="Last sharing attempt: "+e.last_error;t.appendChild(n);
+}
+if("shared"!==e.sharing_state){
+const n=document.createElement("button");n.className="danger";n.textContent="Delete Local Report";n.disabled=sharingReports.has(e.id);
+n.addEventListener("click",async()=>{
+confirm("Delete this local report and attachment? Any cloud copy will remain.")&&await Oe(e.id);
+});
+t.appendChild(n);
+}
+a.appendChild(t);ye(t,e);
+}
+}
+
+// LOCAL MANAGEMENT WORKFLOW DEMONSTRATION
+const He="blindpath_management_demo_v1",
+Ze={submitted:"Submitted",under_review:"Under Review",action_assigned:"Action Assigned",
+reported_resolved:"Reported Resolved",verified_resolved:"Verified Resolved"},
+Qe={submitted:"under_review",under_review:"action_assigned",action_assigned:"reported_resolved",reported_resolved:"verified_resolved"};
+let $e={},Xe=null,et=null,tt=null;
+
+function nt(){
+try{const e=JSON.parse(localStorage.getItem(He)||"{}");e&&"object"==typeof e&&!Array.isArray(e)&&($e=e)}catch{}
+renderDashboard();
+}
+function ot(e){return(e.cloud_source||"local")+":"+String(e.id)}
+function at(){localStorage.setItem(He,JSON.stringify($e))}
+function it(e){
+for(const t of e){
+const e=ot(t),n=$e[e];
+$e[e]={...n,key:e,id:String(t.id),source:t.cloud_source||"local",type:t.type||"Accessibility issue",
+location:t.location||"Location not provided",details:t.details||"",lat:t.lat,lng:t.lng,
+created_at:t.created_at||n?.created_at||null,observed_at:(new Date).toISOString(),
+status:n?.status||"submitted",assignee:n?.assignee||"",notes:n?.notes||"",evidence:n?.evidence||"",history:n?.history||[]};
+}
+try{at()}catch{o("dashboardStatus").textContent="The dashboard could not be saved. Browser storage may be full; export your review records before leaving."}
+}
+function rt(){return Object.values($e).filter(e=>e&&Ze[e.status])}
+function st(){
+const e=o("dashboardFilter").value,t=o("dashboardTypeFilter").value,n=o("dashboardSearch").value.trim().toLowerCase();
+return rt().filter(o=>(!e||o.status===e)&&(!t||o.type===t)&&(!n||[o.type,o.location,o.details,o.assignee].join(" ").toLowerCase().includes(n)))
+.sort((e,t)=>String(t.created_at||"").localeCompare(String(e.created_at||"")));
+}
+function lt(e){
+const t=Date.parse(e.created_at);
+return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/864e5))+" days since report":"Report age unavailable";
+}
+function renderDashboard(){
+const e=rt();
+o("dashTotal").textContent=e.length;
+o("dashOpen").textContent=e.filter(e=>!["reported_resolved","verified_resolved"].includes(e.status)).length;
+o("dashReview").textContent=e.filter(e=>"reported_resolved"===e.status).length;
+o("dashVerified").textContent=e.filter(e=>"verified_resolved"===e.status).length;
+const t=o("dashboardTypeFilter").value;o("dashboardTypeFilter").replaceChildren();
+const n=document.createElement("option");n.value="";n.textContent="All issue types";o("dashboardTypeFilter").appendChild(n);
+[...new Set(e.map(e=>e.type))].sort().forEach(e=>{
+const t=document.createElement("option");t.value=e;t.textContent=e;o("dashboardTypeFilter").appendChild(t);
+});
+[...o("dashboardTypeFilter").options].some(e=>e.value===t)&&(o("dashboardTypeFilter").value=t);
+const a=st(),i=o("dashboardList");i.replaceChildren();
+o("dashboardCount").textContent=a.length+" matching report"+(1===a.length?"":"s")+".";
+a.length||(i.textContent=e.length?"No reports match these filters.":
+"No reports loaded yet. Refresh cloud reports or add clearly labelled sample reports to explore the dashboard.");
+for(const e of a){
+const t=document.createElement("div");t.className="report-item";
+const n=document.createElement("strong");n.textContent=(e.is_example?"SAMPLE · ":"")+e.type;
+const o=document.createElement("p");o.textContent="Demo workflow: "+Ze[e.status];
+const a=document.createElement("p");a.textContent=e.location;
+const r=document.createElement("p");r.className="muted";r.textContent=lt(e)+(e.assignee?" · Assigned to "+e.assignee:"");
+const s=document.createElement("button");s.className="secondary";s.textContent="Review Report";
+s.addEventListener("click",()=>ut(e.key));t.append(n,o,a,r,s);i.appendChild(t);
+}
+ct(e);dt(a);
+}
+function ct(e){
+const t=new Map;
+for(const n of e){
+if(!ge(n)||"verified_resolved"===n.status)continue;
+const e=Number(n.lat).toFixed(3)+", "+Number(n.lng).toFixed(3),
+o=(n.is_example?"sample:":"report:")+e,a=t.get(o)||{count:0,label:e,sample:n.is_example};
+a.count++;t.set(o,a);
+}
+const n=o("dashboardClusters");n.replaceChildren();
+const a=[...t.values()].filter(e=>e.count>1).sort((e,t)=>t.count-e.count).slice(0,5);
+if(!a.length){const e=document.createElement("li");e.textContent="No repeated coordinate groups in the loaded records.";n.appendChild(e);return}
+for(const e of a){
+const t=document.createElement("li");t.textContent=(e.sample?"SAMPLE · ":"")+e.count+" reports around "+e.label;n.appendChild(t);
+}
+}
+function dt(e){
+if(!o("screen-dashboard").classList.contains("active"))return;
+if(!window.L)return void(o("managementMap").textContent="Map unavailable. Reports remain available in the list.");
+et||(et=L.map("managementMap").setView([3.122,101.653],15),
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(et),
+tt=L.layerGroup().addTo(et));
+tt.clearLayers();const t=[];
+for(const n of e){
+if(!ge(n))continue;
+const e=[Number(n.lat),Number(n.lng)];t.push(e);
+const o=document.createElement("div"),a=document.createElement("strong");a.textContent=(n.is_example?"SAMPLE · ":"")+n.type;
+const i=document.createElement("p");i.textContent=Ze[n.status]+" (demo)";
+const r=document.createElement("button");r.className="secondary";r.textContent="Review Report";r.addEventListener("click",()=>ut(n.key));
+o.append(a,i,r);
+L.circleMarker(e,{radius:9,color:n.is_example?"#6b46c1":"verified_resolved"===n.status?"#176536":"#a12626",fillOpacity:.8}).bindPopup(o).addTo(tt);
+}
+setTimeout(()=>{et.invalidateSize();t.length&&et.fitBounds(L.latLngBounds(t),{padding:[25,25],maxZoom:17})},100);
+}
+function ut(e,t=!0){
+const n=$e[e];if(!n)return;
+Xe=e;o("dashboardReviewPanel").classList.remove("hidden");
+o("dashboardReviewTitle").textContent=(n.is_example?"SAMPLE · ":"")+n.type;
+o("dashboardReviewDetails").textContent=n.location+". "+n.details;o("reviewStage").replaceChildren();
+const a=new Set([n.status,Qe[n.status]]);"submitted"!==n.status&&a.add("under_review");
+Object.entries(Ze).forEach(([e,t])=>{
+if(!a.has(e))return;const n=document.createElement("option");n.value=e;n.textContent=t;o("reviewStage").appendChild(n);
+});
+o("reviewStage").value=n.status;o("reviewAssignee").value=n.assignee;o("reviewNotes").value=n.notes;o("reviewEvidence").value=n.evidence;
+o("reviewStatus").textContent="Updates affect this browser's demonstration dashboard only.";
+const i=o("reviewHistory");i.replaceChildren();
+for(const e of n.history){
+const t=document.createElement("li");
+t.textContent=new Date(e.at).toLocaleString()+" · "+Ze[e.status]+(e.assignee?" · "+e.assignee:"")+
+(e.notes?" · "+e.notes:"")+(e.evidence?" · Evidence: "+e.evidence:"");i.appendChild(t);
+}
+if(!n.history.length){const e=document.createElement("li");e.textContent="No management updates recorded yet.";i.appendChild(e)}
+t&&(o("dashboardReviewTitle").focus(),o("dashboardReviewPanel").scrollIntoView({behavior:"smooth",block:"start"}));
+}
+function addDashboardSamples(){
+const e=Date.now(),t={...$e};
+[
+{id:"sample_vehicle",type:"Vehicle blocking tactile path",location:"Sample township entrance — fictional",
+details:"Example vehicle obstruction for dashboard practice.",lat:3.1221,lng:101.6531},
+{id:"sample_damage",type:"Damaged tactile path",location:"Sample walkway — fictional",
+details:"Example broken tactile paving, not a real incident.",lat:3.1222,lng:101.6532},
+{id:"sample_gap",type:"Missing tactile path",location:"Sample community facility — fictional",
+details:"Example infrastructure gap for planning discussion.",lat:3.123,lng:101.655}
+].forEach((t,n)=>{
+const o="example:"+t.id;
+$e[o]||($e[o]={...t,key:o,source:"example",is_example:!0,created_at:new Date(e-864e5*(n+1)).toISOString(),
+status:"submitted",assignee:"",notes:"",evidence:"",history:[]});
+});
+try{at();o("dashboardStatus").textContent="Added fictional sample reports to this browser's dashboard only."}
+catch{$e=t;o("dashboardStatus").textContent="Samples could not be saved."}
+renderDashboard();
+}
+function removeDashboardSamples(){
+if(!confirm("Remove fictional sample records from this dashboard? Other reports will remain."))return;
+const e=$e;$e=Object.fromEntries(Object.entries($e).filter(([,e])=>!e.is_example));
+try{at()}catch{return $e=e,void(o("dashboardStatus").textContent="Could not save the change.")}
+$e[Xe]||(o("dashboardReviewPanel").classList.add("hidden"),Xe=null);
+o("dashboardStatus").textContent="Sample records removed.";renderDashboard();
+}
+function exportDashboardCSV(){
+const e=[["Source","Example","Issue","Location","Created","Demo stage","Assigned to","Notes","Evidence"]];
+st().forEach(t=>e.push([t.source,t.is_example?"YES":"NO",t.type,t.location,t.created_at||"",Ze[t.status],t.assignee,t.notes,t.evidence]));
+const t=e=>{let t=String(e??"");/^[\s]*[=+@-]/.test(t)&&(t="'"+t);return'"'+t.replace(/"/g,'""')+'"'},
+n=new Blob(["\ufeff"+e.map(e=>e.map(t).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}),
+o=URL.createObjectURL(n),a=document.createElement("a");
+a.href=o;a.download="blindpath-management-demo.csv";document.body.appendChild(a);a.click();a.remove();
+setTimeout(()=>URL.revokeObjectURL(o),1e3);
+}
+
+o("dashboardReviewForm").addEventListener("submit",e=>{
+e.preventDefault();const t=$e[Xe];if(!t)return;
+const n=o("reviewStage").value,a=o("reviewAssignee").value.trim(),
+i=o("reviewNotes").value.trim(),r=o("reviewEvidence").value.trim(),s=new Set([t.status,Qe[t.status]]);
+"submitted"!==t.status&&s.add("under_review");
+if(!s.has(n))return void(o("reviewStatus").textContent="Choose the next workflow stage or reopen for review.");
+if("action_assigned"===n&&!a)return void(o("reviewStatus").textContent="Enter a responsible team or person before assigning action.");
+if(["reported_resolved","verified_resolved"].includes(n)&&!i)return void(o("reviewStatus").textContent="Add resolution notes before marking this stage.");
+if("verified_resolved"===n&&!r)return void(o("reviewStatus").textContent="Record the inspection or resolution evidence before demo verification.");
+const l=t;
+$e[Xe]={...t,status:n,assignee:a,notes:i,evidence:r,
+history:[...t.history,{at:(new Date).toISOString(),status:n,assignee:a,notes:i,evidence:r}]};
+try{at()}catch{return $e[Xe]=l,void(o("reviewStatus").textContent="Update not saved. Browser storage may be full.")}
+renderDashboard();ut(Xe,!1);
+o("reviewStatus").textContent="Demo review saved on this browser. No cloud report or live hazard status was changed.";
+});
+
+// INTERFACE MODES
+const mt="blindpath_interface_mode_v1";
+let pt=null;
+function ht(e){
+if(!["accessible","public"].includes(e))return;
+pt=e;document.body.classList.toggle("accessible-mode","accessible"===e);
+o("accessibleModeButton").setAttribute("aria-pressed",String("accessible"===e));
+o("publicModeButton").setAttribute("aria-pressed",String("public"===e));
+o("changeModeButton").textContent="accessible"===e?"Accessible Mode · Switch":"Public Mode · Switch";
+o("settingsModeLabel").textContent="Current mode: "+("accessible"===e?"Accessible Mode":"Public Mode")+".";
+o("appModeStatus").textContent="Selected: "+("accessible"===e?"Accessible Mode":"Public Mode")+".";
+o("keepModeButton").classList.remove("hidden");o("journeyOptions").open="public"===e;
+"accessible"===e&&"foot"!==o("mode").value&&(o("mode").value="foot",D());
+}
+function chooseAppMode(e){
+if(!["accessible","public"].includes(e))return;
+stopAllVoice();ht(e);let t=!0;try{localStorage.setItem(mt,e)}catch{t=!1}
+goTo("home");t||(o("homeIntro").textContent+=" Your mode could not be remembered on this browser.");
+"accessible"===e&&je("Accessible Mode selected. Choose Start Navigation, Report an Issue, or Voice and Settings. More options contains community reports and your profile.","en-MY");
+}
+function gt(){
+let e=null;try{e=localStorage.getItem(mt)}catch{}
+["accessible","public"].includes(e)&&(ht(e),goTo("home"));
+}
+window.addEventListener("load",()=>{
+nt();gt();T();
+["start","destination","mode"].forEach(e=>o(e).addEventListener("change",D));
+x();Ue();refreshReports();C();w()&&S();
+});
+</script>
+  <script>
+/*
+  BlindPath navigation integration.
+  Paste this script ONCE immediately before </body>
+  in your latest BlindPath code.
+*/
+(() => {
+  "use strict";
+
+  if (window.blindPathNavigationMerged) return;
+  window.blindPathNavigationMerged = true;
+
+  const $ = id => document.getElementById(id);
+  const originalFetch = window.fetch.bind(window);
+  const originalFind = window.findRoute;
+  const originalGeoJSON = window.L && L.geoJSON;
+
+  let session = null;
+  let sequence = 0;
+  let reading = 0;
+  let reviewIndex = 0;
+
+  const normalize = value =>
+    String(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+
+  /*
+    Team-supplied approximate campus points.
+    These are not verified accessible entrances.
+  */
+  const colleges = [
+    [3.1187, 101.6543, "Tuanku Abdul Rahman", "pertama", "1st", "astaka"],
+    [3.1172, 101.6570, "Tuanku Bahiyah", "kedua", "2nd"],
+    [3.1251, 101.6512, "Tuanku Kurshiah", "ketiga", "3rd"],
+    [3.1265, 101.6534, "Bestari", "keempat", "4th"],
+    [3.1158, 101.6598, "Dayasari", "kelima", "5th"],
+    [3.1248, 101.6575, "Ibnu Sina", "keenam", "6th"],
+    [3.1284, 101.6517, "Za'ba", "ketujuh", "7th"],
+    [3.1219, 101.6508, "Kinabalu", "kelapan", "8th"],
+    [3.1226, 101.6483, "Tun Syed Zahiruddin", "kesembilan", "9th"],
+    [3.1189, 101.6604, "Tun Ahmad Zaidi", "kesepuluh", "10th"],
+    [3.1197, 101.6622, "Ungku Aziz", "kesebelas", "11th"],
+    [3.1268, 101.6585, "Raja Dr Nazrin Shah", "kedua belas", "12th"]
+  ];
+
+  const places = new Map();
+
+  function addPlace(aliases, lat, lon, name) {
+    for (const alias of aliases) {
+      places.set(normalize(alias), { lat, lon, name });
+    }
+  }
+
+  colleges.forEach(
+    ([lat, lon, name, ordinal, english, extra], index) => {
+      const number = index + 1;
+      const label = "KK" + number + " — Kolej Kediaman " + name;
+
+      const aliases = [
+        "KK" + number,
+        "Kolej " + number,
+        "Kolej Kediaman " + number,
+        "Kolej Kediaman ke-" + number,
+        "Kolej Kediaman " + ordinal,
+        english + " residential college",
+        name,
+        "Kolej Kediaman " + name,
+        label
+      ];
+
+      if (extra) aliases.push(extra);
+
+      for (const alias of [...aliases]) {
+        aliases.push(
+          alias + " UM",
+          alias + " Universiti Malaya",
+          alias + " University of Malaya"
+        );
+      }
+
+      addPlace(aliases, lat, lon, label);
+    }
+  );
+
+  [
+    [
+      ["fakulti sains", "faculty of science"],
+      3.12364,
+      101.65468,
+      "Faculty of Science"
+    ],
+    [
+      [
+        "fakulti bahasa",
+        "faculty of languages",
+        "faculty of languages and linguistics"
+      ],
+      3.1205,
+      101.6528,
+      "Faculty of Languages and Linguistics"
+    ],
+    [
+      [
+        "fakulti sastera",
+        "faculty of arts",
+        "faculty of arts and social sciences"
+      ],
+      3.1205,
+      101.6568,
+      "Faculty of Arts and Social Sciences"
+    ],
+    [
+      ["fakulti undang-undang", "faculty of law"],
+      3.1202,
+      101.6595,
+      "Faculty of Law"
+    ],
+    [
+      ["dtc", "dewan tunku canselor"],
+      3.1209,
+      101.6579,
+      "Dewan Tunku Canselor"
+    ],
+    [
+      ["perpustakaan", "main library"],
+      3.1208,
+      101.6558,
+      "Main Library"
+    ]
+  ].forEach(([aliases, lat, lon, name]) => {
+    const allAliases = [...aliases];
+
+    for (const alias of aliases) {
+      allAliases.push(
+        alias + " UM",
+        alias + ", Universiti Malaya",
+        alias + ", University of Malaya"
+      );
+    }
+
+    addPlace(
+      allAliases,
+      lat,
+      lon,
+      name + ", Universiti Malaya"
+    );
+  });
+
+  function findCampusPlace(value) {
+    const key = normalize(value).replace(/kualalumpur$/, "");
+    return places.get(key);
+  }
+
+  /*
+    Route reading is a preview.
+    It never moves a marker or simulates the user's position.
+  */
+  function stopReading() {
+    reading++;
+
+    if ($("bpReadRoute")) {
+      $("bpReadRoute").textContent = "Read Entire Route";
+    }
+
+    if ("speechSynthesis" in window) {
+      speechSynthesis.cancel();
+    }
+  }
+
+  function clearNavigationExtras() {
+    if (session) session.controller.abort();
+
+    session = null;
+    sequence++;
+    stopReading();
+    reviewIndex = 0;
+
+    if ($("bpRouteInfo")) {
+      $("bpRouteInfo").classList.add("hidden");
+    }
+  }
+
+  function speakPreview(text, onComplete) {
+    if (!("speechSynthesis" in window)) {
+      $("bpNavigationStatus").textContent =
+        "Speech is not supported by this browser.";
+      return;
+    }
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = "en-MY";
+    utterance.rate = Number($("speechSpeed").value) || 1;
+
+    const selectedVoice = $("voiceSelect").value;
+
+    if (selectedVoice !== "") {
+      utterance.voice =
+        speechSynthesis.getVoices()[Number(selectedVoice)] || null;
+    }
+
+    utterance.onend = () => {
+      if (onComplete) onComplete();
+    };
+
+    utterance.onerror = () => {
+      if (onComplete) stopReading();
+    };
+
+    speechSynthesis.speak(utterance);
+  }
+
+  function highlightPreviewStep(index) {
+    const items = [...$("directionList").children];
+
+    for (const [itemIndex, item] of items.entries()) {
+      item.style.background =
+        itemIndex === index ? "#fff2ce" : "";
+
+      const button = item.querySelector("button");
+
+      if (button) {
+        if (itemIndex === index) {
+          button.setAttribute("aria-current", "step");
+        } else {
+          button.removeAttribute("aria-current");
+        }
+      }
+    }
+  }
+
+  function readPreviewStep(index) {
+    const item = $("directionList").children[index];
+    if (!item) return;
+
+    window.stopGuidance(false);
+    stopReading();
+
+    reviewIndex = index;
+    highlightPreviewStep(index);
+    speakPreview(item.textContent);
+
+    $("bpNavigationStatus").textContent =
+      "Route preview, step " + (index + 1) +
+      ". This does not track your position.";
+  }
+
+  function readEntireRoute() {
+    if ($("bpReadRoute").textContent === "Stop Reading") {
+      stopReading();
+      return;
+    }
+
+    stopReading();
+    const token = reading;
+
+    window.stopGuidance(false);
+
+    const items = [...$("directionList").children];
+    if (!items.length) return;
+
+    $("bpReadRoute").textContent = "Stop Reading";
+    $("bpNavigationStatus").textContent =
+      "Reading a route preview. No walking is simulated.";
+
+    function readNext(index) {
+      if (token !== reading) return;
+
+      if (index >= items.length) {
+        stopReading();
+        return;
+      }
+
+      reviewIndex = index;
+      highlightPreviewStep(index);
+
+      speakPreview(items[index].textContent, () => {
+        readNext(index + 1);
+      });
+    }
+
+    readNext(0);
+  }
+
+  function enhanceDirections() {
+    [...$("directionList").children].forEach((item, index) => {
+      const text = item.textContent;
+      item.replaceChildren();
+
+      const button = document.createElement("button");
+      button.className = "secondary";
+      button.type = "button";
+      button.style.cssText =
+        "width:100%;text-align:left;margin:4px 0";
+      button.textContent = text;
+
+      button.addEventListener("click", () => {
+        readPreviewStep(index);
+      });
+
+      item.appendChild(button);
+    });
+  }
+
+  const radians = value => value * Math.PI / 180;
+
+  function distanceMetres(a, b) {
+    const h =
+      Math.sin(radians(b.lat - a.lat) / 2) ** 2 +
+      Math.cos(radians(a.lat)) *
+      Math.cos(radians(b.lat)) *
+      Math.sin(radians(b.lon - a.lon) / 2) ** 2;
+
+    return 6371000 * 2 *
+      Math.asin(Math.min(1, Math.sqrt(h)));
+  }
+
+  function getBearing(a, b) {
+    const y =
+      Math.sin(radians(b.lon - a.lon)) *
+      Math.cos(radians(b.lat));
+
+    const x =
+      Math.cos(radians(a.lat)) *
+      Math.sin(radians(b.lat)) -
+      Math.sin(radians(a.lat)) *
+      Math.cos(radians(b.lat)) *
+      Math.cos(radians(b.lon - a.lon));
+
+    return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  }
+
+  function turnModifier(angle) {
+    if (Math.abs(angle) < 30) return "straight";
+
+    const strength =
+      Math.abs(angle) < 65 ? "slight " :
+      Math.abs(angle) > 125 ? "sharp " : "";
+
+    return strength + (angle > 0 ? "right" : "left");
+  }
+
+  /*
+    Build a graph using actual shared OSM node IDs.
+
+    Nearby but disconnected paths are not joined.
+    No synthetic route is drawn across gaps, roads or barriers.
+  */
+  function buildWalkingGraph(features) {
+    const nodes = new Map();
+
+    for (const feature of features) {
+      const tags = feature.tags || {};
+
+      if (
+        ["no", "private"].includes(tags.access) ||
+        ["no", "private"].includes(tags.foot) ||
+        tags["access:conditional"] ||
+        tags["foot:conditional"]
+      ) {
+        continue;
+      }
+
+      const pedestrianWay = [
+        "footway",
+        "path",
+        "pedestrian",
+        "steps",
+        "living_street"
+      ].includes(tags.highway);
+
+      const explicitFootAccess = [
+        "yes",
+        "designated",
+        "permissive"
+      ].includes(tags.foot);
+
+      if (!pedestrianWay && !explicitFootAccess) continue;
+
+      if (
+        !feature.nodes ||
+        !feature.geometry ||
+        feature.nodes.length !== feature.geometry.length
+      ) {
+        continue;
+      }
+
+      const surface =
+        tags.tactile_paving === "yes" ? "yes" :
+        tags.tactile_paving === "no" ? "no" : "unknown";
+
+      feature.nodes.forEach((id, index) => {
+        const point = feature.geometry[index];
+
+        if (
+          Number.isFinite(point.lat) &&
+          Number.isFinite(point.lon) &&
+          !nodes.has(id)
+        ) {
+          nodes.set(id, { ...point, edges: [] });
+        }
+      });
+
+      for (let index = 1; index < feature.nodes.length; index++) {
+        const fromId = feature.nodes[index - 1];
+        const toId = feature.nodes[index];
+        const from = nodes.get(fromId);
+        const to = nodes.get(toId);
+
+        if (!from || !to || fromId === toId) continue;
+
+        const length = distanceMetres(from, to);
+        if (length < 0.1) continue;
+
+        const edge = {
+          length,
+          cost: length * (surface === "yes" ? 0.65 : 1),
+          surface,
+          name: tags.name || ""
+        };
+
+        const oneWay = tags["oneway:foot"];
+
+        if (oneWay !== "-1") {
+          from.edges.push({ ...edge, to: toId });
+        }
+
+        if (oneWay !== "yes" && oneWay !== "1") {
+          to.edges.push({ ...edge, to: fromId });
+        }
+      }
+
+      if (nodes.size > 25000) {
+        throw new Error(
+          "Mapped network is too large for this browser."
+        );
+      }
+    }
+
+    return nodes;
+  }
+
+  /*
+    Find a nearby mapped node without adding an artificial connector.
+    Any remaining endpoint gap is disclosed in the interface.
+  */
+  function nearestNode(nodes, point) {
+    let bestId = null;
+    let bestDistance = 25;
+
+    for (const [id, node] of nodes) {
+      if (!node.edges.length) continue;
+
+      const distance = distanceMetres(point, node);
+
+      if (distance < bestDistance) {
+        bestId = id;
+        bestDistance = distance;
+      }
+    }
+
+    return { id: bestId, distance: bestDistance };
+  }
+
+  function findShortestRoute(nodes, startId, endId) {
+    const heap = [];
+    const costs = new Map([[startId, 0]]);
+    const previous = new Map();
+
+    function push(item) {
+      heap.push(item);
+      let index = heap.length - 1;
+
+      while (index) {
+        const parent = (index - 1) >> 1;
+        if (heap[parent][0] <= item[0]) break;
+
+        heap[index] = heap[parent];
+        index = parent;
+      }
+
+      heap[index] = item;
+    }
+
+    function pop() {
+      const first = heap[0];
+      const last = heap.pop();
+
+      if (heap.length) {
+        let index = 0;
+
+        while (2 * index + 1 < heap.length) {
+          let child = 2 * index + 1;
+
+          if (
+            child + 1 < heap.length &&
+            heap[child + 1][0] < heap[child][0]
+          ) {
+            child++;
+          }
+
+          if (heap[child][0] >= last[0]) break;
+
+          heap[index] = heap[child];
+          index = child;
+        }
+
+        heap[index] = last;
+      }
+
+      return first;
+    }
+
+    push([0, startId]);
+
+    while (heap.length) {
+      const [cost, id] = pop();
+
+      if (cost !== costs.get(id)) continue;
+      if (id === endId) break;
+
+      for (const edge of nodes.get(id).edges) {
+        const nextCost = cost + edge.cost;
+
+        if (nextCost < (costs.get(edge.to) ?? Infinity)) {
+          costs.set(edge.to, nextCost);
+          previous.set(edge.to, { id, edge });
+          push([nextCost, edge.to]);
+        }
+      }
+    }
+
+    if (!previous.has(endId)) return null;
+
+    const segments = [];
+    let id = endId;
+
+    while (id !== startId) {
+      const entry = previous.get(id);
+      if (!entry) return null;
+
+      segments.push({
+        ...entry.edge,
+        from: nodes.get(entry.id),
+        to: nodes.get(id)
+      });
+
+      id = entry.id;
+    }
+
+    return segments.reverse();
+  }
+
+  /*
+    Convert the graph route into the structure already used
+    by your existing live GPS voice-navigation system.
+  */
+  function buildRouteResponse(segments) {
+    const steps = [];
+    let previousBearing = null;
+
+    for (const segment of segments) {
+      const heading = getBearing(segment.from, segment.to);
+
+      const turnAngle =
+        previousBearing === null ? 0 :
+        ((heading - previousBearing + 540) % 360) - 180;
+
+      const lastStep = steps[steps.length - 1];
+
+      if (
+        !lastStep ||
+        Math.abs(turnAngle) >= 35 ||
+        lastStep.bpSurface !== segment.surface
+      ) {
+        const surfaceDescription =
+          segment.surface === "yes"
+            ? "OSM-tagged tactile paving, unverified"
+            : segment.surface === "no"
+            ? "path tagged without tactile paving, unverified"
+            : "mapped path, tactile status unknown";
+
+        steps.push({
+          name:
+            (segment.name ? segment.name + "; " : "") +
+            surfaceDescription,
+          distance: segment.length,
+          bpSurface: segment.surface,
+          maneuver: {
+            type: steps.length ? "turn" : "depart",
+            modifier: turnModifier(turnAngle),
+            bearing_after: heading,
+            location: [segment.from.lon, segment.from.lat]
+          }
+        });
+      } else {
+        lastStep.distance += segment.length;
+      }
+
+      previousBearing = heading;
+    }
+
+    const endpoint = segments[segments.length - 1].to;
+
+    steps.push({
+      name: "",
+      distance: 0,
+      maneuver: {
+        type: "arrive",
+        location: [endpoint.lon, endpoint.lat]
+      }
+    });
+
+    const distance = segments.reduce(
+      (sum, segment) => sum + segment.length,
+      0
+    );
+
+    const coordinates = [
+      [segments[0].from.lon, segments[0].from.lat],
+      ...segments.map(segment => [
+        segment.to.lon,
+        segment.to.lat
+      ])
+    ];
+
+    return {
+      distance,
+      duration: distance / 1.1,
+      geometry: {
+        type: "LineString",
+        coordinates,
+        bp_segments: segments.map(segment => ({
+          coordinates: [
+            [segment.from.lon, segment.from.lat],
+            [segment.to.lon, segment.to.lat]
+          ],
+          surface: segment.surface
+        }))
+      },
+      legs: [{ steps }]
+    };
+  }
+
+  async function findTactileRoute(start, end, current) {
+    if (distanceMetres(start, end) > 5000) {
+      throw new Error(
+        "Tactile network search is limited to journeys up to 5 km."
+      );
+    }
+
+    const bounds = [
+      Math.min(start.lat, end.lat) - 0.003,
+      Math.min(start.lon, end.lon) - 0.003,
+      Math.max(start.lat, end.lat) + 0.003,
+      Math.max(start.lon, end.lon) + 0.003
+    ];
+
+    const query =
+      '[out:json][timeout:12];' +
+      'way["highway"~"^(footway|path|pedestrian|living_street|' +
+      'steps|service|residential|unclassified|track)$"]' +
+      "(" + bounds.join(",") + ");out body geom;";
+
+    const signal = AbortSignal.any([
+      current.controller.signal,
+      AbortSignal.timeout(15000)
+    ]);
+
+    const response = await originalFetch(
+      "https://overpass-api.de/api/interpreter",
+      {
+        method: "POST",
+        body: new URLSearchParams({ data: query }),
+        signal
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error("OSM pedestrian network is unavailable.");
+    }
+
+    const data = await response.json();
+
+    if (!Array.isArray(data.elements)) {
+      throw new Error("OSM returned no network.");
+    }
+
+    const nodes = buildWalkingGraph(data.elements);
+    const startNode = nearestNode(nodes, start);
+    const endNode = nearestNode(nodes, end);
+
+    if (
+      startNode.id === null ||
+      endNode.id === null ||
+      startNode.id === endNode.id
+    ) {
+      throw new Error(
+        "No distinct mapped network endpoints within 25 metres."
+      );
+    }
+
+    const segments = findShortestRoute(
+      nodes,
+      startNode.id,
+      endNode.id
+    );
+
+    if (!segments?.length) {
+      throw new Error(
+        "No connected mapped pedestrian route. Gaps were not joined."
+      );
+    }
+
+    current.meta = {
+      kind: "graph",
+      startGap: startNode.distance,
+      endGap: endNode.distance,
+      tactile: segments
+        .filter(segment => segment.surface === "yes")
+        .reduce((sum, segment) => sum + segment.length, 0),
+      unknown: segments
+        .filter(segment => segment.surface === "unknown")
+        .reduce((sum, segment) => sum + segment.length, 0)
+    };
+
+    return buildRouteResponse(segments);
+  }
+
+  /*
+    Keep your existing map and route handling.
+    Only apply special colours to routes built by this integration.
+  */
+  if (originalGeoJSON) {
+    L.geoJSON = function(data, options) {
+      if (data?.bp_segments) {
+        const features = data.bp_segments.map(segment => ({
+          type: "Feature",
+          properties: { surface: segment.surface },
+          geometry: {
+            type: "LineString",
+            coordinates: segment.coordinates
+          }
+        }));
+
+        return originalGeoJSON.call(
+          this,
+          { type: "FeatureCollection", features },
+          {
+            ...options,
+            style: feature => ({
+              color:
+                feature.properties.surface === "yes"
+                  ? "#b45309"
+                  : "#2563eb",
+              weight: 7,
+              opacity: 0.95,
+              dashArray:
+                feature.properties.surface === "unknown"
+                  ? "8 6"
+                  : null
+            })
+          }
+        );
+      }
+
+      return originalGeoJSON.call(this, data, options);
+    };
+  }
+
+  if (window.L) {
+    const originalMap = L.map;
+
+    L.map = function(id, ...args) {
+      const instance = originalMap.call(this, id, ...args);
+
+      if (id === "map") {
+        instance.on("click", clearNavigationExtras);
+      }
+
+      return instance;
+    };
+  }
+
+  /*
+    Extend the base's existing requests.
+    Reporting and other backend requests pass through unchanged.
+  */
+  window.fetch = async function(input, options) {
+    const url =
+      typeof input === "string" ? input :
+      input instanceof URL ? input.href :
+      input.url;
+
+    const current = session;
+
+    if (
+      current &&
+      url.startsWith("https://nominatim.openstreetmap.org/search")
+    ) {
+      const query = new URL(url).searchParams.get("q");
+      const campusPlace = findCampusPlace(query);
+
+      if (campusPlace) {
+        return new Response(
+          JSON.stringify([{
+            lat: String(campusPlace.lat),
+            lon: String(campusPlace.lon),
+            display_name:
+              campusPlace.name +
+              " — approximate team-supplied point; entrance unverified"
+          }]),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const footPrefix =
+      "https://routing.openstreetmap.de/routed-foot/route/v1/driving/";
+
+    if (!current || !url.startsWith(footPrefix)) {
+      return originalFetch(input, options);
+    }
+
+    if (current.prefer) {
+      try {
+        const [startCoordinates, endCoordinates] =
+          url.slice(footPrefix.length)
+            .split("?")[0]
+            .split(";")
+            .map(part => part.split(",").map(Number));
+
+        const route = await findTactileRoute(
+          {
+            lat: startCoordinates[1],
+            lon: startCoordinates[0]
+          },
+          {
+            lat: endCoordinates[1],
+            lon: endCoordinates[0]
+          },
+          current
+        );
+
+        current.route = route;
+
+        return new Response(
+          JSON.stringify({ code: "Ok", routes: [route] }),
+          { headers: { "Content-Type": "application/json" } }
+        );
+      } catch (error) {
+        if (current.controller.signal.aborted) throw error;
+
+        current.meta = {
+          kind: "fallback",
+          reason: error.message
+        };
+      }
+    } else {
+      current.meta = { kind: "standard" };
+    }
+
+    /*
+      Use the existing walking routing service as fallback.
+      Do not use the public car-routing server for walking.
+    */
+    const response = await originalFetch(input, {
+      ...options,
+      signal: AbortSignal.any([
+        current.controller.signal,
+        AbortSignal.timeout(20000)
+      ])
+    });
+
+    if (response.ok) {
+      const data = await response.clone().json();
+      current.route = data.routes?.[0] || null;
+    }
+
+    return response;
+  };
+
+  window.findRoute = async function() {
+    clearNavigationExtras();
+
+    const current = {
+      id: sequence,
+      controller: new AbortController(),
+      prefer: $("bpPreferTactile").checked,
+      meta: null,
+      route: null
+    };
+
+    session = current;
+
+    $("bpNavigationStatus").textContent =
+      "Finding a route. OSM tags and supplied campus points are unverified.";
+
+    try {
+      await originalFind();
+
+      if (
+        session !== current ||
+        current.controller.signal.aborted ||
+        !current.route
+      ) {
+        return;
+      }
+
+      enhanceDirections();
+      reviewIndex = 0;
+
+      const metadata = current.meta;
+      const totalDistance = current.route.distance;
+
+      $("bpRouteInfo").classList.remove("hidden");
+
+      $("bpTactileDistance").textContent =
+        metadata.kind === "graph"
+          ? Math.round(metadata.tactile) + " m (" +
+            Math.round(metadata.tactile / totalDistance * 100) + "%)"
+          : "Unknown — not measured";
+
+      $("bpRouteLegend").textContent =
+        metadata.kind === "graph"
+          ? "Amber: tagged tactile paving. Blue: tactile paving " +
+            "tagged absent. Dashed blue: tactile status unknown. " +
+            "Tags are unverified."
+          : "Blue: walking-service route. Tactile status is " +
+            "unknown along this route.";
+
+      if (metadata.kind === "graph") {
+        $("bpNavigationStatus").textContent =
+          "OSM pedestrian route with tactile-tag preference. " +
+          Math.round(metadata.unknown) +
+          " m has unknown tactile status. Mapped route starts " +
+          Math.round(metadata.startGap) +
+          " m from the entered start and ends " +
+          Math.round(metadata.endGap) +
+          " m from the destination. These gaps and entrances " +
+          "are unverified; no connecting line is assumed. " +
+          "Steps and crossings may be present.";
+      } else {
+        $("bpNavigationStatus").textContent =
+          (metadata.kind === "fallback"
+            ? "Connected tactile network unavailable. Using the " +
+              "walking routing service. "
+            : "Walking routing service used. ") +
+          "Tactile coverage is unknown.";
+      }
+    } finally {
+      if (session === current) session = null;
+    }
+  };
+
+  /*
+    Keep the original controls and their behaviour.
+    Live GPS navigation takes priority over preview reading.
+  */
+  for (const name of [
+    "clearRoute",
+    "stopAllVoice",
+    "startGuidance",
+    "goTo"
+  ]) {
+    const original = window[name];
+
+    window[name] = function(...args) {
+      if (name === "clearRoute") {
+        clearNavigationExtras();
+      } else if (name === "goTo" && args[0] !== "navigation") {
+        clearNavigationExtras();
+        window.stopGuidance(false);
+      } else {
+        stopReading();
+      }
+
+      return original.apply(this, args);
+    };
+  }
+
+  function initializeNavigationIntegration() {
+    const panel = document.createElement("section");
+    panel.className = "good-note";
+
+    panel.innerHTML = `
+      <label
+        for="bpPreferTactile"
+        style="display:flex;align-items:center;gap:10px"
+      >
+        <input
+          id="bpPreferTactile"
+          type="checkbox"
+          checked
+          style="width:24px;min-height:24px"
+        >
+        Prefer OSM-tagged tactile paths when connected
+      </label>
+
+      <p class="muted">
+        Campus shortcuts use your team's approximate coordinates,
+        not verified entrances. You can enter exact coordinates
+        or tap the map. OSM tags do not establish accessibility.
+      </p>
+
+      <div id="bpRouteInfo" class="hidden">
+        <strong>
+          OSM-tagged tactile distance:
+          <span id="bpTactileDistance"></span>
+        </strong>
+        <p id="bpRouteLegend"></p>
+      </div>
+
+      <p
+        id="bpNavigationStatus"
+        class="status"
+        role="status"
+        aria-live="polite"
+      >
+        Tactile routing uses connected mapped paths.
+        If unavailable, it falls back to the walking routing service.
+      </p>
+    `;
+
+    $("map").before(panel);
+
+    const controls = document.createElement("div");
+    controls.className = "button-row";
+
+    controls.innerHTML = `
+      <button
+        class="secondary"
+        id="bpRepeatStep"
+        type="button"
+      >
+        Read Selected Step
+      </button>
+
+      <button
+        class="secondary"
+        id="bpNextStep"
+        type="button"
+      >
+        Next Preview Step
+      </button>
+
+      <button
+        class="secondary"
+        id="bpReadRoute"
+        type="button"
+      >
+        Read Entire Route
+      </button>
+    `;
+
+    $("directionList").before(controls);
+
+    $("bpRepeatStep").onclick = () => {
+      readPreviewStep(reviewIndex);
+    };
+
+    $("bpNextStep").onclick = () => {
+      readPreviewStep(
+        Math.min(
+          reviewIndex + 1,
+          $("directionList").children.length - 1
+        )
+      );
+    };
+
+    $("bpReadRoute").onclick = readEntireRoute;
+
+    const resetJourney = () => {
+      const start = $("start").value;
+      const destination = $("destination").value;
+
+      window.clearRoute();
+
+      $("start").value = start;
+      $("destination").value = destination;
+
+      $("routeStatus").textContent =
+        "Journey changed. Choose Find Route to update directions.";
+    };
+
+    for (const id of [
+      "start",
+      "destination",
+      "mode",
+      "bpPreferTactile"
+    ]) {
+      for (const event of ["input", "change"]) {
+        $(id).addEventListener(event, resetJourney);
+      }
+    }
+
+    for (const [alias, campusPlace] of places) {
+      if (!alias.startsWith("faculty")) continue;
+
+      const option = document.createElement("option");
+      option.value = campusPlace.name;
+
+      const alreadyListed = [
+        ...$("umPlaceNames").options
+      ].some(existing => existing.value === option.value);
+
+      if (!alreadyListed) {
+        $("umPlaceNames").appendChild(option);
+      }
+    }
+
+    window.addEventListener("pagehide", clearNavigationExtras);
+  }
+
+  initializeNavigationIntegration();
+})();
+</script>
+</body>
+</html>
