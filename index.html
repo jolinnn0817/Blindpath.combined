@@ -2766,4 +2766,1132 @@ x();Ue();refreshReports();C();w()&&S();
   initializeNavigationIntegration();
 })();
 </script>
+  <script>
+/*
+  BlindPath location-search update.
+
+  Paste this entire script once, immediately before the final
+  </html> line in the code you uploaded.
+
+  Existing reports, profiles, modes, tactile routing and
+  voice navigation remain available.
+*/
+(() => {
+  "use strict";
+
+  if (window.blindPathVenueSearch) return;
+  window.blindPathVenueSearch = true;
+
+  const $ = id => document.getElementById(id);
+
+  const baseFind = window.findRoute;
+  const baseClear = window.clearRoute;
+  const baseGeocode = window.O;
+  const baseGo = window.goTo;
+
+  const chosen = {
+    start: null,
+    destination: null
+  };
+
+  const jobs = {
+    start: 0,
+    destination: 0
+  };
+
+  const controllers = {};
+
+  let navigationMap = null;
+  let selectionMarker = null;
+  let mapSelectionField = null;
+  let generation = 0;
+  let routeSnapshot = null;
+  let gpsGeneration = 0;
+  let findSequence = 0;
+
+  let searchQueue = Promise.resolve();
+  let lastLookup = 0;
+  let preserveSelections = false;
+
+  function normalize(text) {
+    return String(text)
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, " ")
+      .trim();
+  }
+
+  function validCoordinates(lat, lon) {
+    return (
+      Number.isFinite(lat) &&
+      Number.isFinite(lon) &&
+      Math.abs(lat) <= 90 &&
+      Math.abs(lon) <= 180
+    );
+  }
+
+  function parseCoordinates(text) {
+    const match = String(text).match(
+      /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/
+    );
+
+    if (!match) return null;
+
+    const lat = Number(match[1]);
+    const lon = Number(match[2]);
+
+    if (!validCoordinates(lat, lon)) return null;
+
+    return {
+      lat,
+      lon,
+      name: "Entered coordinates",
+      source: "Coordinates"
+    };
+  }
+
+  /*
+    Search spelling alternatives instead of inventing
+    coordinates for an unrecognised venue.
+  */
+  function searchVariants(text) {
+    let query = text.trim();
+
+    if (
+      /\b(?:persona\s*siswa|perdana\s*siswa|perdanasiswa)\b/i
+        .test(query)
+    ) {
+      return [
+        "Kompleks Perdanasiswa, Universiti Malaya",
+        "Kompleks Perdana Siswa, Kuala Lumpur"
+      ];
+    }
+
+    const collegeMatch = normalize(query).match(
+      /^(?:kk|kolej(?: kediaman)?(?: ke)?)\s*(1[0-2]|[1-9])(?: um| universiti malaya)?$/
+    );
+
+    if (collegeMatch) {
+      const names = [
+        "Tuanku Abdul Rahman",
+        "Tuanku Bahiyah",
+        "Tuanku Kurshiah",
+        "Bestari",
+        "Dayasari",
+        "Ibnu Sina",
+        "Za'ba",
+        "Kinabalu",
+        "Tun Syed Zahiruddin",
+        "Tun Ahmad Zaidi",
+        "Ungku Aziz",
+        "Raja Dr Nazrin Shah"
+      ];
+
+      const number = Number(collegeMatch[1]);
+
+      return [
+        "Kolej Kediaman " + names[number - 1] +
+          ", Universiti Malaya",
+        "Kolej Kediaman " + number +
+          ", Universiti Malaya"
+      ];
+    }
+
+    query = query.replace(/\bum\b/ig, "Universiti Malaya");
+
+    return [
+      query,
+      /universit[iy].*malaya/i.test(query)
+        ? query.replace(/universit[iy].*malaya/i, "Kuala Lumpur")
+        : query + ", Malaysia"
+    ];
+  }
+
+  /*
+    Remember explicitly selected venue matches on this browser.
+    GPS positions are not saved here.
+  */
+  function savedPlaces() {
+    try {
+      return JSON.parse(
+        localStorage.getItem("blindpath_selected_places_v1") || "[]"
+      );
+    } catch {
+      return [];
+    }
+  }
+
+  function rememberPlace(query, point) {
+    try {
+      const records = savedPlaces().filter(
+        record => record.query !== normalize(query)
+      );
+
+      records.unshift({
+        query: normalize(query),
+        point
+      });
+
+      localStorage.setItem(
+        "blindpath_selected_places_v1",
+        JSON.stringify(records.slice(0, 40))
+      );
+    } catch {
+      // Search still works when browser storage is unavailable.
+    }
+  }
+
+  function clearResults(field) {
+    $(field + "Matches").replaceChildren();
+  }
+
+  function cancelSearch(field) {
+    jobs[field]++;
+
+    if (controllers[field]) {
+      controllers[field].abort();
+    }
+
+    delete controllers[field];
+
+    $(field + "SearchButton").disabled = false;
+  }
+
+  function endpointValue(field) {
+    const text = $(field).value.trim();
+
+    if (chosen[field] && chosen[field].text === text) {
+      return chosen[field].lat + "," + chosen[field].lon;
+    }
+
+    return text;
+  }
+
+  function updateGoogleLinks() {
+    for (const field of ["start", "destination"]) {
+      const link = $(field + "Google");
+
+      if (link) {
+        link.href =
+          "https://www.google.com/maps/search/?api=1&query=" +
+          encodeURIComponent(
+            endpointValue(field) || "Universiti Malaya"
+          );
+      }
+    }
+
+    const routeLink = $("venueGoogleRoute");
+
+    if (routeLink) {
+      const mode =
+        $("mode").value === "foot" ? "walking" :
+        $("mode").value === "cycling" ? "bicycling" :
+        "driving";
+
+      routeLink.href =
+        "https://www.google.com/maps/dir/?api=1" +
+        "&origin=" +
+        encodeURIComponent(endpointValue("start")) +
+        "&destination=" +
+        encodeURIComponent(endpointValue("destination")) +
+        "&travelmode=" + mode;
+    }
+  }
+
+  function resetPlannedRoute() {
+    generation++;
+    routeSnapshot = null;
+
+    const startText = $("start").value;
+    const destinationText = $("destination").value;
+
+    baseClear();
+
+    $("start").value = startText;
+    $("destination").value = destinationText;
+
+    updateGoogleLinks();
+  }
+
+  function showSelectedPoint(point) {
+    if (!navigationMap || !window.L) return;
+
+    if (selectionMarker) {
+      navigationMap.removeLayer(selectionMarker);
+    }
+
+    const label = document.createElement("p");
+    label.textContent = point.name;
+
+    selectionMarker = L.marker([point.lat, point.lon])
+      .addTo(navigationMap)
+      .bindPopup(label)
+      .openPopup();
+
+    navigationMap.setView([point.lat, point.lon], 18);
+  }
+
+  function selectPoint(
+    field,
+    point,
+    originalQuery,
+    rememberSelection = true
+  ) {
+    cancelSearch(field);
+    resetPlannedRoute();
+
+    chosen[field] = {
+      ...point,
+      text: $(field).value.trim()
+    };
+
+    clearResults(field);
+    updateGoogleLinks();
+
+    $(field + "Selected").textContent =
+      "Selected: " + point.name +
+      " · " + point.lat.toFixed(6) +
+      ", " + point.lon.toFixed(6) +
+      " · " + point.source +
+      ". Check the entrance on the map.";
+
+    if (field === "start" && point.source !== "Device GPS") {
+      $("startingSource").value = "place";
+    }
+
+    if (rememberSelection) {
+      rememberPlace(originalQuery, point);
+    }
+
+    showSelectedPoint(point);
+
+    $("routeStatus").textContent =
+      "Location selected. Select the other endpoint, " +
+      "then choose Find Route.";
+  }
+
+  async function fetchJSON(url, signal) {
+    const response = await fetch(url, {
+      signal: AbortSignal.any([
+        signal,
+        AbortSignal.timeout(10000)
+      ])
+    });
+
+    if (!response.ok) {
+      throw new Error("Place service unavailable");
+    }
+
+    return response.json();
+  }
+
+  /*
+    Nominatim searches run only after an explicit search action.
+    Requests are spaced apart rather than sent on every keystroke.
+  */
+  function searchNominatim(query, signal) {
+    const task = searchQueue.then(async () => {
+      if (signal.aborted) {
+        throw new DOMException("Cancelled", "AbortError");
+      }
+
+      await new Promise(resolve => {
+        setTimeout(
+          resolve,
+          Math.max(0, 1100 - (Date.now() - lastLookup))
+        );
+      });
+
+      if (signal.aborted) {
+        throw new DOMException("Cancelled", "AbortError");
+      }
+
+      lastLookup = Date.now();
+
+      const campusSearch =
+        /universiti malaya|university of malaya/i.test(query);
+
+      const url =
+        "https://nominatim.openstreetmap.org/search" +
+        "?format=jsonv2&limit=8&addressdetails=1&q=" +
+        encodeURIComponent(query) +
+        (
+          campusSearch
+            ? "&viewbox=101.62,3.17,101.70,3.08&bounded=0"
+            : ""
+        );
+
+      const rows = await fetchJSON(url, signal);
+
+      return rows.map(row => ({
+        lat: Number(row.lat),
+        lon: Number(row.lon),
+        name: row.display_name,
+        source: "OpenStreetMap search"
+      }));
+    });
+
+    searchQueue = task.catch(() => {});
+    return task;
+  }
+
+  /*
+    Photon provides another OpenStreetMap-based search index.
+    Its results may differ from Nominatim.
+  */
+  async function searchPhoton(query, signal) {
+    const centre = navigationMap
+      ? navigationMap.getCenter()
+      : { lat: 3.122, lng: 101.653 };
+
+    const url =
+      "https://photon.komoot.io/api/" +
+      "?limit=8&lang=en" +
+      "&lat=" + centre.lat +
+      "&lon=" + centre.lng +
+      "&q=" + encodeURIComponent(query);
+
+    const data = await fetchJSON(url, signal);
+
+    return (data.features || []).map(feature => {
+      const properties = feature.properties || {};
+      const coordinates = feature.geometry?.coordinates || [];
+
+      return {
+        lat: Number(coordinates[1]),
+        lon: Number(coordinates[0]),
+        name: [
+          properties.name,
+          properties.housenumber,
+          properties.street,
+          properties.district,
+          properties.city,
+          properties.state,
+          properties.country
+        ].filter(Boolean).join(", "),
+        source: "Photon / OpenStreetMap"
+      };
+    });
+  }
+
+  function uniqueResults(rows, campusSearch) {
+    const results = [];
+
+    for (const row of rows) {
+      if (
+        !validCoordinates(row.lat, row.lon) ||
+        !row.name
+      ) {
+        continue;
+      }
+
+      if (
+        campusSearch &&
+        (
+          row.lat < 3.04 ||
+          row.lat > 3.22 ||
+          row.lon < 101.57 ||
+          row.lon > 101.75
+        )
+      ) {
+        continue;
+      }
+
+      const duplicate = results.some(existing =>
+        Math.abs(existing.lat - row.lat) < 0.00015 &&
+        Math.abs(existing.lon - row.lon) < 0.00015 &&
+        normalize(existing.name).slice(0, 25) ===
+          normalize(row.name).slice(0, 25)
+      );
+
+      if (duplicate) continue;
+
+      results.push(row);
+
+      if (results.length === 8) break;
+    }
+
+    return results;
+  }
+
+  async function searchPlaces(field) {
+    const text = $(field).value.trim();
+
+    cancelSearch(field);
+    clearResults(field);
+
+    if (!text) {
+      $(field + "Selected").textContent =
+        "Enter a venue name, address, or latitude, longitude.";
+      return;
+    }
+
+    const directCoordinates = parseCoordinates(text);
+
+    if (directCoordinates) {
+      selectPoint(field, directCoordinates, text, false);
+      return;
+    }
+
+    if (/^\s*-?\d+(?:\.\d+)?\s*,/.test(text)) {
+      $(field + "Selected").textContent =
+        "Invalid coordinates. Latitude must be between " +
+        "-90 and 90; longitude between -180 and 180.";
+      return;
+    }
+
+    const token = jobs[field];
+    const controller = new AbortController();
+
+    controllers[field] = controller;
+    $(field + "SearchButton").disabled = true;
+
+    const queries = searchVariants(text);
+
+    $(field + "Selected").textContent =
+      "Searching for " + queries[0] +
+      ". Choose a matching venue below.";
+
+    let failures = 0;
+    let rows = [];
+
+    const remembered = savedPlaces().find(
+      record => record.query === normalize(text)
+    );
+
+    if (remembered?.point) {
+      rows.push({
+        ...remembered.point,
+        source: "Previously selected on this browser"
+      });
+    }
+
+    try {
+      for (const query of [...new Set(queries)]) {
+        const responses = await Promise.allSettled([
+          searchPhoton(query, controller.signal),
+          searchNominatim(query, controller.signal)
+        ]);
+
+        for (const response of responses) {
+          if (response.status === "fulfilled") {
+            rows.push(...response.value);
+          } else {
+            failures++;
+          }
+        }
+
+        if (
+          controller.signal.aborted ||
+          token !== jobs[field] ||
+          $(field).value.trim() !== text
+        ) {
+          return;
+        }
+
+        rows = uniqueResults(
+          rows,
+          /universiti malaya|university of malaya/i.test(
+            queries[0]
+          )
+        );
+
+        if (rows.length) break;
+      }
+
+      if (token !== jobs[field]) return;
+
+      $(field + "Selected").textContent = rows.length
+        ? "Possible matches — select the exact venue. " +
+          "Building points may not be entrances."
+        : (
+            failures
+              ? "Some place services could not be reached. "
+              : ""
+          ) +
+          "No match returned. Try the full address, search " +
+          "in Google Maps, or choose a point on the map.";
+
+      const container = $(field + "Matches");
+
+      for (const row of rows) {
+        const button = document.createElement("button");
+
+        button.type = "button";
+        button.className = "secondary";
+        button.style.cssText =
+          "display:block;width:100%;" +
+          "text-align:left;margin:6px 0";
+
+        button.textContent = row.name + " · " + row.source;
+
+        button.addEventListener("click", () => {
+          selectPoint(field, row, text);
+        });
+
+        container.appendChild(button);
+      }
+    } finally {
+      if (token === jobs[field]) {
+        $(field + "SearchButton").disabled = false;
+        delete controllers[field];
+      }
+    }
+  }
+
+  /*
+    Current GPS location becomes an explicitly selected
+    starting point, including its reported uncertainty.
+  */
+  window.useMyLocation = function() {
+    if (
+      !navigator.geolocation ||
+      !window.isSecureContext
+    ) {
+      $("startSelected").textContent =
+        "GPS needs HTTPS or localhost and browser location " +
+        "permission. Enter a place or choose a map point instead.";
+      return;
+    }
+
+    cancelSearch("start");
+    resetPlannedRoute();
+
+    chosen.start = null;
+    clearResults("start");
+
+    const token = ++gpsGeneration;
+
+    $("startingSource").value = "gps";
+    $("startSelected").textContent =
+      "Getting your current location. Please allow location access.";
+
+    navigator.geolocation.getCurrentPosition(
+      position => {
+        if (
+          token !== gpsGeneration ||
+          $("startingSource").value !== "gps"
+        ) {
+          return;
+        }
+
+        const coordinates = position.coords;
+
+        if (
+          !validCoordinates(
+            coordinates.latitude,
+            coordinates.longitude
+          ) ||
+          !Number.isFinite(coordinates.accuracy) ||
+          !Number.isFinite(position.timestamp) ||
+          Date.now() - position.timestamp > 60000
+        ) {
+          $("startSelected").textContent =
+            "GPS did not return a recent valid position. " +
+            "Try again or choose a map point.";
+          return;
+        }
+
+        $("start").value = "My current location";
+
+        selectPoint(
+          "start",
+          {
+            lat: coordinates.latitude,
+            lon: coordinates.longitude,
+            name:
+              "My current location (GPS uncertainty ±" +
+              Math.round(coordinates.accuracy) + " m)",
+            source: "Device GPS",
+            timestamp: position.timestamp
+          },
+          "",
+          false
+        );
+
+        if (coordinates.accuracy > 30) {
+          $("startSelected").textContent +=
+            " GPS is approximate. Route planning is available, " +
+            "but live guidance waits for better accuracy.";
+        }
+      },
+      error => {
+        if (token !== gpsGeneration) return;
+
+        $("startSelected").textContent =
+          error.code === 1
+            ? "Location permission denied. Allow location " +
+              "access in the browser, or enter a starting place."
+            : "GPS is unavailable or timed out. Try outdoors, " +
+              "enter a starting place, or select a map point.";
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 15000,
+        maximumAge: 0
+      }
+    );
+  };
+
+  /*
+    Supply the selected coordinates to the original routing
+    function instead of searching the same venue again.
+
+    Other uses of the original geocoder, such as report review,
+    keep their existing behaviour.
+  */
+  window.O = async function(text) {
+    if (routeSnapshot) {
+      const point =
+        routeSnapshot.points[routeSnapshot.index++];
+
+      if (!point || point.text !== text) {
+        throw new Error(
+          "Journey changed. Select both endpoints again."
+        );
+      }
+
+      return {
+        lat: point.lat,
+        lon: point.lon,
+        name: point.name
+      };
+    }
+
+    return baseGeocode(text);
+  };
+
+  window.findRoute = async function() {
+    const findToken = ++findSequence;
+
+    resetPlannedRoute();
+
+    if (!$("start").value.trim()) {
+      $("routeStatus").textContent =
+        "Choose Use My Current Location or enter a starting venue.";
+      $("start").focus();
+      return;
+    }
+
+    if (!$("destination").value.trim()) {
+      $("routeStatus").textContent =
+        "Enter a destination, then search and select a match.";
+      $("destination").focus();
+      return;
+    }
+
+    if (
+      $("startingSource").value === "gps" &&
+      (
+        !chosen.start ||
+        Date.now() - (chosen.start.timestamp || 0) > 60000
+      )
+    ) {
+      window.useMyLocation();
+
+      $("routeStatus").textContent =
+        "Refreshing GPS. When the location is shown, " +
+        "choose Find Route again.";
+
+      return;
+    }
+
+    const missing = ["start", "destination"].filter(field =>
+      !chosen[field] ||
+      chosen[field].text !== $(field).value.trim()
+    );
+
+    if (missing.length) {
+      await Promise.all(
+        missing.map(field => searchPlaces(field))
+      );
+
+      if (findToken !== findSequence) return;
+
+      const bothSelected = ["start", "destination"].every(
+        field =>
+          chosen[field]?.text === $(field).value.trim()
+      );
+
+      if (bothSelected) {
+        return window.findRoute();
+      }
+
+      $("routeStatus").textContent =
+        "Select a matching location for each endpoint, " +
+        "then choose Find Route.";
+
+      return;
+    }
+
+    const token = generation;
+
+    const currentSnapshot = {
+      points: [
+        { ...chosen.start },
+        { ...chosen.destination }
+      ],
+      index: 0
+    };
+
+    routeSnapshot = currentSnapshot;
+
+    try {
+      await baseFind();
+
+      if (token !== generation) return;
+
+      if (
+        $("routeStatus").textContent.startsWith(
+          "Could not find a route"
+        )
+      ) {
+        $("routeStatus").textContent =
+          "Both places are selected, but the routing service " +
+          "could not connect them. Choose a nearby public " +
+          "entrance on the map or open this journey in Google Maps.";
+      }
+    } finally {
+      if (routeSnapshot === currentSnapshot) {
+        routeSnapshot = null;
+      }
+    }
+  };
+
+  window.clearRoute = function() {
+    /*
+      The existing input handlers temporarily call clearRoute.
+      Preserve the other endpoint's selected venue in that case.
+    */
+    if (preserveSelections) {
+      return baseClear();
+    }
+
+    gpsGeneration++;
+    generation++;
+    findSequence++;
+
+    routeSnapshot = null;
+    mapSelectionField = null;
+
+    for (const field of ["start", "destination"]) {
+      cancelSearch(field);
+      chosen[field] = null;
+      clearResults(field);
+
+      $(field + "Selected").textContent =
+        "No location selected.";
+    }
+
+    $("startingSource").value = "place";
+
+    if (selectionMarker && navigationMap) {
+      navigationMap.removeLayer(selectionMarker);
+    }
+
+    selectionMarker = null;
+    baseClear();
+  };
+
+  window.goTo = function(screen) {
+    if (screen !== "navigation") {
+      for (const field of ["start", "destination"]) {
+        cancelSearch(field);
+      }
+
+      gpsGeneration++;
+      mapSelectionField = null;
+      routeSnapshot = null;
+      generation++;
+      findSequence++;
+    }
+
+    return baseGo(screen);
+  };
+
+  /*
+    Add starting-point selection to the existing map.
+    The base's destination-only click handler still runs;
+    this selection is applied after its synchronous handlers.
+  */
+  if (window.L) {
+    const createMap = L.map;
+
+    L.map = function(id, ...args) {
+      const instance = createMap.call(this, id, ...args);
+
+      if (id === "map") {
+        navigationMap = instance;
+
+        instance.on("click", event => {
+          const field =
+            mapSelectionField || "destination";
+
+          const previousDestination =
+            $("destination").value;
+
+          queueMicrotask(() => {
+            const point = {
+              lat: event.latlng.lat,
+              lon: event.latlng.lng,
+              name: "Selected map point",
+              source: "Point selected on map"
+            };
+
+            if (field === "start") {
+              $("destination").value =
+                previousDestination;
+            }
+
+            $(field).value =
+              point.lat.toFixed(6) + ", " +
+              point.lon.toFixed(6);
+
+            mapSelectionField = null;
+
+            selectPoint(
+              field,
+              point,
+              $(field).value,
+              false
+            );
+          });
+        });
+      }
+
+      return instance;
+    };
+  }
+
+  function initializeVenueSearch() {
+    /*
+      Preserve the other endpoint while the existing journey
+      input handlers invalidate the previous route.
+    */
+    for (const id of [
+      "start",
+      "destination",
+      "mode",
+      "bpPreferTactile"
+    ]) {
+      if (!$(id)) continue;
+
+      for (const event of ["input", "change"]) {
+        $(id).addEventListener(
+          event,
+          () => {
+            preserveSelections = true;
+
+            setTimeout(() => {
+              preserveSelections = false;
+            }, 0);
+          },
+          true
+        );
+      }
+    }
+
+    $("start").removeAttribute("list");
+    $("destination").removeAttribute("list");
+
+    const sourceChooser = document.createElement("div");
+    sourceChooser.className = "good-note";
+
+    sourceChooser.innerHTML = `
+      <label for="startingSource">Starting point</label>
+
+      <select id="startingSource">
+        <option value="place">
+          Enter a venue or choose a map point
+        </option>
+        <option value="gps">
+          Use my current location (GPS)
+        </option>
+      </select>
+
+      <button
+        class="secondary"
+        type="button"
+        id="venueGPS"
+        style="margin-top:10px"
+      >
+        Use My Current Location as Start
+      </button>
+
+      <p>
+        Search a name, select the exact match, then find your route.
+        Results come from two OpenStreetMap-based indexes;
+        some venues may still be missing.
+      </p>
+    `;
+
+    $("start").closest(".field-grid").before(sourceChooser);
+
+    for (const field of ["start", "destination"]) {
+      const tools = document.createElement("div");
+
+      tools.innerHTML = `
+        <div class="button-row">
+          <button
+            class="secondary"
+            type="button"
+            id="${field}SearchButton"
+          >
+            Search Places
+          </button>
+
+          <button
+            class="secondary"
+            type="button"
+            id="${field}MapButton"
+          >
+            Choose on Map
+          </button>
+        </div>
+
+        <p
+          id="${field}Selected"
+          class="status"
+          role="status"
+          aria-live="polite"
+        >
+          No location selected.
+        </p>
+
+        <div id="${field}Matches"></div>
+
+        <a
+          id="${field}Google"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Search this place in Google Maps
+        </a>
+      `;
+
+      $(field).after(tools);
+      updateGoogleLinks();
+
+      $(field + "SearchButton").onclick = () => {
+        searchPlaces(field);
+      };
+
+      $(field + "MapButton").onclick = () => {
+        resetPlannedRoute();
+
+        mapSelectionField = field;
+        gpsGeneration++;
+
+        if (field === "start") {
+          $("startingSource").value = "place";
+        }
+
+        $("routeStatus").textContent =
+          "Tap the map to set your " +
+          (field === "start" ? "starting point" : "destination") +
+          ".";
+
+        $("map").scrollIntoView({ block: "center" });
+      };
+
+      $(field).addEventListener("input", () => {
+        generation++;
+        findSequence++;
+
+        routeSnapshot = null;
+        mapSelectionField = null;
+
+        cancelSearch(field);
+        chosen[field] = null;
+        clearResults(field);
+
+        $(field + "Selected").textContent =
+          "Search and select a matching location.";
+
+        if (field === "start") {
+          gpsGeneration++;
+          $("startingSource").value = "place";
+        }
+
+        updateGoogleLinks();
+      });
+
+      $(field).addEventListener("keydown", event => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          searchPlaces(field);
+        }
+      });
+    }
+
+    $("venueGPS").onclick = () => {
+      window.useMyLocation();
+    };
+
+    for (const id of ["mode", "bpPreferTactile"]) {
+      $(id)?.addEventListener("change", () => {
+        generation++;
+        routeSnapshot = null;
+      });
+    }
+
+    $("startingSource").onchange = () => {
+      gpsGeneration++;
+
+      if ($("startingSource").value === "gps") {
+        window.useMyLocation();
+      } else {
+        resetPlannedRoute();
+        chosen.start = null;
+        $("start").value = "";
+
+        $("startSelected").textContent =
+          "Enter a starting venue or choose a map point.";
+      }
+    };
+
+    const googleFallback = document.createElement("p");
+    googleFallback.className = "good-note";
+
+    googleFallback.innerHTML = `
+      <a
+        id="venueGoogleRoute"
+        target="_blank"
+        rel="noopener noreferrer"
+        href="https://www.google.com/maps/"
+      >
+        Open this journey in Google Maps
+      </a>
+      <br>
+      Google may list additional venues. This opens Google Maps
+      separately; it does not import Google place data or
+      confirm accessibility.
+    `;
+
+    $("routeStatus").after(googleFallback);
+
+    const tactileNote = $("bpPreferTactile")
+      ?.closest("section")
+      ?.querySelector("p.muted");
+
+    if (tactileNote) {
+      tactileNote.textContent =
+        "Select the exact venue or entrance before routing. " +
+        "Tactile-path coverage depends on unverified OSM tags; " +
+        "unknown paths remain unknown.";
+    }
+
+    window.addEventListener("pagehide", () => {
+      gpsGeneration++;
+
+      for (const field of ["start", "destination"]) {
+        cancelSearch(field);
+      }
+    });
+  }
+
+  initializeVenueSearch();
+})();
+</script>
 </html>
