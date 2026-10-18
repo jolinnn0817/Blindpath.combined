@@ -4,800 +4,430 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#174c3c">
-<title>BlindPath — Tactile-first walking</title>
+<title>BlindPath | Accessible Navigation</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
-:root{--green:#174c3c;--pale:#e9f4ee;--line:#c9d8d0;--text:#17231f;--bg:#f5f8f6}
-*{box-sizing:border-box}
-body{margin:0;font:17px/1.55 Arial,sans-serif;background:var(--bg);color:var(--text)}
-header{background:var(--green);color:white;padding:18px}
-header>div,main,footer{max-width:1050px;margin:auto}
-header>div{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
-main{padding:18px 14px}
-footer{padding:20px;color:#46594e}
-h1,h2,h3{line-height:1.3}
-h1{font-size:1.8rem}
-.brand{font-size:1.6rem;font-weight:800}
-button,input,select,textarea{font:inherit}
-button,a{cursor:pointer}
-button{border:1px solid var(--green);border-radius:10px;padding:11px 15px;background:var(--green);color:white;font-weight:bold}
-button.secondary{color:var(--green);background:white}
-button.danger{background:#8f2424;border-color:#8f2424}
-button:disabled{opacity:.55;cursor:not-allowed}
-:focus-visible{outline:4px solid #ffbf47;outline-offset:3px}
-input,select,textarea{width:100%;padding:11px;border:1px solid #80968a;border-radius:9px;background:white;color:var(--text)}
-input[type=checkbox]{width:24px;height:24px;min-height:24px!important}
-textarea{min-height:90px}
-label{display:block;font-weight:bold;margin:12px 0 5px}
-label.check{display:flex;gap:12px;align-items:flex-start}
-.row{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
-.grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
-.card{border:1px solid var(--line);background:white;border-radius:15px;padding:20px;margin-bottom:16px}
-.note,.status{background:var(--pale);padding:13px;border-radius:10px;margin:12px 0;overflow-wrap:anywhere}
-.warning{background:#fff3d4;border:1px solid #d1a94f}
-.muted{color:#46594e}
-.screen{display:none}
-.screen.active{display:block}
-.hidden{display:none!important}
-.home-action{min-height:105px;text-align:left}
-.home-action strong{display:block;font-size:1.2rem}
-.item{border:1px solid var(--line);border-radius:10px;padding:14px;margin:10px 0;overflow-wrap:anywhere}
-.item p{margin:6px 0}
-.media{display:block;max-width:100%;max-height:240px;margin:10px 0;border-radius:9px}
-.stat{background:var(--pale);border-radius:10px;padding:13px}
-.stat strong{display:block;font-size:1.35rem}
-#map{height:390px;border:1px solid var(--line);border-radius:12px;z-index:0}
-#reviewMap{height:220px;z-index:0}
-.skip{position:absolute;top:-100px;background:white;color:black;padding:12px;z-index:3000}
-.skip:focus{top:5px}
-a{color:#145ca8}
-summary{cursor:pointer;font-weight:bold;padding:9px 0}
-body.accessible{font-size:21px;--bg:#fff;--line:#64796b}
-body.accessible button,body.accessible input,body.accessible select{min-height:56px}
-body.accessible .home-grid{grid-template-columns:1fr}
-.step button{width:100%;text-align:left}
-.step.current{background:#fff0c2}
-.steps{max-height:340px;overflow:auto}
-body.accessible .steps{max-height:none}
-@media(max-width:650px){.grid{grid-template-columns:1fr}#map{height:310px}}
-@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important}}
+:root{--green:#174c3c;--light-green:#e9f4ee;--ink:#17231f;--muted:#5b6a63;--line:#d8e2dc;--bg:#f5f8f6;--white:#fff;--focus:#ffbf47}
+*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55}
+button,input,select,textarea{font:inherit}button,a{cursor:pointer}
+:focus-visible{outline:3px solid var(--focus);outline-offset:3px}
+header{background:var(--green);color:white;padding:16px}.header-inner{max-width:1000px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:1.55rem;font-weight:800}.tagline{font-size:.92rem}
+main{max-width:1000px;margin:22px auto;padding:0 14px 35px}.screen{display:none}.screen.active{display:block}
+h1{font-size:1.65rem;line-height:1.25;margin-top:0}h2{font-size:1.2rem;margin-top:0}p{margin:7px 0 13px}.muted{color:var(--muted)}
+.card{background:white;border:1px solid var(--line);border-radius:16px;padding:20px;margin-bottom:15px;box-shadow:0 2px 8px #173c2c0a}
+.home-grid,.field-grid,.mode-choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}.home-grid{margin-top:20px}
+.home-action{min-height:125px;text-align:left;padding:18px;border:1px solid var(--line);border-radius:15px;background:white;color:var(--ink)}
+.home-action:hover{background:var(--light-green)}.home-action .symbol{display:block;font-size:1.8rem;margin-bottom:8px}.home-action strong{display:block;font-size:1.08rem}.home-action small{display:block;color:var(--muted);margin-top:4px}
+.primary,.secondary,.danger,.nav-button{border-radius:10px;padding:10px 14px;border:1px solid var(--green);font-weight:700}
+.primary{background:var(--green);color:white}.secondary{background:white;color:var(--green)}.danger{background:white;color:#9c2525;border-color:#c77}.nav-button{background:transparent;color:white;border-color:#ffffffa0}
+button:disabled{opacity:.55;cursor:not-allowed}.button-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:12px}
+label{display:block;font-weight:700;margin:12px 0 5px}input,select,textarea{width:100%;padding:11px;border:1px solid #aebeb5;border-radius:9px;background:white;color:var(--ink)}textarea{min-height:90px;resize:vertical}
+.notice,.good-note,.status{border-radius:10px;padding:13px;margin:13px 0;overflow-wrap:anywhere}.notice{background:#fff7df;border:1px solid #e5cb78}.good-note{background:var(--light-green);border:1px solid #b6d6c4}.status{background:#f0f3f1}
+.pill{display:inline-block;padding:4px 9px;border-radius:99px;background:var(--light-green);color:var(--green);font-weight:700;font-size:.85rem}.pending{background:#fff2ce;color:#795500}.verified{background:#dff4e5;color:#176536}.rejected{background:#fde7e7;color:#9c2525}
+#map,#managementMap,#reportLocationMap{position:relative;overflow:hidden;z-index:0;border-radius:12px;border:1px solid var(--line);margin-top:12px}
+#map,#managementMap{height:320px}#reportLocationMap{height:230px}
+.route-score-card{border:1px solid var(--line);border-radius:12px;padding:15px;margin:13px 0;background:white}.route-score-heading{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}.route-score-number{font-size:1.7rem;font-weight:800;color:var(--green)}
+.route-score-track{height:12px;border-radius:99px;background:#e6ece8;overflow:hidden;margin:10px 0}.route-score-fill{height:100%;width:0;background:var(--green);border-radius:99px}.route-score-fill.moderate{background:#a86b00}.route-score-fill.high{background:#b3261e}.route-score-list{padding-left:22px}
+.report-item{border:1px solid var(--line);border-radius:12px;padding:13px;margin:10px 0;background:white;overflow-wrap:anywhere}.report-item p{margin:5px 0}
+.hidden{display:none!important}footer{max-width:1000px;margin:auto;padding:0 14px 24px;color:var(--muted);font-size:.86rem}a{color:#145ca8}
+.hazard-marker{display:flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:50%;background:white;border:2px solid #c62828;color:#c62828;font-size:17px;box-shadow:0 2px 6px #0004}
+.report-photo{display:block;max-width:100%;max-height:220px;object-fit:cover;border-radius:9px;border:1px solid var(--line);margin-top:8px}
+.skip-link{position:absolute;left:12px;top:-100px;z-index:2000;background:white;color:black;padding:12px}.skip-link:focus{top:12px}
+.mode-card{text-align:left;min-height:170px;padding:22px;background:white;color:var(--ink);border:3px solid var(--green);border-radius:14px}.mode-card strong{display:block;font-size:1.35rem;margin-bottom:8px}.mode-card[aria-pressed=true]{background:var(--light-green)}.mode-only-accessible{display:none}
+body.accessible-mode{--green:#063b2c;--ink:#101810;--muted:#334238;--line:#69766b;--bg:#fff;font-size:20px}
+body.accessible-mode button,body.accessible-mode input,body.accessible-mode select{min-height:56px}body.accessible-mode .home-grid{grid-template-columns:1fr}body.accessible-mode .home-action{border-width:2px}body.accessible-mode .public-extra{display:none}body.accessible-mode .mode-only-accessible{display:block}
+summary{cursor:pointer;font-weight:700;padding:8px 0}.dashboard-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:16px 0}.dashboard-stat{padding:16px;border:1px solid var(--line);border-radius:12px;background:var(--light-green)}.dashboard-stat strong{display:block;font-size:1.8rem}
+.confirm-location{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px}.confirm-location input{width:24px;height:24px;min-height:24px!important;flex-shrink:0;margin-top:3px}.review-details dt{font-weight:700;margin-top:12px}.review-details dd{margin:4px 0 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+@media(max-width:620px){.home-grid,.field-grid,.mode-choice{grid-template-columns:1fr}.dashboard-stats{grid-template-columns:1fr 1fr}#map{height:280px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<a class="skip" href="#main">Skip to main content</a>
+<a class="skip-link" href="#mainContent">Skip to main content</a>
+<header><div class="header-inner">
+<div><div class="brand">BlindPath</div><div class="tagline" id="tagline">Accessible journeys. More inclusive townships.</div></div>
+<div class="button-row">
+<button class="nav-button" onclick="goTo('home')">Home</button>
+<button class="nav-button" id="changeModeButton" onclick="goTo('mode')">Choose Mode</button>
+<button class="nav-button" onclick="goTo('myreports')">My Reports</button>
+<button class="nav-button" id="accountButton" onclick="openAccount()">Login</button>
+</div></div></header>
+<div id="runtimeError" role="alert" style="display:none;padding:15px;background:#fff0f0;color:#7f1717"></div>
+<main id="mainContent" tabindex="-1">
 
-<header>
-<div>
-<div>
-<div class="brand">BlindPath</div>
-Tactile-first walking for blind and low-vision pedestrians
+<section id="screen-mode" class="screen active"><div class="card">
+<h1 id="modeHeading">How would you like to use BlindPath?</h1>
+<p>Choose your layout. You can switch anytime without an account or OKU verification.</p>
+<div class="mode-choice">
+<button class="mode-card" id="accessibleModeButton" aria-pressed="false" onclick="chooseAppMode('accessible')"><strong>Accessible Mode</strong>Larger controls, higher contrast and quick access to navigation, reporting and voice settings.</button>
+<button class="mode-card" id="publicModeButton" aria-pressed="false" onclick="chooseAppMode('public')"><strong>Public Mode</strong>The standard map, community reports and full journey options.</button>
 </div>
-<nav class="row" aria-label="Main">
-<button onclick="go('home')">Home</button>
-<button onclick="go('mode')">Change Mode</button>
-<button onclick="go('myreports')">My Reports</button>
-<button onclick="profile()" id="accountButton">Profile</button>
-</nav>
+<p id="appModeStatus" class="status" role="status">Select a mode to get started.</p>
+<p class="muted">Modes change the interface, not map accuracy or verified accessibility.</p>
+<button id="keepModeButton" class="secondary hidden" onclick="goTo('home')">Keep Current Mode</button>
+</div></section>
+
+<section id="screen-home" class="screen"><div class="card">
+<h1 id="homeTitle">How can BlindPath help you?</h1>
+<p class="muted" id="homeIntro">Choose one action to get started. BlindPath is designed with accessibility in mind.</p>
+<div class="good-note"><strong>Tactile-path priority</strong><br>This prototype does not contain a complete, verified tactile-path map.</div>
+<div class="home-grid">
+<button class="home-action" onclick="goTo('navigation')"><span class="symbol">🧭</span><strong id="navCardTitle">Start Navigation</strong><small>Plan a walking or driving route</small></button>
+<button class="home-action" onclick="goTo('report')"><span class="symbol">⚑</span><strong id="reportCardTitle">Report an Issue</strong><small>Report blocked, damaged or missing tactile paving</small></button>
+<button class="home-action" onclick="goTo('settings')"><span class="symbol">🔊</span><strong id="settingsCardTitle">Voice & Settings</strong><small>Language and spoken guidance</small></button>
+<button class="home-action public-extra" onclick="goTo('community')"><span class="symbol">🤝</span><strong id="communityCardTitle">Community</strong><small>Review community accessibility reports</small></button>
 </div>
-</header>
+<div class="button-row"><button class="secondary public-extra" onclick="openAccount()">My Profile / OKU Verification</button><button class="secondary public-extra" onclick="goTo('dashboard')">Management Dashboard</button></div>
+<details class="mode-only-accessible good-note"><summary>More options</summary><div class="button-row"><button class="secondary" onclick="goTo('community')">Community Reports</button><button class="secondary" onclick="openAccount()">My Profile / OKU Verification</button><button class="secondary" onclick="goTo('dashboard')">Management Dashboard</button></div></details>
+<div class="notice"><strong>Prototype notice:</strong> Routes and reports may be incomplete. Do not use this prototype to determine whether a crossing is safe.</div>
+</div></section>
 
-<main id="main" tabindex="-1">
+<section id="screen-auth" class="screen"><div class="card">
+<h1>Welcome Back</h1><form id="loginForm">
+<label for="loginEmail">Email</label><input id="loginEmail" type="email" required autocomplete="email">
+<label for="loginPassword">Password</label><input id="loginPassword" type="password" required autocomplete="current-password">
+<div class="button-row"><button class="primary" type="submit">Log In</button><button class="secondary" type="button" onclick="goTo('home')">Back to Home</button></div>
+</form><p id="authStatus" class="status" role="status"></p>
+<button class="secondary" onclick="goTo('register')">Create an Account</button>
+<div class="notice">Hackathon demo accounts only. Do not use a real password.</div>
+</div></section>
 
-<section id="screen-mode" class="screen active card">
-<h1>Choose your interface</h1>
-<p>Both modes provide the same tactile information. No account or OKU verification is required.</p>
-<div class="grid">
-<button class="home-action" id="accessibleModeButton" onclick="chooseMode('accessible')">
-<strong>Accessible Mode</strong>
-Larger controls and higher contrast
-</button>
-<button class="home-action" id="publicModeButton" onclick="chooseMode('public')">
-<strong>Public Mode</strong>
-Standard layout for pedestrians and contributors
-</button>
-</div>
-</section>
+<section id="screen-register" class="screen"><div class="card">
+<h1>Create Your Account</h1><form id="registerForm">
+<label for="registerName">Display Name</label><input id="registerName" required maxlength="60" autocomplete="name">
+<label for="registerEmail">Email</label><input id="registerEmail" type="email" required autocomplete="email">
+<label for="registerPassword">Password</label><input id="registerPassword" type="password" required minlength="4" autocomplete="new-password">
+<div class="button-row"><button class="primary" type="submit">Register</button><button class="secondary" type="button" onclick="goTo('home')">Back to Home</button></div>
+</form><p id="registerStatus" class="status" role="status"></p>
+<button class="secondary" onclick="goTo('auth')">Go to Login</button>
+<div class="notice">This prototype does not provide secure production authentication.</div>
+</div></section>
 
-<section id="screen-home" class="screen">
-<div class="card">
-<h1>Plan a journey around tactile-path information</h1>
-<p>See where tactile paving is mapped, where its condition is uncertain, and where barriers have been reported.</p>
-<div class="grid home-grid">
-<button class="home-action" onclick="go('navigation')">
-<strong>Plan a Tactile Journey</strong>
-Walking routes with paving evidence and gaps
-</button>
-<button class="home-action" onclick="go('report')">
-<strong>Report a Tactile-Path Problem</strong>
-Blocked, damaged or missing paving
-</button>
-<button class="home-action" onclick="go('settings')">
-<strong>Voice & Settings</strong>
-Speech, language and reading speed
-</button>
-<button class="home-action" onclick="go('community')">
-<strong>Community Reports</strong>
-Read the reports available to this browser
-</button>
-</div>
-<details>
-<summary>More options</summary>
-<div class="row">
-<button class="secondary" onclick="profile()">Profile / OKU Demo</button>
-<button class="secondary" onclick="go('dashboard')">Management Dashboard</button>
-</div>
-</details>
-<div class="note warning">
-<strong>Map evidence is not a safety guarantee.</strong>
-OSM tactile tags and community reports are unverified. BlindPath does not monitor traffic signals, detect physical obstacles, or replace your mobility aid.
-</div>
-</div>
-</section>
-
-<section id="screen-navigation" class="screen">
-<div class="card">
-<h1>Plan a Tactile Journey</h1>
-<p>Walking only. Select exact venue matches or choose points on the map.</p>
-<button id="venueGPS" onclick="useMyLocation()">Use My Current Location as Start</button>
-
-<div class="grid">
-<div>
-<label for="start">Starting point</label>
-<input id="start" autocomplete="off" placeholder="Venue, address, or latitude, longitude">
-<div class="row">
-<button id="startSearchButton" onclick="searchPlace('start')">Search Places</button>
-<button class="secondary" onclick="pick('start')">Choose on Map</button>
-</div>
-<p id="startSelected" class="status" role="status">No location selected.</p>
-<div id="startMatches"></div>
-<a id="startGoogle" target="_blank" rel="noopener noreferrer">Search in Google Maps</a>
-</div>
-
-<div>
-<label for="destination">Destination</label>
-<input id="destination" autocomplete="off" placeholder="e.g. Kompleks Perdanasiswa, UM">
-<div class="row">
-<button id="destinationSearchButton" onclick="searchPlace('destination')">Search Places</button>
-<button class="secondary" onclick="pick('destination')">Choose on Map</button>
-</div>
-<p id="destinationSelected" class="status" role="status">No location selected.</p>
-<div id="destinationMatches"></div>
-<a id="destinationGoogle" target="_blank" rel="noopener noreferrer">Search in Google Maps</a>
-</div>
-</div>
-
-<details class="note" open>
-<summary>Tactile-route preferences</summary>
-
-<label for="routePreference">Choose the route priority</label>
-<select id="routePreference">
-<option value="prefer">Prefer mapped tactile paving; disclose gaps</option>
-<option value="continuous">Require continuous tactile tagging on the mapped route</option>
-<option value="shortest">Shortest mapped pedestrian route; disclose tactile status</option>
-</select>
-
-<label class="check">
-<input id="avoidSteps" type="checkbox" checked>
-<span>Avoid mapped steps</span>
-</label>
-
-<label class="check">
-<input id="avoidReports" type="checkbox" checked>
-<span>Avoid segments within 10 metres of available active blocked, damaged or construction reports. Reports may be inaccurate.</span>
-</label>
-
-<label class="check">
-<input id="allowGeneral" type="checkbox">
-<span>Allow an ordinary walking-service fallback if tactile-network routing is unavailable. Its tactile coverage will be unknown.</span>
-</label>
-
-<p class="muted">Continuous tagging describes map data, not verified physical continuity. Entrances, signals and gaps to the mapped network still need checking.</p>
-</details>
-
-<div class="row">
-<button id="routeButton" onclick="findRoute()">Find Tactile Route</button>
-<button class="secondary" onclick="clearRoute()">Clear Journey</button>
-<button class="secondary" onclick="stopAllVoice()">Stop Voice & Tracking</button>
-</div>
-
-<p id="routeStatus" class="status" role="status" aria-live="polite">Choose a start and destination.</p>
-<p><a id="venueGoogleRoute" target="_blank" rel="noopener noreferrer">Open this journey separately in Google Maps</a></p>
-<div id="map" aria-label="Journey and tactile-evidence map"></div>
-
-<section id="routeEvidence" class="card hidden" aria-labelledby="evidenceHeading">
-<h2 id="evidenceHeading">Tactile evidence for this journey</h2>
-<p id="routeExplanation" class="note"></p>
-<div id="routeStats" class="grid"></div>
-<p id="routeComparison"></p>
-<p id="routeGaps"></p>
-<p id="routeLegend"></p>
-<p id="routeCrossings"></p>
-<p id="reportCoverage" class="muted"></p>
-
-<div class="row">
-<button class="secondary" onclick="speakSummary()">Read Journey Summary</button>
-<button class="secondary" onclick="go('report')">Report a Tactile-Path Problem</button>
-</div>
-
-<p class="warning note">Unknown does not mean absent. Tagged paving does not establish that it is clear, continuous in reality, or suitable for your needs. Crossings and traffic signals require independent checking.</p>
-</section>
-
-<section id="voiceNavigation" class="card hidden">
-<h2>Spoken walking directions</h2>
-<p>Route reading is a preview. Live guidance uses GPS while this page stays open; it pauses when location accuracy is poor.</p>
-<div class="row">
-<button id="startGuidance" onclick="startGuidance()">Start Tactile Voice Guidance</button>
-<button class="secondary" onclick="repeatDirection()">Repeat Direction</button>
-<button id="stopGuidance" class="secondary" onclick="stopGuidance()" disabled>Stop Navigation</button>
-<button id="readRouteButton" class="secondary" onclick="readRoute()">Read Entire Route</button>
-</div>
-<p id="guidanceStatus" class="status" role="status" aria-live="polite"></p>
-<ol id="directionList" class="steps"></ol>
-</section>
-
-<div class="note">
-<h2>Nearby barrier alerts</h2>
-<button id="nearbyAlertButton" class="secondary" aria-pressed="false" onclick="toggleNearbyAlerts()">Enable Obstacle Alerts</button>
-<p id="nearbyStatus" role="status">Alerts are off. Available reports are not a complete obstacle list.</p>
-</div>
-</div>
-</section>
-
-<section id="screen-report" class="screen card">
-<h1>Report a Tactile-Path Problem</h1>
-<form id="reportForm">
-<label for="issueType">Problem</label>
-<select id="issueType">
-<option>Vehicle blocking tactile path</option>
-<option>Blocked tactile path</option>
-<option>Damaged tactile path</option>
-<option>Missing tactile path</option>
-<option>Construction or roadwork</option>
-<option>Inaccessible crossing</option>
-<option>Other accessibility issue</option>
-</select>
-
-<label for="reportLocation">Exact location</label>
-<input id="reportLocation" required placeholder="Venue and entrance, or latitude, longitude">
-
-<label for="reportDetails">Description</label>
-<textarea id="reportDetails" maxlength="1000"></textarea>
-
-<label for="reportPhoto">Optional photo or video — up to 20 MB</label>
-<input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime">
-
-<div class="row">
-<button type="button" class="secondary" onclick="addReportGPS()">Add My Current Location</button>
-<button id="reviewReportButton" type="submit">Review Report</button>
-</div>
-</form>
-
-<p id="gpsStatus" class="status" role="status"></p>
-
-<section id="reportReviewPanel" class="hidden">
-<h2 tabindex="-1" id="reportReviewHeading">Review your report</h2>
-<p>Nothing has been published yet. Check the location and attachment.</p>
-<div id="reviewDetails"></div>
-<div id="reviewMap" class="hidden"></div>
-<div id="reviewMedia"></div>
-<button class="secondary" onclick="readReportReview()">Read Review Aloud</button>
-
-<form id="reportConfirmForm">
-<label class="check">
-<input id="confirmReportLocation" type="checkbox" required>
-<span id="confirmLocationLabel">I checked the location.</span>
-</label>
-<div class="row">
-<button id="confirmReportButton" type="submit">Confirm and Submit</button>
-<button type="button" class="secondary" onclick="editReport()">Edit Report</button>
-</div>
-</form>
-<p id="reportReviewStatus" role="status"></p>
-</section>
-
-<p class="note warning">Cloud reports and attachments are public when sharing succeeds. If unavailable, a local copy is retained. Do not include private information. Reports are not automatically sent to authorities.</p>
-</section>
-
-<section id="screen-myreports" class="screen card">
-<h1>My Reports</h1>
-<p>This browser's history, shared across local demo profiles. It is not private account storage or cross-device history.</p>
-<div class="row">
-<button onclick="go('report')">Report a New Issue</button>
-<button id="refreshMyReportsButton" class="secondary" onclick="refreshMyStatuses()">Refresh Cloud Status</button>
-</div>
-<label for="myReportsFilter">Show</label>
-<select id="myReportsFilter" onchange="renderMyReports()">
-<option value="">All submissions</option>
-<option value="local">Local or sharing unconfirmed</option>
-<option value="shared">Shared successfully</option>
-</select>
-<p id="myReportsStatus" class="status" role="status"></p>
-<div id="myReportsList"></div>
-</section>
-
-<section id="screen-community" class="screen card">
-<h1>Community Tactile-Path Reports</h1>
-<p id="reportSyncStatus" class="status" role="status"></p>
-<div class="row">
-<button onclick="refreshReports()">Refresh Reports</button>
-<button class="danger" onclick="deleteAllLocal()">Delete All Local Reports</button>
-</div>
-<div id="reportList"></div>
-</section>
-
-<section id="screen-settings" class="screen card">
-<h1>Voice & Accessibility Settings</h1>
-<button class="secondary" onclick="go('mode')">Change Interface Mode</button>
-
-<label for="language">Voice language</label>
-<select id="language">
-<option value="en-MY">English</option>
-<option value="ms-MY">Bahasa Melayu</option>
-<option value="zh-CN">中文</option>
-</select>
-<p>Walking directions are written in English; their speech language stays English. Available voices depend on your device.</p>
-
-<label for="voiceSelect">Device voice</label>
-<select id="voiceSelect"></select>
-
-<label for="speechSpeed">Speech speed</label>
-<input id="speechSpeed" type="range" min="0.7" max="1.4" step="0.1" value="1">
-
-<div class="row">
-<button onclick="testVoice()">Test Voice</button>
-<button class="secondary" onclick="say(lastSpeech)">Repeat Last Message</button>
-<button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
-</div>
-<p id="voiceStatus" class="status" role="status"></p>
-</section>
-
-<section id="screen-profile" class="screen card">
-<h1>Demo Profile / OKU Verification</h1>
-<p class="note warning">Browser-only hackathon accounts. Do not use a real password or upload identity documents. No official OKU verification takes place.</p>
-
-<div id="accountForms">
-<form id="loginForm">
-<h2>Login</h2>
-<label>Email<input id="loginEmail" type="email" required></label>
-<label>Demo password<input id="loginPassword" type="password" required></label>
-<button>Log In</button>
-</form>
-
-<form id="registerForm">
-<h2>Create a demo account</h2>
-<label>Name<input id="registerName" required maxlength="60"></label>
-<label>Email<input id="registerEmail" type="email" required></label>
-<label>Demo password<input id="registerPassword" type="password" minlength="4" required></label>
-<button>Register</button>
-</form>
-</div>
-
+<section id="screen-profile" class="screen"><div class="card">
+<h1>My Profile</h1><div id="profileSummary" class="good-note">Please log in to view your profile.</div>
 <div id="profileContent" class="hidden">
-<p id="profileSummary"></p>
-<label>Display name<input id="profileName" maxlength="60"></label>
-<button onclick="saveProfile()">Save Profile</button>
-<p id="verificationStatus"></p>
-
-<div class="row">
-<button onclick="verification('pending')">Request Demo OKU Review</button>
-<button class="secondary" onclick="verification('not_requested')">Cancel Request</button>
-<button class="secondary" onclick="logout()">Log Out</button>
+<h2>Profile Details</h2>
+<label for="profileName">Display Name</label><input id="profileName" maxlength="60">
+<label for="profileEmail">Email</label><input id="profileEmail" type="email" disabled>
+<label for="accessibilityPreference">Accessibility Preference</label>
+<select id="accessibilityPreference"><option>Blind or low vision</option><option>Mobility assistance</option><option>Hearing assistance</option><option>Other accessibility needs</option><option>Prefer not to say</option></select>
+<div class="button-row"><button class="primary" onclick="saveProfile()">Save Profile</button></div>
+<hr><h2>OKU Status Verification</h2>
+<div class="good-note"><strong>Current status:</strong> <span id="verificationBadge" class="pill">Not requested</span><p id="verificationExplanation" class="muted"></p></div>
+<div class="notice">Simulation only. No JKM, MyGOV or government database is contacted. Do not upload identity documents. Accessibility features remain available without verification.</div>
+<div class="button-row"><button class="primary" id="requestVerificationButton" onclick="requestVerification()">Request OKU Verification</button><button class="secondary" onclick="cancelVerification()">Cancel Request</button></div>
+<div class="card" style="margin-top:20px"><h2>Demo Reviewer Panel</h2><p>These controls do not verify a real person's OKU status.</p>
+<div class="button-row"><button class="primary" onclick="setDemoVerification('verified_demo')">Simulate Approval</button><button class="danger" onclick="setDemoVerification('unable')">Simulate Unable to Verify</button><button class="secondary" onclick="setDemoVerification('pending')">Reset to Pending</button></div>
+<p id="demoReviewerStatus" class="status" role="status">Demo reviewer controls are available.</p></div>
+<div class="button-row"><button class="secondary" onclick="logout()">Log Out</button></div>
 </div>
+<div class="button-row"><button class="secondary" onclick="goTo('auth')">Go to Login</button><button class="secondary" onclick="goTo('register')">Create Account</button><button class="secondary" onclick="goTo('home')">Back to Home</button></div>
+</div></section>
 
-<details>
-<summary>Demo reviewer controls — simulation only</summary>
-<div class="row">
-<button onclick="verification('verified_demo')">Simulate Approval</button>
-<button class="secondary" onclick="verification('unable')">Simulate Unable to Verify</button>
-</div>
+<section id="screen-navigation" class="screen"><div class="card">
+<h1>Navigation</h1><p class="muted">Enter a starting point and destination to plan a route.</p>
+<div class="field-grid">
+<div><label for="start">Starting Point</label><input id="start" list="umPlaceNames" placeholder="e.g. KK8 or Universiti Malaya"></div>
+<div><label for="destination">Destination</label><input id="destination" list="umPlaceNames" placeholder="e.g. Kompleks Perdanasiswa, UM"></div>
+</div><datalist id="umPlaceNames"></datalist>
+<details id="journeyOptions" class="good-note" open><summary>Journey options</summary>
+<label for="mode">Travel Mode</label><select id="mode"><option value="foot">Walking</option><option value="cycling">Cycling</option><option value="driving">Driving</option></select>
+<label for="rideThreshold">Smart Ride Assist Threshold (km)</label><input id="rideThreshold" type="number" min="1" max="100" value="5" step="0.5">
+<p class="muted">Longer routes offer a Grab link. No ride is automatically booked.</p>
 </details>
+<div class="button-row">
+<button class="primary" id="routeButton" onclick="findRoute()">Find Route</button><button class="secondary" onclick="useMyLocation()">Use My Location</button><button class="secondary" onclick="clearRoute()">Clear</button><button class="secondary" onclick="stopAllVoice()">Stop Voice</button>
 </div>
-
-<p id="authStatus" role="status"></p>
+<div id="routeStatus" class="status" role="status" aria-live="polite">Enter a starting point and destination.</div>
+<p class="muted">Search and select a venue, enter coordinates, or choose a point on the map.</p>
+<div id="map" aria-label="Route map"></div>
+<div id="routeResult" class="good-note hidden" aria-live="polite"></div>
+<section id="voiceNavigation" class="card hidden" aria-labelledby="navigationHeading">
+<h2 id="navigationHeading">Spoken directions</h2>
+<p>English turn-by-turn guidance. Allow location access and keep this page open. GPS may be inaccurate; use your usual mobility aid and check crossings independently.</p>
+<div class="button-row"><button class="primary" id="startGuidance" onclick="startGuidance()">Start Voice Navigation</button><button class="secondary" onclick="repeatDirection()">Repeat Direction</button><button class="secondary" id="stopGuidance" onclick="stopGuidance()" disabled>Stop Navigation</button></div>
+<p id="guidanceStatus" class="status" role="status" aria-live="polite">Find a route to get directions.</p><ol id="directionList"></ol>
 </section>
+<section class="good-note" aria-labelledby="nearbyTitle"><h2 id="nearbyTitle">Nearby obstacle alerts</h2><button class="secondary" id="nearbyAlertButton" onclick="toggleNearbyAlerts()" aria-pressed="false">Enable Obstacle Alerts</button><p id="nearbyStatus" class="status" role="status">Alerts are off. Reports are unverified and may be incomplete.</p></section>
+<div id="routeObstacles"></div>
+<section id="routeScore" class="route-score-card hidden public-extra" aria-labelledby="routeScoreTitle">
+<div class="route-score-heading"><h2 id="routeScoreTitle">Accessible Route Assessment</h2><span id="routeScoreLabel" class="pill">Not assessed</span></div>
+<div class="route-score-heading"><span class="muted">Provisional reported-hazard score</span><span id="routeScoreNumber" class="route-score-number">—/100</span></div>
+<div class="route-score-track"><div id="routeScoreFill" class="route-score-fill"></div></div>
+<p id="routeScoreSummary"></p><ul id="routeScoreDetails" class="route-score-list"></ul>
+<div class="notice">This score reflects available nearby reports, not verified accessibility. Missing reports do not establish that a route is clear or safe.</div>
+</section>
+<div id="rideAssist" class="notice hidden"></div>
+<div class="notice">BlindPath does not detect physical obstacles, verify tactile paths, or confirm traffic signals. A mapped route is not a safety guarantee.</div>
+<button class="secondary" onclick="goTo('home')">Back to Home</button>
+</div></section>
 
-<section id="screen-dashboard" class="screen card">
-<h1>Tactile-Path Maintenance Dashboard</h1>
-<div class="note warning">Demonstration only. Stages, assignments and notes stay on this browser. They do not authenticate staff, update cloud reports, remove live hazards, or notify a team.</div>
-<p id="dashboardStats"></p>
-
-<div class="row">
-<button onclick="refreshReports()">Refresh Reports</button>
-<button class="secondary" onclick="addSamples()">Add Fictional Samples</button>
-<button class="secondary" onclick="removeSamples()">Remove Samples</button>
-<button class="secondary" onclick="exportCSV()">Export Filtered CSV</button>
-</div>
-
-<label for="dashboardSearch">Search location, issue or team</label>
-<input id="dashboardSearch" oninput="renderDashboard()">
-
-<label for="dashboardFilter">Workflow stage</label>
-<select id="dashboardFilter" onchange="renderDashboard()">
-<option value="">All stages</option>
-<option value="submitted">Submitted</option>
-<option value="under_review">Under Review</option>
-<option value="action_assigned">Action Assigned</option>
-<option value="reported_resolved">Reported Resolved</option>
-<option value="verified_resolved">Verified Resolved</option>
+<section id="screen-report" class="screen"><div class="card">
+<h1>Report an Accessibility Issue</h1>
+<form id="reportForm">
+<label for="issueType">What is the problem?</label>
+<select id="issueType" required>
+<option value="Vehicle blocking tactile path">Vehicle blocking tactile path</option><option value="Construction or roadwork">Construction or roadwork</option><option value="Blocked tactile path">Tactile path blocked</option><option value="Damaged tactile path">Tactile path damaged</option><option value="Missing tactile path">Tactile path missing</option><option value="Inaccessible crossing">Crossing may be inaccessible</option><option value="Other accessibility issue">Other accessibility issue</option>
 </select>
-
-<div id="dashboardList"></div>
-
-<section id="dashboardReviewPanel" class="hidden">
-<h2 id="dashboardReviewTitle">Review report</h2>
-<form id="dashboardReviewForm">
-<label>Next stage<select id="reviewStage"></select></label>
-<label>Responsible team<input id="reviewAssignee" maxlength="100"></label>
-<label>Review or resolution notes<textarea id="reviewNotes" maxlength="1000"></textarea></label>
-<label>Inspection evidence<textarea id="reviewEvidence" maxlength="1000"></textarea></label>
-<button>Save Demo Review</button>
+<label for="reportLocation">Location</label><input id="reportLocation" required placeholder="Venue and entrance, or coordinates">
+<label for="reportDetails">Additional Details (optional)</label><textarea id="reportDetails" placeholder="Do not include private information."></textarea>
+<label for="reportPhoto">Photo or Video (optional, maximum 20 MB)</label>
+<input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" capture="environment">
+<div id="photoPreviewContainer" class="hidden">
+<video id="videoPreview" class="hidden report-photo" controls playsinline preload="metadata"></video>
+<img id="photoPreview" alt="Report attachment preview" class="report-photo">
+<button type="button" class="secondary" onclick="removeReportPhoto()">Remove Selected File</button>
+</div>
+<div class="button-row"><button type="button" class="secondary" onclick="addCurrentCoordinates()">Add My Current Location</button><button type="submit" id="reviewReportButton" class="primary">Review Report</button></div>
+<p id="gpsStatus" class="status" role="status"></p>
 </form>
-<ol id="reviewHistory"></ol>
-<p id="reviewStatus" role="status"></p>
+<section id="reportReviewPanel" class="card hidden" aria-labelledby="reportReviewHeading">
+<h2 id="reportReviewHeading" tabindex="-1">Review your report</h2><p>Nothing has been submitted yet. Check the issue, location and attachment.</p>
+<dl class="review-details"><dt>Issue</dt><dd id="reportReviewIssue"></dd><dt>Location you entered</dt><dd id="reportReviewEntered"></dd><dt>Matched place</dt><dd id="reportReviewMatched"></dd><dt>Coordinates</dt><dd id="reportReviewCoordinates"></dd><dt>Description</dt><dd id="reportReviewDescription"></dd></dl>
+<div id="reportLocationMap" class="hidden" aria-label="Report location"></div>
+<p class="muted">Search results may point to a building centre rather than an entrance. Edit the location if needed.</p>
+<div id="reportReviewMedia"></div>
+<button class="secondary" type="button" onclick="readReportReview()">Read Review Aloud</button>
+<form id="reportConfirmForm">
+<label class="confirm-location" for="confirmReportLocation"><input id="confirmReportLocation" type="checkbox" required><span id="confirmLocationLabel">I checked the report location.</span></label>
+<div class="button-row"><button class="primary" id="confirmReportButton" type="submit">Confirm and Submit</button><button class="secondary" id="editReportButton" type="button" onclick="cancelReportReview()">Edit Report</button></div>
+</form><p id="reportReviewStatus" class="status" role="status"></p>
 </section>
-</section>
+<div class="notice">Reports and attachments are public when shared. Failed sharing retains a browser copy. Reports are not automatically sent to authorities. Do not include private information.</div>
+<div class="button-row"><button class="secondary" onclick="goTo('myreports')">My Reports</button><button class="secondary" onclick="goTo('home')">Back to Home</button></div>
+</div></section>
 
+<section id="screen-settings" class="screen"><div class="card">
+<h1>Voice & Accessibility Settings</h1>
+<div class="good-note"><p id="settingsModeLabel">Current mode: not selected.</p><button class="secondary" onclick="goTo('mode')">Change Interface Mode</button></div>
+<label for="language">Language / 语言 / Bahasa</label><select id="language" onchange="applyLanguage()"><option value="en">English</option><option value="ms">Bahasa Melayu</option><option value="zh">中文</option></select>
+<label for="voiceSelect">Available Speech Voice</label><select id="voiceSelect"><option value="">Default device voice</option></select>
+<p class="muted">Voices depend on your device and browser. A Malaysian accent is not guaranteed.</p>
+<label for="speechSpeed">Speech Speed: <span id="speedValue">1.0×</span></label><input id="speechSpeed" type="range" min="0.7" max="1.4" step="0.1" value="1" oninput="document.getElementById('speedValue').textContent=this.value+'×'">
+<div class="button-row"><button class="primary" onclick="speakIntro()">Test Voice</button><button class="secondary" onclick="repeatSpeech()">Repeat Last Message</button><button class="secondary" onclick="stopAllVoice()">Stop Voice</button></div>
+<div id="voiceStatus" class="status" role="status">Select Test Voice to hear the introduction.</div>
+<div class="good-note">Test with visually impaired users and assistive technologies before real-world use.</div>
+<button class="secondary" onclick="goTo('home')">Back to Home</button>
+</div></section>
+
+<section id="screen-myreports" class="screen"><div class="card">
+<h1>My Reports</h1><p>This browser's submission history, shared across local demo profiles. It is not private account storage or cross-device history.</p>
+<div class="good-note">Submission sharing status is separate from the dashboard's demonstration workflow.</div>
+<div class="button-row"><button class="primary" onclick="goTo('report')">Report a New Issue</button><button class="secondary" id="refreshMyReportsButton" onclick="refreshMyReportStatuses()">Refresh Cloud Status</button></div>
+<label for="myReportsFilter">Show submissions</label><select id="myReportsFilter" onchange="renderMyReports()"><option value="">All submissions</option><option value="local">Local or sharing unconfirmed</option><option value="shared">Shared successfully</option></select>
+<p id="myReportsStatus" class="status" role="status">Retry Sharing checks for a matching cloud copy first. It is not automatic cross-device synchronisation.</p>
+<p id="myReportsCount" role="status"></p><div id="myReportsList"></div>
+<button class="secondary" onclick="goTo('home')">Back to Home</button>
+</div></section>
+
+<section id="screen-community" class="screen"><div class="card">
+<h1>Community Reports</h1><p class="muted">Available cloud and browser reports. Coverage may be incomplete.</p>
+<div class="good-note">Only verified path data should determine accessibility. Missing reports do not mean a path is clear.</div>
+<p id="reportSyncStatus" class="muted" role="status"></p><div id="reportList"></div>
+<div class="button-row"><button class="secondary" onclick="refreshReports()">Refresh Reports</button><button class="danger" onclick="clearReports()">Delete All Local Reports</button><button class="secondary" onclick="goTo('home')">Back to Home</button></div>
+</div></section>
+
+<section id="screen-dashboard" class="screen"><div class="card">
+<h1>Township Management Dashboard</h1>
+<div class="notice"><strong>Management demonstration</strong><br>Stages, assignments and notes stay on this browser. No staff authentication, notifications, cloud updates or live-hazard removal occur.</div>
+<p class="muted">This is a snapshot of loaded reports. Optional samples are fictional and included in the counts.</p>
+<div class="dashboard-stats"><div class="dashboard-stat">Loaded records<strong id="dashTotal">0</strong></div><div class="dashboard-stat">Open in demo workflow<strong id="dashOpen">0</strong></div><div class="dashboard-stat">Awaiting verification<strong id="dashReview">0</strong></div><div class="dashboard-stat">Verified in demo workflow<strong id="dashVerified">0</strong></div></div>
+<div class="button-row"><button class="primary" onclick="refreshReports()">Refresh Cloud Reports</button><button class="secondary" onclick="addDashboardSamples()">Add Sample Reports</button><button class="secondary" onclick="removeDashboardSamples()">Remove Sample Reports</button><button class="secondary" onclick="exportDashboardCSV()">Export Filtered CSV</button></div>
+<p id="dashboardStatus" class="status" role="status">Choose a report to explore the review workflow.</p>
+<label for="dashboardSearch">Search reports</label><input id="dashboardSearch" type="search" placeholder="Search location, issue, description or team" oninput="renderDashboard()">
+<div class="field-grid">
+<div><label for="dashboardFilter">Demo workflow status</label><select id="dashboardFilter" onchange="renderDashboard()"><option value="">All stages</option><option value="submitted">Submitted</option><option value="under_review">Under Review</option><option value="action_assigned">Action Assigned</option><option value="reported_resolved">Reported Resolved</option><option value="verified_resolved">Verified Resolved</option></select></div>
+<div><label for="dashboardTypeFilter">Issue type</label><select id="dashboardTypeFilter" onchange="renderDashboard()"><option value="">All issue types</option></select></div>
+</div><p id="dashboardCount" role="status"></p>
+<h2>Report map</h2><p class="muted">Purple markers are fictional examples. Reports are also listed below.</p>
+<div id="managementMap" aria-label="Management report map"></div>
+<details class="good-note"><summary>Repeated report locations</summary><p>Approximate coordinate groups, around 100 metres. Reporting activity does not establish accessibility need. Samples are grouped separately.</p><ul id="dashboardClusters"></ul></details>
+<div id="dashboardList"></div>
+<section id="dashboardReviewPanel" class="card hidden">
+<h2 id="dashboardReviewTitle" tabindex="-1">Review Report</h2><p id="dashboardReviewDetails"></p>
+<form id="dashboardReviewForm">
+<label for="reviewStage">Next demo workflow stage</label><select id="reviewStage"></select>
+<label for="reviewAssignee">Responsible team or person</label><input id="reviewAssignee" maxlength="100">
+<label for="reviewNotes">Review or resolution notes</label><textarea id="reviewNotes" maxlength="1000"></textarea>
+<label for="reviewEvidence">Inspection or resolution evidence</label><textarea id="reviewEvidence" maxlength="1000"></textarea>
+<button type="submit" class="primary">Save Demo Review</button><p id="reviewStatus" class="status" role="status"></p>
+</form><h2>Review history</h2><ol id="reviewHistory"></ol>
+</section><button class="secondary" onclick="goTo('home')">Back to Home</button>
+</div></section>
 </main>
-
-<footer>BlindPath prototype. Map tags and reports may be incomplete or outdated. Tactile-route evidence is not a verified accessibility assessment. Uses © OpenStreetMap contributors, Leaflet and optional Supabase reporting.</footer>
-
+<footer>BlindPath combined hackathon prototype. Public map services, browser storage and optional cloud reports. Information may be incomplete. Not for safety-critical navigation.</footer>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-"use strict"
-;const e=["routeButton","routeEvidence","voiceNavigation","directionList","routeStatus","venueGoogleRoute","startSelected","start","map","destination","routePreference","avoidSteps","avoidReports","allowGeneral","routeStats","routeExplanation","routeComparison","routeGaps","routeLegend","routeCrossings","reportCoverage","reportSyncStatus","startGuidance","guidanceStatus","readRouteButton","voiceStatus","speechSpeed","voiceSelect","language","stopGuidance","nearbyAlertButton","nearbyStatus","issueType","reportList","reportReviewPanel","reportForm","reviewReportButton","confirmReportLocation","reviewMedia","reportLocation","gpsStatus","reportPhoto","reportDetails","reviewDetails","reviewMap","confirmLocationLabel","reportReviewHeading","reportConfirmForm","confirmReportButton","reportReviewStatus","myReportsStatus","myReportsFilter","myReportsList","refreshMyReportsButton","dashboardSearch","dashboardFilter","dashboardStats","dashboardList","dashboardReviewPanel","dashboardReviewTitle","reviewStage","reviewAssignee","reviewNotes","reviewEvidence","reviewHistory","dashboardReviewForm","reviewStatus","accountForms","profileContent","accountButton","profileSummary","profileName","verificationStatus","loginForm","loginEmail","loginPassword","authStatus","registerForm","registerEmail","registerName","registerPassword"],t=t=>document.getElementById("number"==typeof t?e[t]:t),n={
-reports:"blindpath_accessibility_reports_v1",receipts:"blindpath_submission_receipts_v1",places:"blindpath_selected_places_v1",users:"blindpath_demo_users_v1",
-user:"blindpath_demo_current_user_v1",mode:"blindpath_interface_mode_v1",management:"blindpath_management_demo_v1"},o=(e,fallback)=>{try{
-return JSON.parse(localStorage.getItem(e))??fallback}catch{return fallback}},i=(e,t)=>localStorage.setItem(e,JSON.stringify(t)),r=(e,t,n)=>{
-const o=document.createElement(e);return void 0!==t&&(o.textContent=t),n&&(o.className=n),o},s=(e,t,n="secondary")=>{const o=r("button",e,n)
-;return o.type="button",o.onclick=t,o
-},l=()=>"local_"+crypto.randomUUID(),valid=(e,t)=>Number.isFinite(e)&&Number.isFinite(t)&&Math.abs(e)<=90&&Math.abs(t)<=180,c=e=>{
-const t=String(e).match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);return t&&valid(+t[1],+t[2])?{lat:+t[1],lon:+t[2],name:e,
-source:"Entered coordinates"}:null},d=e=>String(e).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim()
-;let map=null,u=null,p=null,h=null,m=null,route=null,g=0,f=null,selection={start:null,destination:null},v={start:0,destination:0
-},y={},w=Promise.resolve(),b=0,S=0,_=null,C=0,x=0,M="",k=-1,R=null,T=0,P=null,E=0,A=new Map,D=0,lastSpeech="",reports=[],N=null,O=0,reportSaving=!1,pendingReport=null,U=0,I=null,j=null,G=null,q=o(n.management,{}),B=null
-;const F=new Set,z=new Map;function go(e){if("navigation"!==e){stopGuidance(!1),fe(),V(),S++;for(const e of["start","destination"])W(e)}
-"report"===e||reportSaving||editReport(!1),document.querySelectorAll(".screen").forEach(t=>t.classList.toggle("active",t.id==="screen-"+e))
-;const n=t("screen-"+e).querySelector("h1");n.tabIndex=-1,n.focus(),"navigation"===e&&map&&setTimeout(()=>map.invalidateSize(),80),
-"myreports"===e&&renderMyReports(),"community"===e&&refreshReports(),"dashboard"===e&&renderDashboard(),window.scrollTo(0,0)}function chooseMode(mode){
-document.body.classList.toggle("accessible","accessible"===mode);try{localStorage.setItem(n.mode,mode)}catch{}go("home"),
-"accessible"===mode&&say("Accessible Mode selected. Choose Plan a Tactile Journey, Report a Tactile-Path Problem, or Voice and Settings.")}function V(){g++,
-f?.abort(),f=null,t(0).disabled=!1}function K(){V(),stopGuidance(!1),fe(),route=null,u&&map&&map.removeLayer(u),u=null,p?.clearLayers(),h?.clearLayers(),
-t(1).classList.add("hidden"),t(2).classList.add("hidden"),t(3).replaceChildren(),t(4).textContent="Journey changed. Choose Find Tactile Route."}
-function clearRoute(){K(),S++,m=null;for(const e of["start","destination"])W(e),selection[e]=null,t(e).value="",t(e+"Matches").replaceChildren(),
-t(e+"Selected").textContent="No location selected.";Y()}function Y(){
-const e=e=>selection[e]?.text===t(e).value.trim()?selection[e].lat+","+selection[e].lon:t(e).value.trim()
-;for(const n of["start","destination"])t(n+"Google").href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(e(n)||"Universiti Malaya")
-;t(5).href="https://www.google.com/maps/dir/?api=1&travelmode=walking&origin="+encodeURIComponent(e("start"))+"&destination="+encodeURIComponent(e("destination"))
-}function H(e,point,s=!0){if(W(e),K(),selection[e]={...point,text:t(e).value.trim()},t(e+"Matches").replaceChildren(),
-t(e+"Selected").textContent="Selected: "+point.name+" · "+point.lat.toFixed(6)+", "+point.lon.toFixed(6)+" · "+point.source+". Check the entrance.",
-s&&"Device GPS"!==point.source)try{const r=o(n.places,[]).filter(n=>n.query!==d(t(e).value));r.unshift({query:d(t(e).value),point:point}),
-i(n.places,r.slice(0,40))}catch{}map&&(L.marker([point.lat,point.lon]).bindPopup(r("p",point.name)).addTo(p),map.setView([point.lat,point.lon],18)),Y()}
-function W(e){v[e]++,y[e]?.abort(),delete y[e],t(e+"SearchButton").disabled=!1}function J(e){
-if(/\b(persona\s*siswa|perdana\s*siswa|perdanasiswa)\b/i.test(e))return["Kompleks Perdanasiswa, Universiti Malaya","Kompleks Perdana Siswa, Kuala Lumpur"]
-;const t=d(e).match(/^(?:kk|kolej(?: kediaman)?(?: ke)?)\s*(1[0-2]|[1-9])(?: um| universiti malaya)?$/)
-;if(t)return["Kolej Kediaman "+["Tuanku Abdul Rahman","Tuanku Bahiyah","Tuanku Kurshiah","Bestari","Dayasari","Ibnu Sina","Za'ba","Kinabalu","Tun Syed Zahiruddin","Tun Ahmad Zaidi","Ungku Aziz","Raja Dr Nazrin Shah"][+t[1]-1]+", Universiti Malaya","Kolej Kediaman "+t[1]+", Universiti Malaya"]
-;const n=e.trim().replace(/\bum\b/gi,"Universiti Malaya")
-;return[n,/universit[iy].*malaya/i.test(n)?n.replace(/universit[iy].*malaya/i,"Kuala Lumpur"):n+", Malaysia"]}async function Z(e,t){const n=await fetch(e,{
-signal:t?AbortSignal.any([t,AbortSignal.timeout(12e3)]):AbortSignal.timeout(12e3)});if(!n.ok)throw Error("Map service unavailable");return n.json()}
-function $(e,t){const n=w.then(async()=>{if(t?.aborted)throw Error("Search cancelled");if(await new Promise(e=>setTimeout(e,Math.max(0,1100-(Date.now()-b)))),
-t?.aborted)throw Error("Search cancelled")
-;return b=Date.now(),(await Z("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&addressdetails=1&q="+encodeURIComponent(e),t)).map(e=>({
-lat:+e.lat,lon:+e.lon,name:e.display_name,source:"OpenStreetMap search"}))});return w=n.catch(()=>{}),n}async function Q(e,t){const n=map?.getCenter()||{
-lat:3.122,lng:101.653}
-;return((await Z("https://photon.komoot.io/api/?limit=8&lang=en&lat="+n.lat+"&lon="+n.lng+"&q="+encodeURIComponent(e),t)).features||[]).map(e=>{
-const t=e.properties||{},n=e.geometry?.coordinates||[];return{lat:+n[1],lon:+n[0],
-name:[t.name,t.housenumber,t.street,t.district,t.city,t.state,t.country].filter(Boolean).join(", "),source:"Photon / OpenStreetMap"}})}async function X(e,t){
-let i=[];const saved=o(n.places,[]).find(t=>t.query===d(e));saved?.point&&i.push({...saved.point,source:"Previously selected on this browser"});let r=0
-;const s=J(e),l=/universiti malaya|university of malaya/i.test(s[0]);for(const e of[...new Set(s)]){const n=await Promise.allSettled([Q(e,t),$(e,t)])
-;for(const e of n)"fulfilled"===e.status?i.push(...e.value):r++;const o=[]
-;for(const e of i)valid(e.lat,e.lon)&&e.name&&(l&&(e.lat<3.04||e.lat>3.22||e.lon<101.57||e.lon>101.75)||o.some(t=>Math.abs(t.lat-e.lat)<15e-5&&Math.abs(t.lon-e.lon)<15e-5&&d(t.name).slice(0,25)===d(e.name).slice(0,25))||o.push(e))
-;if(i=o.slice(0,8),i.length||t?.aborted)break}return{rows:i,failures:r}}async function searchPlace(e){const n=t(e).value.trim();if(W(e),
-t(e+"Matches").replaceChildren(),!n)return void(t(e+"Selected").textContent="Enter a venue, address or coordinates.");const point=c(n)
-;if(point)return void H(e,point,!1);if(/^\s*-?\d+(?:\.\d+)?\s*,/.test(n))return void(t(e+"Selected").textContent="Invalid latitude, longitude.")
-;const o=v[e],i=new AbortController;y[e]=i,t(e+"SearchButton").disabled=!0,t(e+"Selected").textContent="Searching "+J(n)[0]+". Select a match below.";try{
-const{rows:r,failures:l}=await X(n,i.signal);if(i.signal.aborted||o!==v[e]||t(e).value.trim()!==n)return
-;t(e+"Selected").textContent=r.length?"Choose the exact venue. A building point may not be its entrance.":(l?"Some place services could not be reached. ":"")+"No match returned. Try the full address, Google Maps, or Choose on Map."
-;for(const n of r){const o=s(n.name+" · "+n.source,()=>H(e,n));o.style.cssText="display:block;width:100%;text-align:left;margin:6px 0",t(e+"Matches").append(o)}
-}finally{o===v[e]&&(t(e+"SearchButton").disabled=!1,delete y[e])}}function useMyLocation(){
-if(!navigator.geolocation||!isSecureContext)return void(t(6).textContent="GPS requires HTTPS or localhost and location permission.");K(),W("start"),
-selection.start=null;const e=++S;t(6).textContent="Requesting your location…",navigator.geolocation.getCurrentPosition(n=>{if(e!==S)return;const o=n.coords
-;!valid(o.latitude,o.longitude)||!Number.isFinite(o.accuracy)||Date.now()-n.timestamp>6e4?t(6).textContent="GPS did not return a recent valid fix.":(t(7).value="My current location",
-H("start",{lat:o.latitude,lon:o.longitude,name:"My current location (GPS uncertainty ±"+Math.round(o.accuracy)+" m)",source:"Device GPS",timestamp:n.timestamp
-},!1))},n=>{
-e===S&&(t(6).textContent=1===n.code?"Location permission denied. Enter a start or choose a map point.":"GPS unavailable. Try outdoors or choose a map point.")
-},{enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}function pick(e){K(),m=e,"start"===e&&S++,
-t(4).textContent="Tap the map to choose your "+("start"===e?"starting point":"destination")+".",t(8).scrollIntoView({block:"center"})}const ee=e=>e*Math.PI/180
-;function te(a,e){const t=Math.sin(ee(e.lat-a.lat)/2)**2+Math.cos(ee(a.lat))*Math.cos(ee(e.lat))*Math.sin(ee(e.lon-a.lon)/2)**2
-;return 12742e3*Math.asin(Math.min(1,Math.sqrt(t)))}function ne(point,a,e){
-const t=Math.cos(ee(point.lat)),n=111320*(e.lon-a.lon)*t,o=110540*(e.lat-a.lat),i=111320*(point.lon-a.lon)*t,r=110540*(point.lat-a.lat),s=n*n+o*o?Math.max(0,Math.min(1,(i*n+r*o)/(n*n+o*o))):0
-;return Math.hypot(i-s*n,r-s*o)}function ae(point,e){if(!e?.length)return 1/0;if(1===e.length)return te(point,{lat:e[0][1],lon:e[0][0]});let t=1/0
-;for(let n=1;n<e.length;n++)t=Math.min(t,ne(point,{lat:e[n-1][1],lon:e[n-1][0]},{lat:e[n][1],lon:e[n][0]}));return t}function oe(a,e){
-return(180*Math.atan2(Math.sin(ee(e.lon-a.lon))*Math.cos(ee(e.lat)),Math.cos(ee(a.lat))*Math.sin(ee(e.lat))-Math.sin(ee(a.lat))*Math.cos(ee(e.lat))*Math.cos(ee(e.lon-a.lon)))/Math.PI+360)%360
-}function ie(e){const t=Math.abs(e);return t<30?"Continue straight":(t<65?"Bear slightly ":t>125?"Turn sharply ":"Turn ")+(e>0?"right":"left")}
-function re(e,t,hazards){const n=new Map,o=new Map(e.filter(e=>"node"===e.type&&"crossing"===e.tags?.highway).map(e=>[e.id,e]));for(const i of e){
-const tags=i.tags||{};if("way"!==i.type||!i.nodes||i.nodes.length!==i.geometry?.length)continue
-;if(["no","private"].includes(tags.access)||["no","private"].includes(tags.foot)||tags["access:conditional"]||tags["foot:conditional"])continue
-;if(t.steps&&"steps"===tags.highway)continue
-;if(!["footway","path","pedestrian","steps","living_street"].includes(tags.highway)&&!["yes","designated","permissive"].includes(tags.foot))continue
-;const e="yes"===tags.tactile_paving?"yes":"no"===tags.tactile_paving?"no":"unknown";if("continuous"!==t.policy||"yes"===e){i.nodes.forEach((e,t)=>{
-const r=i.geometry[t];valid(r.lat,r.lon)&&!n.has(e)&&n.set(e,{lat:r.lat,lon:r.lon,crossing:o.has(e),edges:[]})});for(let o=1;o<i.nodes.length;o++){
-const a=n.get(i.nodes[o-1]),r=n.get(i.nodes[o]);if(!a||!r)continue;const length=te(a,r);if(length<.1)continue;if(t.reports&&hazards.some(e=>ne({lat:+e.lat,
-lon:+e.lng},a,r)<=10))continue;const s={length:length,surface:e,name:tags.name||"",cost:length*("shortest"===t.policy?1:"yes"===e?.65:1)}
-;"-1"!==tags["oneway:foot"]&&a.edges.push({...s,to:i.nodes[o]}),["yes","1"].includes(tags["oneway:foot"])||r.edges.push({...s,to:i.nodes[o-1]})}
-if(n.size>25e3)throw Error("Mapped network is too large. Plan a shorter journey.")}}return n}function se(e,point){let t=null,n=25;for(const[o,i]of e){
-const e=te(point,i);i.edges.length&&e<n&&(t=o,n=e)}return{id:t,distance:n}}function le(e,start,t,n=!1){const o=[],i=new Map([[start,0]]),r=new Map
-;function s(e){o.push(e);let t=o.length-1;for(;t;){const n=t-1>>1;if(o[n][0]<=e[0])break;o[t]=o[n],t=n}o[t]=e}function l(){const first=o[0],e=o.pop()
-;if(o.length){let t=0;for(;2*t+1<o.length;){let n=2*t+1;if(n+1<o.length&&o[n+1][0]<o[n][0]&&n++,o[n][0]>=e[0])break;o[t]=o[n],t=n}o[t]=e}return first}
-for(s([0,start]);o.length;){const[o,c]=l();if(o===i.get(c)){if(c===t)break;for(const t of e.get(c).edges){const e=o+(n?t.length:t.cost)
-;e<(i.get(t.to)??1/0)&&(i.set(t.to,e),r.set(t.to,{id:c,edge:t}),s([e,t.to]))}}}if(!r.has(t))return null;const c=[];let d=t;for(;d!==start;){const step=r.get(d)
-;if(!step)return null;c.push({...step.edge,from:e.get(step.id),to:e.get(d)}),d=step.id}return c.reverse()}function ce(e){const t=[];let n=null
-;for(const o of e){const e=oe(o.from,o.to),i=null===n?0:(e-n+540)%360-180,r=t.at(-1);if(!r||Math.abs(i)>=35||r.surface!==o.surface||o.from.crossing){
-const paving="yes"===o.surface?"OSM-tagged tactile paving, unverified":"no"===o.surface?"a path tagged without tactile paving":"a mapped path with unknown tactile status",e="yes"===r?.surface&&"yes"!==o.surface?"Tactile tagging ends here. ":r&&"yes"!==r.surface&&"yes"===o.surface?"Tactile tagging begins here. ":""
-;t.push({point:{lat:o.from.lat,lon:o.from.lon},surface:o.surface,distance:o.length,
-text:(r?ie(i)+". ":"Start along the mapped route. ")+e+(o.from.crossing?"Mapped crossing nearby. Traffic signals are not monitored. ":"")+"Continue on "+paving+"."
-})}else r.distance+=o.length;n=e}return t.push({point:e.at(-1).to,distance:0,
-text:"You are near the mapped route endpoint. Check your surroundings and locate the entrance independently."}),t}async function de(start,e,t,n){
-if(te(start,e)>5e3)throw Error("Tactile-network planning is limited to endpoints within 5 km.")
-;const o=[Math.min(start.lat,e.lat)-.003,Math.min(start.lon,e.lon)-.003,Math.max(start.lat,e.lat)+.003,Math.max(start.lon,e.lon)+.003].join(","),i='[out:json][timeout:12];way["highway"~"^(footway|path|pedestrian|living_street|steps|service|residential|unclassified|track)$"]('+o+');out body geom;node["highway"="crossing"]('+o+');out body;node["tactile_paving"]('+o+");out body;",r=await fetch("https://overpass-api.de/api/interpreter",{
-method:"POST",body:new URLSearchParams({data:i}),signal:AbortSignal.any([n,AbortSignal.timeout(15e3)])})
-;if(!r.ok)throw Error("OSM pedestrian network is unavailable.");const s=await r.json()
-;if(!Array.isArray(s.elements))throw Error("No mapped pedestrian network returned.")
-;const hazards=reports.filter(e=>valid(+e.lat,+e.lng)&&null!=e.lat&&null!=e.lng&&/blocked|blocking|damaged|construction/i.test(e.type)),l=re(s.elements,t,hazards),a=se(l,start),c=se(l,e)
-;if(null===a.id||null===c.id||a.id===c.id)throw Error("No distinct mapped network endpoints within 25 metres. Select a nearby public entrance.")
-;const d=le(l,a.id,c.id);if(!d?.length)throw Error("No connected mapped route under these preferences. Gaps have not been joined.")
-;const tactile=d.filter(e=>"yes"===e.surface).reduce((e,t)=>e+t.length,0)
-;if(!tactile&&"shortest"!==t.policy)throw Error("No tactile-tagged path was found on a connected route. Ordinary walking fallback is optional.")
-;const u=d.reduce((e,t)=>e+t.length,0),unknown=d.filter(e=>"unknown"===e.surface).reduce((e,t)=>e+t.length,0),p=le(l,a.id,c.id,!0);let h=0,m=0
-;for(const e of d)h="yes"===e.surface?0:h+e.length,m=Math.max(m,h)
-;const g=[[d[0].from.lon,d[0].from.lat],...d.map(e=>[e.to.lon,e.to.lat])],points=[...new Map(s.elements.filter(e=>"node"===e.type&&valid(e.lat,e.lon)).map(e=>[e.id,e])).values()].filter(e=>ae(e,g)<=15)
-;return{kind:"tactile",segments:d,coords:g,steps:ce(d),distance:u,duration:u/1.1,tactile:tactile,unknown:unknown,absent:Math.max(0,u-tactile-unknown),longest:m,
-startGap:a.distance,endGap:c.distance,baseline:p.reduce((e,t)=>e+t.length,0),crossings:points.filter(e=>"crossing"===e.tags?.highway),points:points,
-hazards:hazards.length,options:t}}function ue(step){const e=step.maneuver
-;return"arrive"===e.type?"You are near your destination. Locate the entrance independently.":("depart"===e.type?"Start along the route":["roundabout","rotary"].includes(e.type)?"At the roundabout, "+(e.exit?"take exit "+e.exit:"follow the mapped route"):{
-left:"Turn left",right:"Turn right","slight left":"Bear slightly left","slight right":"Bear slightly right","sharp left":"Turn sharply left",
-"sharp right":"Turn sharply right",uturn:"Make a U-turn"}[e.modifier]||"Continue straight")+(step.name?" on "+step.name:"")+". Tactile status is unknown."}
-async function pe(start,e,t,n){
-const o="https://routing.openstreetmap.de/routed-foot/route/v1/driving/"+start.lon+","+start.lat+";"+e.lon+","+e.lat+"?overview=full&geometries=geojson&steps=true",i=await Z(o,t)
-;if("Ok"!==i.code||!i.routes?.length)throw Error("The walking service could not connect these points.");const r=i.routes[0];return{kind:"general",
-coords:r.geometry.coordinates,distance:r.distance,duration:r.duration,steps:r.legs.flatMap(e=>e.steps||[]).filter(e=>2===e.maneuver?.location?.length).map(e=>({
-point:{lat:e.maneuver.location[1],lon:e.maneuver.location[0]},distance:e.distance,text:ue(e)})),reason:n}}async function findRoute(){K()
-;const e=t(7).value.trim(),n=t(9).value.trim();if(!e||!n)return void(t(4).textContent="Choose a starting point and destination first.")
-;if("Device GPS"===selection.start?.source&&Date.now()-selection.start.timestamp>6e4)return useMyLocation(),
-void(t(4).textContent="Refreshing GPS. Choose Find Tactile Route again when it is ready.")
-;const o=["start","destination"].filter(e=>selection[e]?.text!==t(e).value.trim());if(o.length)return await Promise.all(o.map(searchPlace)),
-["start","destination"].every(e=>selection[e]?.text===t(e).value.trim())?findRoute():void(t(4).textContent="Select a matching location for each endpoint, then find your route.")
-;if(!map)return void(t(4).textContent="The map library did not load. Check your connection.");const i=g,r=new AbortController;f=r,t(0).disabled=!0,
-t(4).textContent="Checking connected tactile-path evidence and available reports…";const start={...selection.start},s={...selection.destination},l={
-policy:t(10).value,steps:t(11).checked,reports:t(12).checked};try{let e;await ke();try{e=await de(start,s,l,r.signal)}catch(n){if(r.signal.aborted)throw n
-;if(!t(13).checked)throw n;e=await pe(start,s,r.signal,n.message)}if(i!==g)return;route=e,route.start=start,route.end=s,me(),
-t(4).textContent="general"===route.kind?"Ordinary walking route — tactile coverage unknown.":"Mapped pedestrian route found. Review tactile evidence and gaps before starting.",
-say(he())}catch(e){
-i===g&&(t(4).textContent="Tactile route unavailable: "+e.message+" You can change preferences, select another entrance, or explicitly allow ordinary walking fallback.")
-}finally{i===g&&(t(0).disabled=!1,f=null)}}function he(){
-return route?"general"===route.kind?"Ordinary walking fallback. Tactile coverage is unknown. Distance "+Math.round(route.distance)+" metres.":"Journey distance "+Math.round(route.distance)+" metres. OSM-tagged tactile paving "+Math.round(route.tactile)+" metres. Unknown tactile status "+Math.round(route.unknown)+" metres. Longest stretch without tactile tagging "+Math.round(route.longest)+" metres. All tags are unverified. "+route.crossings.length+" mapped crossing points near the route. Signals are not monitored.":"No journey is planned."
-}function speakSummary(){say(he())}function me(){if(p.clearLayers(),h.clearLayers(),u=L.featureGroup().addTo(map),
-"tactile"===route.kind)for(const e of route.segments)L.polyline([[e.from.lat,e.from.lon],[e.to.lat,e.to.lon]],{
-color:"yes"===e.surface?"#9a5700":"no"===e.surface?"#6b46c1":"#526b80",weight:7,dashArray:"unknown"===e.surface?"8 7":null
-}).addTo(u);else L.polyline(route.coords.map(e=>[e[1],e[0]]),{color:"#526b80",weight:6,dashArray:"8 7"}).addTo(u)
-;for(const[e,t]of[["Selected start",route.start],["Selected destination",route.end]])L.marker([t.lat,t.lon]).bindPopup(r("p",e+": "+t.name)).addTo(p)
-;map.fitBounds(u.getBounds(),{padding:[25,25]}),t(1).classList.remove("hidden"),t(14).replaceChildren();const e=(e,n)=>{const o=r("div",e,"stat")
-;o.append(r("strong",n)),t(14).append(o)};if(e("Walking distance",Math.round(route.distance)+" m"),
-e("Estimated walking time",Math.max(1,Math.round(route.duration/60))+" min"),"tactile"===route.kind){
-e("OSM-tagged tactile paving",Math.round(route.tactile)+" m · "+Math.round(route.tactile/route.distance*100)+"%"),
-e("Unknown tactile status",Math.round(route.unknown)+" m"),e("Tagged without tactile paving",Math.round(route.absent)+" m"),
-e("Longest stretch without tactile tagging",Math.round(route.longest)+" m"),
-t(15).textContent="continuous"===route.options.policy?"The mapped route uses only ways tagged tactile_paving=yes. Physical condition, crossings and endpoint gaps remain unverified.":"shortest"===route.options.policy?"You chose the shortest mapped pedestrian option under these settings. Tactile gaps are shown explicitly.":"Tactile-tagged segments receive a lower routing cost, so this route may be longer than the shortest mapped option. It can still contain untagged or non-tactile stretches.",
-t(16).textContent="Shortest mapped option under the same step/report settings: "+Math.round(route.baseline)+" m. Chosen route adds approximately "+Math.max(0,Math.round(route.distance-route.baseline))+" m.",
-t(17).textContent="Unmapped endpoint gaps: start "+Math.round(route.startGap)+" m; destination "+Math.round(route.endGap)+" m. No path is assumed across these gaps.",
-t(18).textContent="Amber solid: tactile paving tagged present. Purple solid: tagged absent. Dashed grey: unknown. Node-only tactile tags are shown as points and never counted as tactile-path length.",
-t(19).textContent=route.crossings.length+" mapped crossing points near this route. Missing crossing data does not mean there are no crossings. Traffic signals are not monitored."
-;for(const e of route.points){
-const t="crossing"===e.tags?.highway?"Mapped crossing; signal state unknown":"Tactile point tag: "+e.tags?.tactile_paving+". This does not label the whole path."
-;L.circleMarker([e.lat,e.lon],{radius:7,color:"crossing"===e.tags?.highway?"#b3261e":"#9a5700",fillOpacity:.8}).bindPopup(r("p",t)).addTo(h)}
-}else e("Tactile coverage","Unknown"),
-t(15).textContent="You explicitly allowed ordinary walking fallback. This route is not a tactile-guided route. "+route.reason,
-t(16).textContent="No tactile-route comparison is available.",t(17).textContent="Entrances and connections to this route are unverified.",
-t(18).textContent="Dashed grey: walking-service route with unknown tactile status.",
-t(19).textContent="Crossings have not been assessed for this fallback route."
-;t(20).textContent=t(21).textContent+" Avoiding reported barriers does not establish that the remaining route is clear.",t(2).classList.remove("hidden"),
-t(22).disabled=!route.steps.length,t(3).replaceChildren(),route.steps.forEach((step,e)=>{const n=r("li",void 0,"step")
-;n.append(s(step.text+(step.distance?" Continue for "+Math.round(step.distance)+" metres.":""),()=>{stopGuidance(!1),fe(),ge(e),say(n.textContent)})),
-t(3).append(n)}),t(23).textContent="Directions ready. Read a preview or start live GPS guidance."}function ge(e){[...t(3).children].forEach((t,n)=>{
-t.classList.toggle("current",n===e);const o=t.querySelector("button");n===e?o.setAttribute("aria-current","step"):o.removeAttribute("aria-current")})}
-function fe(){D++,"speechSynthesis"in window&&speechSynthesis.cancel(),t(24).textContent="Read Entire Route"}function say(e,n=null,o=!0,i="en-MY"){
-if(lastSpeech=e||"No message to repeat.",!("speechSynthesis"in window))return void(t(25).textContent="Speech is unsupported by this browser.")
-;o&&speechSynthesis.cancel();const r=new SpeechSynthesisUtterance(lastSpeech);r.lang=i,r.rate=Number(t(26).value)||1;const s=t(27).value
-;""!==s&&(r.voice=speechSynthesis.getVoices()[+s]||null),r.onstart=()=>t(25).textContent="Speaking…",r.onend=()=>{t(25).textContent="Speech finished.",n?.()},
-r.onerror=()=>{t(25).textContent="Speech could not be played."},speechSynthesis.speak(r)}function testVoice(){const e=t(28).value
-;say("ms-MY"===e?"Selamat datang ke BlindPath. Semak maklumat laluan sentuhan sebelum berjalan.":"zh-CN"===e?"欢迎使用 BlindPath。出发前请检查盲道信息。":"Welcome to BlindPath. Review tactile-path information before your journey.",null,!0,e)
-}function readRoute(){if(!route)return;if("Stop Reading"===t(24).textContent)return void fe();stopGuidance(!1),fe();const e=D;t(24).textContent="Stop Reading",
-function t(n){if(e!==D)return;if(n>=route.steps.length)return void fe();ge(n);const o=route.steps[n]
-;say(o.text+(o.distance?" Continue for "+Math.round(o.distance)+" metres.":""),()=>t(n+1))}(0)}function stopGuidance(e=!0){C++,
-null!==_&&navigator.geolocation.clearWatch(_),_=null,M="",t(29).disabled=!0,t(22).disabled=!route?.steps?.length,e&&(fe(),
-t(23).textContent="Live guidance stopped. Guidance location tracking is off.")}function ve(e){t(23).textContent=e,say(e)}function repeatDirection(){
-route&&ve(M||route.steps[Math.min(x,route.steps.length-1)].text)}function startGuidance(){if(!route?.steps.length)return;if(stopGuidance(!1),fe(),
-!navigator.geolocation||!isSecureContext)return void ve("Live guidance requires location support and HTTPS or localhost.");x=0,k=-1,t(22).disabled=!0,
-t(29).disabled=!1,ve("Requesting live location. Guidance starts near the mapped route. Keep this page open. Crossing signals are not monitored.");const e=C
-;_=navigator.geolocation.watchPosition(t=>{if(e!==C||!route)return;const n=t.coords,point={lat:n.latitude,lon:n.longitude};let o=""
-;if(!valid(point.lat,point.lon)||!Number.isFinite(n.accuracy)||n.accuracy>30||Date.now()-t.timestamp>15e3?o="GPS accuracy is too low. Guidance is paused until a reliable location is available.":ae(point,route.coords)>45&&(o="You appear away from the planned route. Guidance is paused. Stop in a suitable place and plan a new route."),
-o)return o!==M&&ve(o),void(M=o);const i=!!M;M="";const step=route.steps[x];if(!step)return;const r=te(point,step.point);r<=20?(ge(x),
-ve(step.text+(step.distance?" Continue for "+Math.round(step.distance)+" metres.":"")),x++,
-x===route.steps.length&&stopGuidance(!1)):0===x?((0!==k||i)&&ve("Mapped route start is approximately "+Math.round(r)+" metres away. The connection to it is unverified."),
-k=0):r<=60&&(k!==x||i)?(ve("In approximately "+Math.round(r)+" metres: "+step.text),k=x):i&&ve("GPS guidance resumed. Next: "+step.text)},t=>{
-e===C&&(stopGuidance(!1),ve(1===t.code?"Location permission denied. Allow location access and start again.":"GPS unavailable. Live guidance stopped."))},{
-enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}function ye(){T++,null!==R&&navigator.geolocation.clearWatch(R),R=null,clearInterval(P),P=null,
-t(30).textContent="Enable Obstacle Alerts",t(30).setAttribute("aria-pressed","false"),t(31).textContent="Obstacle alerts are off."}
-function toggleNearbyAlerts(){if(null!==R)return void ye()
-;if(!navigator.geolocation||!isSecureContext)return void(t(31).textContent="Location alerts need HTTPS or localhost.");const e=++T;A.clear(),E=0,
-t(30).textContent="Disable Obstacle Alerts",t(30).setAttribute("aria-pressed","true"),refreshReports(),P=setInterval(refreshReports,6e4),
-R=navigator.geolocation.watchPosition(n=>{if(e!==T)return;const o=n.coords
-;if(!Number.isFinite(o.accuracy)||o.accuracy>30||Date.now()-n.timestamp>15e3)return void(t(31).textContent="Waiting for a reliable GPS position.")
-;const i=reports.filter(e=>null!=e.lat&&null!=e.lng&&valid(+e.lat,+e.lng)).map(e=>({report:e,d:te({lat:o.latitude,lon:o.longitude},{lat:+e.lat,lon:+e.lng})
-})).filter(e=>e.d<=50).sort((a,e)=>a.d-e.d)
-;t(31).textContent=i.length?i[0].report.type+" reported about "+Math.round(i[0].d)+" metres away. Unverified.":"No loaded reports within 50 metres. This does not mean the path is clear."
-;const r=i.find(e=>Date.now()-(A.get(String(e.report.id))||0)>12e4)
-;!r||Date.now()-E<15e3||"speechSynthesis"in window&&speechSynthesis.pending||(say("Caution. "+r.report.type+" reported approximately "+Math.round(r.d)+" metres away. Unverified report.",null,!1),
-navigator.vibrate?.([100,80,100]),A.set(String(r.report.id),Date.now()),E=Date.now())},()=>{e===T&&ye()},{enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}
-function stopAllVoice(){stopGuidance(),ye(),fe()}
-const cloud=window.supabase?supabase.createClient("https://ywbqchhcpcygkutcvsrp.supabase.co","sb_publishable_Tjr7GVrlV79vEOFSMuCMhQ_Obypbd0I"):null,we=window.supabase?supabase.createClient("https://tdlngsxtcyfnlbzdkmlm.supabase.co","sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2"):null,getReports=()=>o(n.reports,[]),Se=e=>i(n.reports,e),_e=()=>o(n.receipts,[])
-;function Ce(e){const t=_e(),o=t.findIndex(t=>t.id===e.id);o<0?t.unshift(e):t[o]={...t[o],...e},i(n.receipts,t)}function xe(e,t,n){return new Promise((o,i)=>{
-const r=indexedDB.open("blindpath_media_v1",1);r.onupgradeneeded=()=>r.result.createObjectStore("files"),r.onerror=()=>i(r.error),r.onsuccess=()=>{
-const s=r.result,l=s.transaction("files","get"===e?"readonly":"readwrite"),c=l.objectStore("files"),d="put"===e?c.put(n,t):"delete"===e?c.delete(t):c.get(t)
-;l.oncomplete=()=>{s.close(),o(d.result)},l.onerror=l.onabort=()=>{s.close(),i(l.error||Error("Media storage failed"))}}})}async function Me(e,t){
-let n=t.media_url||t.photo;if(t.media_ref)try{if(!z.has(t.media_ref)){const e=await xe("get",t.media_ref);e&&z.set(t.media_ref,URL.createObjectURL(e))}
-n=z.get(t.media_ref)}catch{}if(!n||!(/^https:\/\//i.test(n)||/^blob:/.test(n)||/^data:image\/(jpeg|png|webp);base64,/i.test(n)))return
-;const o=document.createElement("video"===t.media_type?"video":"img");o.src=n,o.className="media","VIDEO"===o.tagName?(o.controls=!0,o.playsInline=!0,
-o.preload="metadata"):(o.alt="Report attachment",o.loading="lazy"),e.append(o)}async function ke(e=!1){if(N)return N;if(!e&&Date.now()-O<3e4)return reports
-;N=(async()=>{let failed=0;async function e(e,t){if(!e)return failed++,[];try{let n=e.from(t).select("*")
-;n="reports"===t?n.eq("is_solved",!1):n.eq("status","open");const{data:o,error:i}=await n.order("created_at",{ascending:!1
-}).limit(100).abortSignal(AbortSignal.timeout(12e3));if(i)throw i;return o||[]}catch{return failed++,[]}}
-const[a,o]=await Promise.all([e(we,"reports"),e(cloud,"tactile_reports")]),r={blocked_vehicle:"Vehicle blocking tactile path",
-construction:"Construction or roadwork",damaged_tactile_path:"Damaged tactile path",other_obstacle:"Other accessibility issue"};reports=[...a.map(e=>({...e,
-source:"legacy",raw_id:e.id})),...o.map(e=>{const n=[...t(32).options].map(e=>e.value).find(t=>(e.description||"").startsWith(t+": "));return{id:"shared_"+e.id,
-raw_id:e.id,source:"shared",type:n||r[e.issue_type]||"Accessibility issue",details:n?e.description.slice(n.length+2):e.description,lat:e.latitude,
-lng:e.longitude,location:e.latitude+", "+e.longitude,created_at:e.created_at,media_url:e.media_url,media_type:e.media_type}}),...getReports().map(e=>({...e,
-source:"local"}))].filter(e=>!e.is_solved&&Number(e.solved_count||0)<2),O=Date.now(),
-t(21).textContent=failed?"Some cloud reports could not load. Available reports are incomplete and unverified.":"Available active cloud and browser reports loaded. Reports are unverified and the list is not complete."
-;for(const e of reports){const t=(e.source||"local")+":"+e.id,n=q[t];q[t]={...n,...e,key:t,status:n?.status||"submitted",assignee:n?.assignee||"",
-notes:n?.notes||"",evidence:n?.evidence||"",history:n?.history||[]}}try{i(n.management,q)}catch{}return reports})();try{return await N}finally{N=null}}
-async function refreshReports(){await ke(!0),Re(),renderMyReports(),renderDashboard()}function Le(e){const t=r("article",void 0,"item")
-;return t.append(r("strong",e.type||"Accessibility issue"),r("p",e.location||"Location not provided"),r("p",e.details||"No additional description"),r("p",(e.created_at?new Date(e.created_at).toLocaleString():"Date unavailable")+" · Unverified","muted")),
-Me(t,e),t}function Re(){t(33).replaceChildren(),reports.length||(t(33).textContent="No active reports loaded. This does not establish that paths are clear.")
-;for(const e of reports){const n=Le(e);n.append(s("shared"===e.source?"Mark as Cleared":"Confirm Solved ("+Number(e.solved_count||0)+"/2)",()=>Te(e))),
-"local"===e.source&&n.append(s("Delete Local Report",()=>Oe(e.id),"danger")),t(33).append(n)}}async function Te(e){
-if(confirm("Only confirm if you checked the location. Update this report's clearance status?"))try{if("shared"===e.source){
-const{data:t,error:n}=await cloud.from("tactile_reports").update({status:"resolved"}).eq("id",e.raw_id).select("id").abortSignal(AbortSignal.timeout(12e3))
-;if(n||!t?.length)throw Error("Cloud update was not confirmed.")}else{const t=o("blindpath_solved_votes_v1",[]),n=e.source+":"+e.id
-;if(t.includes(n)||t.includes(String(e.id)))throw Error("Already confirmed on this browser.");const r=Number(e.solved_count||0)+1;if("legacy"===e.source){
-const{data:t,error:n}=await we.from("reports").update({solved_count:r,is_solved:r>=2}).eq("id",e.raw_id).select("id").abortSignal(AbortSignal.timeout(12e3))
-;if(n||!t?.length)throw Error("Cloud update was not confirmed.")}else Se(getReports().map(t=>t.id===e.id?{...t,solved_count:r,is_solved:r>=2}:t));t.push(n),
-i("blindpath_solved_votes_v1",t)}await refreshReports()}catch(e){alert(e.message)}}function editReport(e=!0){reportSaving||(U++,pendingReport=null,
-t(34).classList.add("hidden"),t(35).classList.remove("hidden"),t(36).disabled=!1,t(37).checked=!1,t(38).querySelectorAll("video").forEach(e=>e.pause()),
-t(38).replaceChildren(),G&&URL.revokeObjectURL(G),G=null,e&&t(39).focus())}function addReportGPS(){
-if(!navigator.geolocation)return void(t(40).textContent="Location unavailable.");const e=++U;navigator.geolocation.getCurrentPosition(n=>{
-e===U&&(editReport(!1),t(39).value=n.coords.latitude.toFixed(6)+", "+n.coords.longitude.toFixed(6),
-t(40).textContent="GPS uncertainty approximately "+Math.round(n.coords.accuracy)+" metres. Review the exact location.")
-},()=>t(40).textContent="Could not get location. Enter it manually.",{enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}const Pe={"image/jpeg":"jpg",
-"image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov"};t(35).onsubmit=async e=>{if(e.preventDefault(),
-reportSaving)return;const n=++U,o=t(41).files[0]||null,i={id:l(),type:t(32).value,location:t(39).value.trim(),details:t(42).value.trim(),file:o}
-;if(o&&(!Pe[o.type]||o.size>20971520))return void(t(40).textContent="Choose a supported photo/video up to 20 MB.");t(36).disabled=!0,
-t(40).textContent="Looking up the report location. Nothing is published.";let point=c(i.location);try{if(!point){
-const e=await X(i.location,(new AbortController).signal);1===e.rows.length&&(point=e.rows[0])}}catch{}if(n===U){pendingReport={...i,point:point},
-t(43).replaceChildren()
-;for(const[e,n]of[["Issue",i.type],["Entered location",i.location],["Matched location",point?point.name:"No single unambiguous match. Edit to enter coordinates, or acknowledge a local-only unmapped report."],["Coordinates",point?point.lat.toFixed(6)+", "+point.lon.toFixed(6):"Unavailable"],["Description",i.details||"None"]])t(43).append(r("strong",e),r("p",n))
-;if(t(44).classList.toggle("hidden",!point||!window.L),point&&window.L&&(I||(I=L.map("reviewMap"),
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap contributors"}).addTo(I)),j&&I.removeLayer(j),
-j=L.marker([point.lat,point.lon]).addTo(I),I.setView([point.lat,point.lon],18),setTimeout(()=>I.invalidateSize(),100)),o){G=URL.createObjectURL(o)
-;const e=document.createElement(o.type.startsWith("video/")?"video":"img");e.src=G,e.className="media",e.alt="Selected report attachment",
-"VIDEO"===e.tagName&&(e.controls=!0,e.playsInline=!0),t(38).append(r("p",o.name),e)}
-t(45).textContent=point?"I checked that this is the intended report location.":"I understand this will be saved locally without a map position or nearby alerts.",
-t(35).classList.add("hidden"),t(34).classList.remove("hidden"),t(46).focus()}};for(const e of["input","change"])t(35).addEventListener(e,()=>{
-reportSaving||editReport(!1)});function readReportReview(){pendingReport&&say(t(43).textContent+". "+t(45).textContent)}function Ee(e){
-return/vehicle/i.test(e)?"blocked_vehicle":/construction/i.test(e)?"construction":/damaged/i.test(e)?"damaged_tactile_path":"other_obstacle"}
-async function Ae(e,t,n=!0){if(!cloud)throw Error("Cloud unavailable. Local copy retained.")
-;if(null==e.lat||null==e.lng)throw Error("No mapped location. Create a new reviewed report with coordinates.");const o=e.type+": "+(e.details||"");let i=null
-;if(n){
-const{data:t,error:n}=await cloud.from("tactile_reports").select("id,status,media_url,media_type").eq("latitude",+e.lat).eq("longitude",+e.lng).eq("description",o).eq("created_at",e.created_at).limit(1).abortSignal(AbortSignal.timeout(12e3))
-;if(n)throw Error("Could not check for an existing cloud copy. Nothing new was published.");i=t?.[0]}if(!i){let n=e.uploaded_media_url||null;if(t&&!n){
-const path=e.upload_path||"reports/"+crypto.randomUUID()+"."+Pe[t.type];Ce(e={...e,upload_path:path})
-;const{error:o}=await cloud.storage.from("tactile-report-media").upload(path,t,{contentType:t.type,upsert:!1})
-;if(o&&"409"!==String(o.statusCode)&&!/duplicate|already exists/i.test(o.message||""))throw Error("Attachment upload unconfirmed. Local copy retained.")
-;n=cloud.storage.from("tactile-report-media").getPublicUrl(path).data.publicUrl,Ce(e={...e,uploaded_media_url:n})}Ce(e={...e,sharing_state:"unconfirmed"})
-;const{data:r,error:s}=await cloud.from("tactile_reports").insert([{issue_type:Ee(e.type),description:o,latitude:+e.lat,longitude:+e.lng,
-created_at:e.created_at,status:"open",media_url:n,media_type:n?e.media_type:null
-}]).select("id,status,media_url,media_type").abortSignal(AbortSignal.timeout(12e3))
-;if(s||!r?.length)throw Error("Cloud sharing unconfirmed. Local copy retained; retry checks for an existing copy first.");i=r[0]}Ce({...e,
-sharing_state:"shared",remote_id:i.id,remote_status:i.status||"open",media_url:i.media_url||e.uploaded_media_url,media_type:i.media_type||e.media_type,
-last_error:null,shared_at:(new Date).toISOString()}),Se(getReports().filter(t=>t.id!==e.id))}function De(){const e=new Map(_e().map(e=>[String(e.id),e]))
-;for(const t of getReports())e.has(String(t.id))||e.set(String(t.id),{...t,sharing_state:"local",legacy_local:!0})
-;return[...e.values()].sort((a,e)=>String(e.created_at||"").localeCompare(String(a.created_at||"")))}async function Ne(e){if(F.has(e))return
-;const n=De().find(t=>t.id===e);if(n&&!n.legacy_local&&"shared"!==n.sharing_state){F.add(e),renderMyReports();try{let e=null
-;if(n.media_ref&&(e=await xe("get",n.media_ref),!e))throw Error("Local attachment missing. Nothing new was shared.");await Ae(n,e),
-t(50).textContent="Sharing confirmed.",await refreshReports()}catch(o){try{Ce({..._e().find(t=>t.id===e)||n,last_error:o.message})}catch{}
-t(50).textContent=o.message}finally{F.delete(e),renderMyReports()}}}function renderMyReports(){const e=t(51).value;t(52).replaceChildren()
-;const n=De().filter(t=>!e||("shared"===e?"shared"===t.sharing_state:"shared"!==t.sharing_state))
-;n.length||(t(52).textContent="No matching submissions on this browser.");for(const e of n){const n=Le(e)
-;if(n.prepend(r("p","shared"===e.sharing_state?"Shared successfully":"unconfirmed"===e.sharing_state?"Cloud sharing unconfirmed — local copy retained":"Saved on this device")),
-"shared"===e.sharing_state)n.append(r("p","Last known cloud status: "+(e.remote_status||"open")+". This is separate from the demonstration dashboard."));else{
-if(e.legacy_local)n.append(r("p","Older local report. Sharing history is unknown; automatic retry is disabled."));else if(null!=e.lat){
-const t=s(F.has(e.id)?"Sharing…":"Retry Sharing",()=>Ne(e.id));t.disabled=F.has(e.id),n.append(t)}n.append(s("Delete Local Report",()=>Oe(e.id),"danger"))}
-e.last_error&&n.append(r("p",e.last_error,"muted")),t(52).append(n)}}async function refreshMyStatuses(){
-if(!cloud)return void(t(50).textContent="Cloud unavailable. Browser history remains visible.");t(53).disabled=!0;let e=0,failed=0;try{
-for(const t of _e().filter(e=>"shared"===e.sharing_state&&null!=e.remote_id))try{
-const{data:n,error:o}=await cloud.from("tactile_reports").select("id,status").eq("id",t.remote_id).limit(1).abortSignal(AbortSignal.timeout(12e3))
-;if(o||!n?.length)throw Error();Ce({...t,remote_status:n[0].status,status_checked_at:(new Date).toISOString()}),e++}catch{failed++}
-t(50).textContent=e+" statuses updated. "+failed+" unavailable; last known statuses retained."}finally{t(53).disabled=!1,renderMyReports()}}
-async function Oe(e){if(F.has(e)||!confirm("Delete the local record and attachment? Any cloud copy remains."))return;const t=De().find(t=>t.id===e)
-;if("shared"!==t?.sharing_state){if(Se(getReports().filter(t=>t.id!==e)),i(n.receipts,_e().filter(t=>t.id!==e)),t?.media_ref){try{await xe("delete",t.media_ref)
-}catch{}const e=z.get(t.media_ref);e&&URL.revokeObjectURL(e),z.delete(t.media_ref)}await refreshReports()}}async function deleteAllLocal(){
-if(confirm("Delete all local-only reports and their attachments? Shared report history stays.")){
-for(const e of De().filter(e=>"shared"!==e.sharing_state))if(!F.has(e.id)&&(Se(getReports().filter(t=>t.id!==e.id)),i(n.receipts,_e().filter(t=>t.id!==e.id)),
-e.media_ref))try{await xe("delete",e.media_ref)}catch{}await refreshReports()}}t(47).onsubmit=async e=>{if(e.preventDefault(),
-reportSaving||!pendingReport||!t(37).checked)return;const n=pendingReport;reportSaving=!0,t(48).disabled=!0,
-t(49).textContent="Saving the exact report reviewed…";const o={id:n.id,type:n.type,location:n.location,details:n.details,lat:n.point?.lat??null,
-lng:n.point?.lon??null,created_at:(new Date).toISOString(),is_solved:!1,solved_count:0,media_type:n.file?.type.startsWith("video/")?"video":"image",
-sharing_state:"local"};let i=!1;try{n.file&&(o.media_ref=o.id,await xe("put",o.id,n.file));try{Se([o,...getReports().filter(e=>e.id!==o.id)]),i=!0}catch(e){
-throw o.media_ref&&await xe("delete",o.media_ref),e}try{Ce(o)}catch{}let e=!1;if(F.add(o.id),null!=o.lat)try{await Ae(o,n.file,!1),e=!0}catch{}F.delete(o.id),
-reportSaving=!1,
-editReport(!1),t(35).reset(),t(40).textContent=e?"Report shared. See My Reports for its last known status.":"Report saved locally. Sharing was not confirmed. See My Reports.",
-say(e?"Your report was shared.":"Your report was saved on this browser."),await refreshReports()}catch(e){
-t(49).textContent=(i?"A local copy exists. ":"Report not saved. ")+e.message}finally{reportSaving=!1,F.delete(o.id),t(48).disabled=!1}};const Ue={
-submitted:"Submitted",under_review:"Under Review",action_assigned:"Action Assigned",reported_resolved:"Reported Resolved",verified_resolved:"Verified Resolved"
-},Ie={submitted:"under_review",under_review:"action_assigned",action_assigned:"reported_resolved",reported_resolved:"verified_resolved"};function je(){
-const e=t(54).value.toLowerCase(),n=t(55).value
-;return Object.values(q).filter(t=>Ue[t.status]&&(!n||t.status===n)&&(!e||[t.type,t.location,t.details,t.assignee].join(" ").toLowerCase().includes(e)))}
-function renderDashboard(){const e=Object.values(q).filter(e=>Ue[e.status])
-;t(56).textContent=e.length+" loaded demo records · "+e.filter(e=>"reported_resolved"===e.status).length+" awaiting verification · "+e.filter(e=>"verified_resolved"===e.status).length+" verified in demo workflow.",
-t(57).replaceChildren();for(const e of je()){const n=r("article",void 0,"item")
-;n.append(r("strong",(e.is_example?"SAMPLE · ":"")+e.type),r("p",e.location),r("p","Demo stage: "+Ue[e.status]),s("Review Report",()=>Ge(e.key))),
-t(57).append(n)}}function Ge(e){const n=q[e];if(!n)return;B=e,t(58).classList.remove("hidden"),t(59).textContent=(n.is_example?"SAMPLE · ":"")+n.type,
-t(60).replaceChildren();const allowed=new Set([n.status,Ie[n.status]]);"submitted"!==n.status&&allowed.add("under_review")
-;for(const[e,n]of Object.entries(Ue))if(allowed.has(e)){const o=r("option",n);o.value=e,t(60).append(o)}t(60).value=n.status,t(61).value=n.assignee||"",
-t(62).value=n.notes||"",t(63).value=n.evidence||"",t(64).replaceChildren()
-;for(const e of n.history||[])t(64).append(r("li",new Date(e.at).toLocaleString()+" · "+Ue[e.status]+" · "+(e.notes||"")))}function addSamples(){
-for(const[e,t]of["Vehicle blocking tactile path","Damaged tactile path","Missing tactile path"].entries()){const n="example:tactile_"+e;q[n]||(q[n]={key:n,id:n,
-type:t,location:"Fictional sample location",details:"Sample only",created_at:(new Date).toISOString(),is_example:!0,status:"submitted",assignee:"",notes:"",
-evidence:"",history:[]})}i(n.management,q),renderDashboard()}function removeSamples(){
-confirm("Remove fictional dashboard samples?")&&(q=Object.fromEntries(Object.entries(q).filter(([,e])=>!e.is_example)),i(n.management,q),
-t(58).classList.add("hidden"),renderDashboard())}function exportCSV(){
-const e=[["Issue","Location","Demo stage","Team","Notes","Evidence"],...je().map(e=>[e.type,e.location,Ue[e.status],e.assignee,e.notes,e.evidence])],t=e=>{
-let t=String(e??"");return/^\s*[=+@-]/.test(t)&&(t="'"+t),'"'+t.replace(/"/g,'""')+'"'
-},n=URL.createObjectURL(new Blob(["\ufeff"+e.map(e=>e.map(t).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"})),a=r("a");a.href=n,
-a.download="blindpath-tactile-maintenance-demo.csv",document.body.append(a),a.click(),a.remove(),setTimeout(()=>URL.revokeObjectURL(n),1e3)}function qe(){
-let email="";try{email=localStorage.getItem(n.user)||""}catch{}return o(n.users,[]).find(e=>e.email===email)||null}function Be(){const e=qe()
-;t(67).classList.toggle("hidden",!!e),t(68).classList.toggle("hidden",!e),t(69).textContent=e?"My Profile":"Profile",
-e&&(t(70).textContent="Signed in locally as "+e.email,t(71).value=e.name,t(72).textContent="OKU demo status: "+({verified_demo:"Verified (Demo) — not official",
-pending:"Pending",unable:"Unable to Verify",not_requested:"Not requested"}[e.verificationStatus]||"Not requested"))}function profile(){Be(),go("profile")}
-function saveProfile(){const e=qe();e&&(i(n.users,o(n.users,[]).map(n=>n.email===e.email?{...n,name:t(71).value.trim()||n.name}:n)),Be())}
-function verification(status){const e=qe();e&&(i(n.users,o(n.users,[]).map(t=>t.email===e.email?{...t,verificationStatus:status,
-verificationRequestedAt:"not_requested"===status?null:(new Date).toISOString()}:t)),Be())}function logout(){localStorage.removeItem(n.user),Be()}function Fe(){
-window.L?(map=L.map("map").setView([3.122,101.653],15),L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,
-attribution:"© OpenStreetMap contributors"}).addTo(map),p=L.layerGroup().addTo(map),h=L.layerGroup().addTo(map),map.on("click",e=>{const n=m||"destination"
-;m=null,"start"===n&&S++,t(n).value=e.latlng.lat.toFixed(6)+", "+e.latlng.lng.toFixed(6),H(n,{lat:e.latlng.lat,lon:e.latlng.lng,name:"Point selected on map",
-source:"Map selection"},!1)})):t(4).textContent="Map library unavailable. Check internet access."
-;for(const e of["start","destination"])t(e).addEventListener("input",()=>{K(),W(e),selection[e]=null,t(e+"Matches").replaceChildren(),
-t(e+"Selected").textContent="Search and select a matching location.","start"===e&&S++,Y()}),t(e).addEventListener("keydown",t=>{
-"Enter"===t.key&&(t.preventDefault(),searchPlace(e))});for(const e of["routePreference","avoidSteps","avoidReports","allowGeneral"])t(e).onchange=K
-;if("speechSynthesis"in window){const e=()=>{const e=t(27).value;t(27).replaceChildren();const option=r("option","Default device voice");option.value="",
-t(27).append(option),speechSynthesis.getVoices().forEach((e,n)=>{const o=r("option",e.name+" ("+e.lang+")");o.value=n,t(27).append(o)}),
-[...t(27).options].some(t=>t.value===e)&&(t(27).value=e)};e(),speechSynthesis.onvoiceschanged=e}Y(),Be();let mode=null;try{mode=localStorage.getItem(n.mode)
-}catch{}["accessible","public"].includes(mode)&&(document.body.classList.toggle("accessible","accessible"===mode),go("home")),refreshReports().catch(()=>{
-t(21).textContent="Reports could not load. No completeness or clearance is established."})}t(65).onsubmit=e=>{e.preventDefault();const o=q[B];if(!o)return
-;const status=t(60).value,r=t(61).value.trim(),notes=t(62).value.trim(),evidence=t(63).value.trim()
-;if(!new Set([o.status,Ie[o.status],"submitted"!==o.status?"under_review":o.status]).has(status))return
-;if("action_assigned"===status&&!r)return void(t(66).textContent="Enter a responsible team.")
-;if(["reported_resolved","verified_resolved"].includes(status)&&!notes)return void(t(66).textContent="Enter resolution notes.")
-;if("verified_resolved"===status&&!evidence)return void(t(66).textContent="Record inspection evidence.");const s=o;q[B]={...o,status:status,assignee:r,
-notes:notes,evidence:evidence,history:[...o.history||[],{at:(new Date).toISOString(),status:status,assignee:r,notes:notes,evidence:evidence}]};try{
-i(n.management,q)}catch{return q[B]=s,void(t(66).textContent="Could not save. Browser storage may be full.")}renderDashboard(),Ge(B),
-t(66).textContent="Demo review saved locally. Live cloud hazards were not changed."},t(73).onsubmit=e=>{e.preventDefault()
-;const email=t(74).value.trim().toLowerCase(),i=t(75).value;o(n.users,[]).find(e=>e.email===email&&e.demoPassword===i)?(localStorage.setItem(n.user,email),
-t(73).reset(),Be()):t(76).textContent="Demo login failed."},t(77).onsubmit=e=>{e.preventDefault();const r=o(n.users,[]),email=t(78).value.trim().toLowerCase()
-;r.some(e=>e.email===email)?t(76).textContent="This demo email is already registered.":(r.push({name:t(79).value.trim(),email:email,demoPassword:t(80).value,
-verificationStatus:"not_requested"}),i(n.users,r),t(77).reset(),t(76).textContent="Demo account created. Log in above.")},
-window.addEventListener("pagehide",()=>{stopAllVoice(),V(),S++;for(const e of["start","destination"])W(e)}),Fe();
+window.addEventListener("error",function(e){const t=document.getElementById("runtimeError");t&&(t.style.display="block",t.textContent="BlindPath JavaScript error: "+(e.message||"Unknown error")+". Open the browser Console for details.")}),window.addEventListener("unhandledrejection",function(e){const t=document.getElementById("runtimeError");t&&(t.style.display="block",t.textContent="BlindPath async error: "+(e.reason?.message||String(e.reason||"Unknown error"))+". Open the browser Console for details.")});
+const e="blindpath_demo_users_v1",t="blindpath_demo_current_user_v1",n="blindpath_accessibility_reports_v1",o=e=>document.getElementById(e);
+let a="en",i=localStorage.getItem(t)||"",r="",s=null,l=null,c=null,d=null,u=null,p=null,m=[];
+const h=window.supabase?window.supabase.createClient("https://tdlngsxtcyfnlbzdkmlm.supabase.co","sb_publishable_7-BmS0Azcvescq78tsvJ6g_Uq5k-hk2"):null,g={en:{tagline:"Accessible journeys. More inclusive townships.",homeTitle:"How can BlindPath help you?",homeIntro:"Choose one action to get started. BlindPath is designed with accessibility in mind.",nav:"Start Navigation",report:"Report an Issue",settings:"Voice & Settings",community:"Community"},ms:{tagline:"Perjalanan yang mudah diakses untuk bandar yang lebih inklusif.",homeTitle:"Bagaimana BlindPath boleh membantu anda?",homeIntro:"Pilih satu fungsi untuk bermula. BlindPath direka dengan mengambil kira aksesibiliti.",nav:"Mula Navigasi",report:"Laporkan Masalah",settings:"Suara & Tetapan",community:"Komuniti"},zh:{tagline:"让出行更方便，让城镇更具包容性。",homeTitle:"BlindPath 可以怎样帮助你？",homeIntro:"选择一个功能开始。BlindPath 的设计注重无障碍体验。",nav:"开始导航",report:"报告问题",settings:"语音与设置",community:"社区"}};
+function applyLanguage(){a=o("language").value,document.documentElement.lang="zh"===a?"zh-CN":a;const e=g[a];o("tagline").textContent=e.tagline,o("homeTitle").textContent=e.homeTitle,o("homeIntro").textContent=e.homeIntro,o("navCardTitle").textContent=e.nav,o("reportCardTitle").textContent=e.report,o("settingsCardTitle").textContent=e.settings,o("communityCardTitle").textContent=e.community,o("voiceStatus").textContent="zh"===a?"已选择中文。":"ms"===a?"Bahasa Melayu dipilih.":"English selected.",we()}
+function goTo(e){document.querySelectorAll(".screen").forEach(e=>e.classList.remove("active")),"report"!==e&&cancelReportReview(!1);const t=o("screen-"+e);if(!t)return;t.classList.add("active");const n=t.querySelector("h1");n&&(n.setAttribute("tabindex","-1"),n.focus({preventScroll:!0})),_e(),"navigation"===e&&s&&setTimeout(()=>{s.invalidateSize(),ue()},150),"community"===e&&refreshReports(),"myreports"===e&&renderMyReports(),"dashboard"===e&&renderDashboard(),"profile"===e&&w(),window.scrollTo({top:0,behavior:"smooth"})}
+function openAccount(){b()?(w(),goTo("profile")):goTo("auth")}
+function f(){try{return JSON.parse(localStorage.getItem(e)||"[]")}catch{return[]}}
+function v(t){localStorage.setItem(e,JSON.stringify(t))}
+function b(){return i&&f().find(e=>e.email===i)||null}
+function y(){o("accountButton").textContent=b()?"My Profile":"Login"}
+function saveProfile(){const e=b();if(!e)return void goTo("auth");const t=f(),n=t.findIndex(t=>t.email===e.email);n<0||(t[n].name=o("profileName").value.trim()||e.name,t[n].accessibilityPreference=o("accessibilityPreference").value,v(t),w(),o("profileSummary").textContent="Profile saved in this browser.")}
+function logout(){i="",localStorage.removeItem(t),y(),goTo("home")}
+function w(){const e=b();if(!e)return o("profileSummary").textContent="Please log in or register to view your profile.",void o("profileContent").classList.add("hidden");o("profileContent").classList.remove("hidden"),o("profileName").value=e.name||"",o("profileEmail").value=e.email,o("accessibilityPreference").value=e.accessibilityPreference||"Prefer not to say";const t=e.verificationStatus||"not_requested",n=o("verificationBadge"),a=o("verificationExplanation");n.className="pill",o("requestVerificationButton").disabled=!1,"pending"===t?(n.textContent="Pending",n.classList.add("pending"),a.textContent="Your request is pending. In a real system, an authorised service or reviewer would need to review it."):"verified_demo"===t?(n.textContent="Verified (Demo)",n.classList.add("verified"),a.textContent="Simulated approval only. Your actual OKU status has not been verified by JKM or another government service.",o("requestVerificationButton").disabled=!0):"unable"===t?(n.textContent="Unable to Verify",n.classList.add("rejected"),a.textContent="The simulated review could not verify the request. A real system should explain next steps and provide a way to request review."):(n.textContent="Not requested",a.textContent="No verification request has been submitted. You can still use BlindPath accessibility features."),o("profileSummary").textContent="Signed in as "+e.name+"."}
+function requestVerification(){const e=b();if(!e)return void goTo("auth");if("verified_demo"===e.verificationStatus)return void(o("demoReviewerStatus").textContent="This account is already marked Verified (Demo).");const t=f(),n=t.findIndex(t=>t.email===e.email);n<0||(t[n].verificationStatus="pending",t[n].verificationRequestedAt=(new Date).toISOString(),v(t),w(),o("demoReviewerStatus").textContent="Demo request submitted. Status is now Pending.",xe("zh"===a?"已提交示范验证申请。状态为待处理。":"ms"===a?"Permohonan demo dihantar. Status kini menunggu.":"Demo verification request submitted. Status is pending."))}
+function cancelVerification(){const e=b();if(!e)return;const t=f(),n=t.findIndex(t=>t.email===e.email);n<0||(t[n].verificationStatus="not_requested",t[n].verificationRequestedAt=null,v(t),w(),o("demoReviewerStatus").textContent="The demo request has been cancelled.")}
+function setDemoVerification(e){const t=b();if(!t)return void(o("demoReviewerStatus").textContent="Please log in first to demonstrate the verification workflow.");if(!["pending","verified_demo","unable"].includes(e))return;const n=f(),a=n.findIndex(e=>e.email===t.email);if(a<0)return;n[a].verificationStatus=e,v(n),w();const i={pending:"Demo status reset to Pending.",verified_demo:"Simulated approval complete. This is not official verification.",unable:"Simulated review result: Unable to Verify."};o("demoReviewerStatus").textContent=i[e],xe(i[e])}
+o("registerForm").addEventListener("submit",e=>{e.preventDefault();const t=o("registerName").value.trim(),n=o("registerEmail").value.trim().toLowerCase(),a=o("registerPassword").value;if(!t||!n||a.length<4)return void(o("registerStatus").textContent="Please complete all fields.");const i=f();i.some(e=>e.email===n)?o("registerStatus").textContent="An account with this email already exists in this browser. Please log in.":(i.push({name:t,email:n,demoPassword:a,accessibilityPreference:"Prefer not to say",verificationStatus:"not_requested",verificationRequestedAt:null}),v(i),o("registerForm").reset(),o("authStatus").textContent="Registration successful. Please log in.",o("loginEmail").value=n,o("loginPassword").value="",y(),goTo("auth"))});
+o("loginForm").addEventListener("submit",e=>{e.preventDefault();const n=o("loginEmail").value.trim().toLowerCase(),a=o("loginPassword").value;f().find(e=>e.email===n&&e.demoPassword===a)?(i=n,localStorage.setItem(t,n),o("loginForm").reset(),y(),w(),goTo("profile")):o("authStatus").textContent="Login failed. Please check your email and password."});
+const S=[{id:"kk1",name:"Tuanku Abdul Rahman",aliases:["tunku abdul rahman","first college"]},{id:"kk2",name:"Tuanku Bahiyah",aliases:["tunku bahiyah","second college"]},{id:"kk3",name:"Tuanku Kurshiah",aliases:["tunku kurshiah","third college"]},{id:"kk4",name:"Bestari",aliases:["fourth college"]},{id:"kk5",name:"Dayasari",aliases:["daya sari","fifth college"]},{id:"kk6",name:"Ibnu Sina",aliases:["sixth college"]},{id:"kk7",name:"Za'ba",aliases:["zaba","seventh college"]},{id:"kk8",name:"Kinabalu",aliases:["eighth college"]},{id:"kk9",name:"Tun Syed Zahiruddin",aliases:["ninth college"]},{id:"kk10",name:"Tun Ahmad Zaidi",aliases:["tenth college"]},{id:"kk11",name:"Ungku Aziz",aliases:["eleventh college"]},{id:"kk12",name:"Raja Dr. Nazrin Shah",aliases:["raja dr nazrin shah","twelfth college"]}];
+let C=Promise.resolve(),x=0;
+function _(e){return e.toLowerCase().replace(/[^a-z0-9]/g,"")}
+function k(e){return e.id.toUpperCase()+" — Kolej Kediaman "+e.name}
+function D(){stopGuidance(!1),_e(),M=[],o("voiceNavigation").classList.add("hidden"),o("routeResult").classList.add("hidden"),o("routeScore").classList.add("hidden"),o("rideAssist").classList.add("hidden"),V=[],o("routeObstacles").replaceChildren(),s&&l&&(s.removeLayer(l),l=null),K++,o("routeButton").disabled=!1}
+function E(e){const t=C.then(async()=>{await new Promise(e=>setTimeout(e,Math.max(0,1100-(Date.now()-x)))),x=Date.now();const t=await fetch("https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&q="+encodeURIComponent(e),{headers:{"Accept-Language":a},signal:AbortSignal.timeout(12e3)});if(!t.ok)throw new Error("Place search is unavailable. Tap the destination on the map instead.");return t.json()});return C=t.catch(()=>{}),t}
+async function O(e){const t=ae(e);if(t)return{lat:t.lat,lon:t.lng,name:e};if(/^\s*-?\d+(?:\.\d+)?\s*,/.test(e))throw new Error("Invalid coordinates. Use latitude, longitude.");const n=function(e){const t=_(e);return S.find(e=>{const n=e.id.slice(2);return[e.id,k(e),e.name,"KK "+n,"Kolej Kediaman "+n,"Kolej Kediaman "+e.name,"Kolej Kediaman "+e.name+" Universiti Malaya",...e.aliases].some(e=>_(e)===t)})}(e);if(n){const e=function(){try{return JSON.parse(localStorage.getItem("blindpath_um_entrances_v1")||"{}")}catch{return{}}}()[n.id];if(e&&ae(e.lat+", "+e.lng))return{lat:e.lat,lon:e.lng,name:k(n)};for(const e of["Kolej Kediaman "+n.name+", Universiti Malaya, Kuala Lumpur",n.name+" residential college, University of Malaya"]){const t=(await E(e)).find(e=>Number(e.lat)>=3.09&&Number(e.lat)<=3.16&&Number(e.lon)>=101.63&&Number(e.lon)<=101.69);if(t)return{lat:Number(t.lat),lon:Number(t.lon),name:t.display_name}}throw new Error(k(n)+" was not found. Tap its entrance on the map to set your destination.")}const o=await E(e);if(!o.length)throw new Error("Place not found. Try its full name and city, choose a map point, or use coordinates.");return{lat:Number(o[0].lat),lon:Number(o[0].lon),name:o[0].display_name}}
+async function findRoute(){if(!s)return void(o("routeStatus").textContent="The map is not available.");const e=o("start").value.trim(),t=o("destination").value.trim(),n=o("mode").value,a=Number(o("rideThreshold").value)||5;if(!e||!t)return void(o("routeStatus").textContent="Please enter both a starting point and a destination.");stopGuidance(!1),M=[],o("voiceNavigation").classList.add("hidden");const i=++K;o("routeButton").disabled=!0,V=[],o("routeObstacles").replaceChildren(),o("routeStatus").textContent="Finding your route...",o("routeResult").classList.add("hidden"),o("routeScore").classList.add("hidden"),o("rideAssist").classList.add("hidden");try{const r=await O(e),u=await O(t),p=("foot"===n?"https://routing.openstreetmap.de/routed-foot/route/v1/driving/":"cycling"===n?"https://routing.openstreetmap.de/routed-bike/route/v1/driving/":"https://router.project-osrm.org/route/v1/driving/")+r.lon+","+r.lat+";"+u.lon+","+u.lat+"?overview=full&geometries=geojson&steps=true",m=await fetch(p);if(!m.ok)throw new Error("Routing service unavailable.");const h=await m.json();if("Ok"!==h.code||!h.routes||!h.routes.length)throw new Error("No route was returned.");if(i!==K)return;const g=h.routes[0];V=g.geometry.coordinates,function(e){stopGuidance(!1),M=(e.legs||[]).flatMap(e=>e.steps||[]).filter(e=>e.maneuver&&Array.isArray(e.maneuver.location)&&2===e.maneuver.location.length&&e.maneuver.location.every(Number.isFinite)),R=e.geometry.coordinates,N=0,I=-1,o("voiceNavigation").classList.remove("hidden"),o("startGuidance").disabled=!M.length,o("directionList").replaceChildren(),M.forEach(e=>{const t=document.createElement("li");t.textContent=B(e)+(e.distance>0?" Continue for "+Math.round(e.distance)+" metres.":""),o("directionList").appendChild(t)}),o("guidanceStatus").textContent=M.length?"Directions ready. Start voice navigation when you are ready.":"This route has no turn-by-turn directions."}(g);const f=g.distance/1e3,v=Math.round(g.duration/60);l&&s.removeLayer(l),c&&s.removeLayer(c),d&&s.removeLayer(d),l=L.geoJSON(g.geometry,{style:{color:"#1769aa",weight:6,opacity:.85}}).addTo(s),c=L.marker([r.lat,r.lon]).addTo(s).bindPopup("Start: "+e),d=L.marker([u.lat,u.lon]).addTo(s).bindPopup("Destination: "+t),s.fitBounds(l.getBounds(),{padding:[24,24]}),o("routeStatus").textContent="Route found.";const b=o("routeResult");b.classList.remove("hidden"),b.replaceChildren();const y=document.createElement("strong");y.textContent="Route found",b.appendChild(y),b.appendChild(document.createElement("br")),b.appendChild(document.createTextNode("Start matched: "+r.name)),b.appendChild(document.createElement("br")),b.appendChild(document.createTextNode("Destination matched: "+u.name)),b.appendChild(document.createElement("br")),b.appendChild(document.createTextNode("Distance: "+f.toFixed(2)+" km")),b.appendChild(document.createElement("br")),b.appendChild(document.createTextNode("Estimated time: "+v+" minutes")),b.appendChild(document.createElement("br")),b.appendChild(document.createTextNode("foot"===n?"Walking route estimate.":"cycling"===n?"Cycling route estimate.":"Driving route estimate.")),b.appendChild(document.createElement("br"));const w="foot"===n?"walking":"cycling"===n?"bicycling":"driving",S="https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(r.lat+","+r.lon)+"&destination="+encodeURIComponent(u.lat+","+u.lon)+"&travelmode="+w,C=document.createElement("a");if(C.href=S,C.target="_blank",C.rel="noopener noreferrer",C.textContent="Open route in Google Maps",b.appendChild(C),pe(),"foot"===n?await j(g.geometry.coordinates):o("routeScore").classList.add("hidden"),i!==K)return;if(f>a){o("rideAssist").classList.remove("hidden"),o("rideAssist").replaceChildren();const e=document.createElement("strong");e.textContent="Smart Ride Assist",o("rideAssist").appendChild(e),o("rideAssist").appendChild(document.createElement("br")),o("rideAssist").appendChild(document.createTextNode("This route exceeds your selected threshold. Consider another transport option if needed.")),o("rideAssist").appendChild(document.createElement("br"));const t=document.createElement("a");t.href="https://www.grab.com/my/",t.target="_blank",t.rel="noopener noreferrer",t.textContent="Open Grab Malaysia",o("rideAssist").appendChild(t),xe("This route is "+f.toFixed(1)+" kilometres, which exceeds your selected distance threshold. You can consider another transport option.")}else xe("Route found. The estimated distance is "+f.toFixed(1)+" kilometres and the estimated time is "+v+" minutes.")}catch(e){i===K&&(o("routeStatus").textContent="Could not find a route. "+e.message)}finally{i===K&&(o("routeButton").disabled=!1)}}
+function useMyLocation(){navigator.geolocation?(o("routeStatus").textContent="Requesting location permission...",navigator.geolocation.getCurrentPosition(e=>{const t=e.coords.latitude,n=e.coords.longitude;D(),o("start").value=t.toFixed(6)+", "+n.toFixed(6),o("routeStatus").textContent="Your current location was added.",s&&(s.setView([t,n],16),c&&s.removeLayer(c),c=L.marker([t,n]).addTo(s).bindPopup("Your location"))},()=>{o("routeStatus").textContent="Could not get your location. Check your device permission."},{enableHighAccuracy:!0,timeout:1e4})):o("routeStatus").textContent="Location is not supported by this browser."}
+let M=[],R=[],N=0,P=null,T=0,A="",I=-1;
+function B(e){const t=e.maneuver,n={left:"turn left",right:"turn right","slight left":"bear left","slight right":"bear right","sharp left":"turn sharply left","sharp right":"turn sharply right",straight:"continue straight",uturn:"make a U-turn"}[t.modifier]||"continue",o=e.name?" onto "+e.name:"";if("arrive"===t.type)return"You are near your destination. Check your surroundings to locate the entrance.";if("depart"===t.type){const n=["north","northeast","east","southeast","south","southwest","west","northwest"];return"Start"+(Number.isFinite(t.bearing_after)?" heading "+n[Math.round(t.bearing_after/45)%8]:"")+(e.name?" on "+e.name:" along the route")+"."}return["roundabout","rotary","exit roundabout","exit rotary"].includes(t.type)?"At the roundabout, "+(t.exit?"take exit "+t.exit:"follow the route")+o+".":"merge"===t.type?"Merge and "+n+o+".":"fork"===t.type?"At the fork, "+n+o+".":n.charAt(0).toUpperCase()+n.slice(1)+o+"."}
+function F(e){o("guidanceStatus").textContent=e,xe(e,"en-MY")}
+function repeatDirection(){M.length&&F(A||B(M[Math.min(N,M.length-1)]))}
+function stopGuidance(e=!0){T++,null!==P&&navigator.geolocation.clearWatch(P),P=null,A="",o("startGuidance").disabled=!M.length,o("stopGuidance").disabled=!0,e&&(_e(),o("guidanceStatus").textContent="Voice navigation stopped. Location tracking is off.")}
+function startGuidance(){if(!M.length)return;if(stopGuidance(!1),!navigator.geolocation||!window.isSecureContext)return void F("Location navigation requires location support and a secure HTTPS connection or localhost.");N=0,I=-1,o("startGuidance").disabled=!0,o("stopGuidance").disabled=!1,F("Requesting your location. Guidance will begin near the route start. Keep this page open.");const e=T;P=navigator.geolocation.watchPosition(t=>{e===T&&function(e){const{latitude:t,longitude:n,accuracy:o}=e.coords;let a="";if(!Number.isFinite(t)||!Number.isFinite(n)||!Number.isFinite(o)||o>30||Date.now()-e.timestamp>15e3?a="Location accuracy is too low. Guidance is paused until a reliable GPS position is available.":U(t,n,R)>45&&(a="You appear to be away from the planned route. Guidance is paused. Stop in a suitable place and find a new route from your current location."),a)return A!==a&&F(a),void(A=a);const i=!!A;A="";const r=M[N];if(!r)return;const s=U(t,n,[r.maneuver.location]);if(s<=20)F(B(r)+(r.distance>0?" Continue for "+Math.round(r.distance)+" metres.":"")),N++,N===M.length&&stopGuidance(!1);else if(0===N){const e="Move to the route starting point, approximately "+Math.round(s)+" metres away. Guidance will begin there.";(0!==I||i)&&F(e),I=0}else s<=60&&(I!==N||i)?(F("In approximately "+Math.round(s)+" metres: "+B(r)),I=N):i&&F("GPS guidance resumed. Next direction: "+B(r))}(t)},t=>{e===T&&(stopGuidance(!1),F(1===t.code?"Location permission was denied. Allow location access and start navigation again.":"Location is unavailable. Check your GPS signal and start navigation again."))},{enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}
+function U(e,t,n){if(!Array.isArray(n)||0===n.length)return 1/0;const o=Math.cos(e*Math.PI/180),a=111320*t*o,i=110540*e;let r=1/0;if(1===n.length){const e=a-111320*n[0][0]*o,t=i-110540*n[0][1];return Math.hypot(e,t)}for(let e=1;e<n.length;e++){const t=111320*n[e-1][0]*o,s=110540*n[e-1][1],l=111320*n[e][0]*o-t,c=110540*n[e][1]-s,d=l*l+c*c,u=0===d?0:Math.max(0,Math.min(1,((a-t)*l+(i-s)*c)/d)),p=a-(t+u*l),m=i-(s+u*c);if(r=Math.min(r,Math.hypot(p,m)),r<=2)return r}return r}
+async function j(e){o("routeScore").classList.remove("hidden"),o("routeScoreLabel").textContent="Checking reports…",o("routeScoreNumber").textContent="—/100",o("routeScoreSummary").textContent="Checking active community reports within 50 metres of the walking route.",o("routeScoreDetails").replaceChildren();const t=await le(),n=[];for(const o of t){if(null==o.lat||null==(o.lng??o.lon))continue;const t=Number(o.lat),a=Number(o.lng??o.lon);if(!Number.isFinite(t)||!Number.isFinite(a)||t<-90||t>90||a<-180||a>180)continue;const i=U(t,a,e);i<=50&&n.push({report:o,distance:i})}n.sort((e,t)=>e.distance-t.distance);let a=0;n.forEach(({report:e,distance:t})=>{const n=t<=15?1:t<=30?.7:.4;a+=function(e){const t=String(e||"").toLowerCase();return t.includes("blocked")||t.includes("blocking")?25:t.includes("construction")?20:t.includes("damaged")?18:t.includes("missing")?20:t.includes("crossing")?15:8}(e.type)*n});const i=Math.max(0,Math.min(100,Math.round(100-a))),r=i>=80?"Fewer reported hazards":i>=60?"Some reported hazards":"More reported hazards";o("routeScoreLabel").textContent=r,o("routeScoreNumber").textContent=i+"/100",o("routeScoreFill").style.width=i+"%",o("routeScoreFill").classList.toggle("moderate",i>=60&&i<80),o("routeScoreFill").classList.toggle("high",i<60),o("routeScoreSummary").textContent=0===n.length?"No active, geolocated community reports were found within 50 metres of this route. This is not evidence that the route is clear.":n.length+" active report"+(1===n.length?" was":"s were")+" found within 50 metres of the route. The score is reduced according to report type and approximate proximity.";const s=document.createElement("li");if(s.textContent="Data confidence: low. This prototype has no verified tactile-paving, curb-ramp, crossing-signal or sidewalk-condition dataset.",o("routeScoreDetails").appendChild(s),n.length){if(n.slice(0,5).forEach(({report:e,distance:t})=>{const n=document.createElement("li");n.textContent=(e.type||"Accessibility issue")+" — about "+Math.round(t)+" m from route"+(e.location?" ("+e.location+")":""),o("routeScoreDetails").appendChild(n)}),n.length>5){const e=document.createElement("li");e.textContent="And "+(n.length-5)+" more nearby report"+(n.length-5==1?"":"s")+".",o("routeScoreDetails").appendChild(e)}}else{const e=document.createElement("li");e.textContent="No nearby geolocated reports matched; reports without coordinates cannot be included.",o("routeScoreDetails").appendChild(e)}}
+window.addEventListener("pagehide",()=>{stopGuidance(!1),Ce()});
+const G=window.supabase?window.supabase.createClient("https://ywbqchhcpcygkutcvsrp.supabase.co","sb_publishable_Tjr7GVrlV79vEOFSMuCMhQ_Obypbd0I"):null,q={blocked_vehicle:"Vehicle blocking tactile path",construction:"Construction or roadwork",damaged_tactile_path:"Damaged tactile paving",other_obstacle:"Other obstacle"},z={"image/jpeg":"jpg","image/png":"png","image/webp":"webp","video/mp4":"mp4","video/webm":"webm","video/quicktime":"mov"};
+let V=[],K=0,Y=null,J=null,H=null,W=0,Z=0;
+const $=new Map;
+let Q=null,X=0,ee=null;
+const te=new Map;
+let ne=0;
+function getReports(){try{return JSON.parse(localStorage.getItem(n)||"[]")}catch{return[]}}
+function saveReports(e){localStorage.setItem(n,JSON.stringify(e))}
+function oe(e){return null!=e.lat&&null!=e.lng&&null!==ae(e.lat+","+e.lng)}
+function ae(e){const t=String(e||"").match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);if(!t)return null;const n=Number(t[1]),o=Number(t[2]);return!Number.isFinite(n)||!Number.isFinite(o)||n<-90||n>90||o<-180||o>180?null:{lat:n,lng:o}}
+function ie(e,t,n){return new Promise((o,a)=>{const i=indexedDB.open("blindpath_media_v1",1);i.onupgradeneeded=()=>i.result.createObjectStore("files"),i.onerror=()=>a(i.error),i.onsuccess=()=>{const r=i.result,s=r.transaction("files","get"===e?"readonly":"readwrite"),l=s.objectStore("files"),c="put"===e?l.put(n,t):"delete"===e?l.delete(t):l.get(t);s.oncomplete=()=>{r.close(),o(c.result)},s.onerror=()=>{r.close(),a(s.error)},s.onabort=()=>{r.close(),a(s.error||new Error("Media storage failed."))}}})}
+function removeReportPhoto(){Y=null,p=null,o("reportPhoto").value="",o("photoPreview").removeAttribute("src"),o("videoPreview").pause(),o("videoPreview").removeAttribute("src"),o("videoPreview").load(),o("photoPreviewContainer").classList.add("hidden"),J&&URL.revokeObjectURL(J),J=null}
+async function re(e,t){const n=await async function(e){if(e.media_ref){if($.has(e.media_ref))return $.get(e.media_ref);try{const t=await ie("get",e.media_ref);if(!t)return null;const n=URL.createObjectURL(t);return $.set(e.media_ref,n),n}catch{return null}}const t=e.media_url||e.photo;return"string"==typeof t&&(/^https:\/\//i.test(t)||/^data:image\/(jpeg|png|webp);base64,/i.test(t))?t:null}(t);if(!n)return;const o="video"===t.media_type,a=document.createElement(o?"video":"img");a.className="report-photo",a.src=n,o?(a.controls=!0,a.playsInline=!0,a.preload="metadata"):(a.alt="Attachment: "+t.type,a.loading="lazy"),e.appendChild(a)}
+function addCurrentCoordinates(){navigator.geolocation?(o("gpsStatus").textContent="Requesting your location...",navigator.geolocation.getCurrentPosition(e=>{o("reportLocation").value=e.coords.latitude.toFixed(6)+", "+e.coords.longitude.toFixed(6),o("gpsStatus").textContent="Location added. GPS uncertainty approximately "+Math.round(e.coords.accuracy)+" metres. Check the location before submitting."},()=>{o("gpsStatus").textContent="Could not get location. Enter it manually; the map centre will not be used automatically."},{enableHighAccuracy:!0,timeout:1e4,maximumAge:0})):o("gpsStatus").textContent="Location is unavailable. Enter the report location instead."}
+function se(e){const t=[...o("issueType").options].map(e=>e.value).find(t=>String(e.description||"").startsWith(t+": "));return{id:"shared_"+e.id,raw_id:e.id,cloud_source:"shared",type:t||q[e.issue_type]||"Other accessibility issue",details:t?e.description.slice(t.length+2):e.description,lat:e.latitude,lng:e.longitude,location:e.latitude+", "+e.longitude,created_at:e.created_at,media_url:e.media_url,media_type:e.media_type}}
+async function le(e=!1){if(H)return H;if(!e&&W&&Date.now()-W<3e4)return m;H=(async()=>{const e=[],t=async(t,n)=>{if(!t)return e.push(n),[];try{let e=t.from(n).select("*");e="reports"===n?e.eq("is_solved",!1):e.eq("status","open");const{data:o,error:a}=await e.order("created_at",{ascending:!1}).limit(100).abortSignal(AbortSignal.timeout(12e3));if(a)throw a;return o||[]}catch{return e.push(n),[]}},[n,a]=await Promise.all([t(h,"reports"),t(G,"tactile_reports")]);return m=[...n.map(e=>({...e,cloud_source:"legacy",raw_id:e.id})),...a.map(se),...getReports().map(e=>({...e,cloud_source:"local"}))].filter(e=>!e.is_solved&&Number(e.solved_count||0)<2),function(e){for(const t of e){const e=Fe(t),n=Oe[e];Oe[e]={...n,key:e,id:String(t.id),source:t.cloud_source||"local",type:t.type||"Accessibility issue",location:t.location||"Location not provided",details:t.details||"",lat:t.lat,lng:t.lng,created_at:t.created_at||n?.created_at||null,observed_at:(new Date).toISOString(),status:n?.status||"submitted",assignee:n?.assignee||"",notes:n?.notes||"",evidence:n?.evidence||"",history:n?.history||[]}}try{Ue()}catch{o("dashboardStatus").textContent="The dashboard could not be saved. Browser storage may be full; export your review records before leaving."}}(m),W=Date.now(),o("reportSyncStatus").textContent=e.length?"Some cloud reports could not load. Showing available cloud and browser reports; this is not a complete hazard list.":"Showing both prototypes' cloud reports and this browser's reports. Community reports are unverified.",m})();try{return await H}finally{H=null}}
+async function refreshReports(){await le(!0),await we(),await ue(),pe(),renderDashboard(),renderMyReports(),V.length&&"foot"===o("mode").value&&await j(V)}
+function ce(){return L.divIcon({className:"",html:'<span class="hazard-marker" aria-label="Reported accessibility hazard">×</span>',iconSize:[32,32],iconAnchor:[16,16]})}
+function de(e){const t=document.createElement("div"),n=document.createElement("strong");n.textContent=e.type||"Accessibility issue";const o=document.createElement("p");o.textContent=e.details||"No additional description.";const a=document.createElement("p");a.className="muted",a.textContent="Unverified report · "+(e.created_at?new Date(e.created_at).toLocaleString():e.created||"Date unavailable");const i=document.createElement("p");i.textContent="Location: "+(e.location||"Not provided");const r=document.createElement("button");return r.className="secondary",r.textContent="shared"===e.cloud_source?"Mark as Cleared":"Confirm Solved ("+Number(e.solved_count||0)+"/2)",r.addEventListener("click",async t=>{t.stopPropagation(),r.disabled=!0;try{await async function(e){const t=m.find(t=>String(t.id)===String(e));if(t){if("shared"===t.cloud_source){if(!confirm("Mark this report as cleared for everyone? Only continue if you checked that the obstacle is gone."))return;try{const{data:e,error:n}=await G.from("tactile_reports").update({status:"resolved"}).eq("id",t.raw_id).select("id").abortSignal(AbortSignal.timeout(12e3));if(n||!e?.length)throw new Error("Update was not confirmed.")}catch{return void alert("Could not confirm the cloud update. The report has not been removed.")}}else{const n=JSON.parse(localStorage.getItem("blindpath_solved_votes_v1")||"[]");if(n.includes(String(e)))return void alert("You already confirmed this report on this browser.");const o=Number(t.solved_count||0)+1;if("legacy"===t.cloud_source)try{const{data:e,error:n}=await h.from("reports").update({solved_count:o,is_solved:o>=2}).eq("id",t.raw_id).select("id").abortSignal(AbortSignal.timeout(12e3));if(n||!e?.length)throw new Error("Update was not confirmed.")}catch{return void alert("Could not confirm the cloud update. Please try again.")}else saveReports(getReports().map(t=>String(t.id)===String(e)?{...t,solved_count:o,is_solved:o>=2}:t));n.push(String(e)),localStorage.setItem("blindpath_solved_votes_v1",JSON.stringify(n))}await refreshReports()}}(e.id)}finally{r.disabled=!1}}),t.append(n,o,a,i,r),t}
+async function ue(){if(!s||!window.L)return;const e=++Z,t=await le();if(e===Z){u||(u=L.layerGroup().addTo(s)),u.clearLayers();for(const e of t){if(!oe(e))continue;const t=de(e);re(t,e),L.marker([Number(e.lat),Number(e.lng)],{icon:ce()}).bindPopup(t).addTo(u)}}}
+function pe(){const e=o("routeObstacles");if(e.replaceChildren(),!V.length)return;const t=m.filter(e=>oe(e)&&U(Number(e.lat),Number(e.lng),V)<=50),n=document.createElement("h2");if(n.textContent="Reported obstacles near your route ("+t.length+")",e.appendChild(n),!t.length){const t=document.createElement("p");t.textContent="No matching reports found. This does not mean the route is clear.",e.appendChild(t)}for(const n of t){const t=de(n);t.className="report-item",e.appendChild(t)}}
+function me(e){return/vehicle/i.test(e)?"blocked_vehicle":/construction/i.test(e)?"construction":/damaged/i.test(e)?"damaged_tactile_path":"other_obstacle"}
+o("reportPhoto").addEventListener("change",e=>{const t=e.target.files?.[0];if(removeReportPhoto(),!t)return;if(t.size>20971520||!z[t.type])return void(o("gpsStatus").textContent="Choose JPG, PNG, WebP, MP4, WebM or MOV, maximum 20 MB. Video playback depends on your browser.");Y=t,J=URL.createObjectURL(t);const n=t.type.startsWith("video/");o("photoPreview").classList.toggle("hidden",n),o("videoPreview").classList.toggle("hidden",!n),o(n?"videoPreview":"photoPreview").src=J,o("photoPreviewContainer").classList.remove("hidden"),o("gpsStatus").textContent=t.name+" selected ("+(t.size/1048576).toFixed(2)+" MB)."});
+let pendingReport=null,he=0,reportSaving=!1,ge=null,fe=null,ve=null;
+function be(){const e=o("reportReviewMedia");e.querySelectorAll("video").forEach(e=>e.pause()),e.replaceChildren(),ge&&URL.revokeObjectURL(ge),ge=null}
+function cancelReportReview(e=!0){reportSaving||(he++,pendingReport=null,be(),o("reportReviewPanel").classList.add("hidden"),o("reportForm").classList.remove("hidden"),o("reviewReportButton").disabled=!1,o("confirmReportLocation").checked=!1,e&&(o("reportLocation").focus(),o("gpsStatus").textContent="Edit your report, then review it again. Nothing has been submitted."))}
+function ye(e){return e.type===o("issueType").value&&e.location===o("reportLocation").value.trim()&&e.details===o("reportDetails").value.trim().slice(0,500)&&e.file===Y}
+function readReportReview(){if(!pendingReport)return;const e=pendingReport;xe("Review your report. Issue: "+e.type+". Entered location: "+e.location+". "+(e.coords?"Matched location: "+e.matchedName+". Coordinates: "+e.coords.lat.toFixed(6)+", "+e.coords.lng.toFixed(6)+".":"Location not found. This can only be saved on this browser without a map marker or nearby alerts.")+" Description: "+(e.details||"None.")+" Attachment: "+(e.file?e.file.name:"None.")+" Check the location confirmation, then choose Confirm and Submit, or Edit Report.","en-MY")}
+async function we(){const e=o("reportList");if(!e)return;const t=await le();if(e.replaceChildren(),t.length)for(const n of t){const t=de(n);if(t.className="report-item","local"===n.cloud_source){const e=document.createElement("button");e.className="danger",e.textContent="Delete Local Report",e.addEventListener("click",()=>Se(n.id)),t.appendChild(e)}e.appendChild(t),re(t,n)}else e.textContent="No active reports found."}
+async function Se(e){const t=getReports().find(t=>String(t.id)===String(e))||Me().find(t=>String(t.id)===String(e));if(Ee(e),saveReports(getReports().filter(t=>String(t.id)!==String(e))),t?.media_ref){try{await ie("delete",t.media_ref)}catch{}const e=$.get(t.media_ref);e&&URL.revokeObjectURL(e),$.delete(t.media_ref)}await refreshReports()}
+async function clearReports(){if(!confirm("Delete this browser's reports and their local attachments? Cloud reports will remain."))return;const e=getReports();saveReports([]);for(const t of e)if(Ee(t.id),t.media_ref){try{await ie("delete",t.media_ref)}catch{}const e=$.get(t.media_ref);e&&URL.revokeObjectURL(e),$.delete(t.media_ref)}await refreshReports()}
+function stopAllVoice(){stopGuidance(),Ce(),o("nearbyStatus").textContent="Obstacle alerts are off."}
+function clearRoute(){D(),o("start").value="",o("destination").value="",s&&c&&s.removeLayer(c),s&&d&&s.removeLayer(d),c=null,d=null,o("routeStatus").textContent="Route cleared. Enter a start and destination."}
+function Ce(){X++,null!==Q&&navigator.geolocation.clearWatch(Q),Q=null,clearInterval(ee),ee=null,o("nearbyAlertButton").textContent="Enable Obstacle Alerts",o("nearbyAlertButton").setAttribute("aria-pressed","false")}
+function toggleNearbyAlerts(){if(null!==Q)return Ce(),void(o("nearbyStatus").textContent="Obstacle alerts are off.");if(!navigator.geolocation||!window.isSecureContext)return void(o("nearbyStatus").textContent="Allow location access on HTTPS or localhost to use alerts.");const e=++X;te.clear(),ne=0,o("nearbyAlertButton").textContent="Disable Obstacle Alerts",o("nearbyAlertButton").setAttribute("aria-pressed","true"),o("nearbyStatus").textContent="Requesting location for obstacle alerts...",refreshReports(),ee=setInterval(()=>{refreshReports()},6e4),Q=navigator.geolocation.watchPosition(t=>{e===X&&function(e){const{latitude:t,longitude:n,accuracy:a}=e.coords;if(!Number.isFinite(a)||a>30||Date.now()-e.timestamp>15e3||!ae(t+","+n))return void(o("nearbyStatus").textContent="GPS accuracy is too low for nearby alerts. Waiting for a reliable position.");const i=m.filter(oe).map(e=>({report:e,distance:U(t,n,[[Number(e.lng),Number(e.lat)]])})).filter(e=>e.distance<=50).sort((e,t)=>e.distance-t.distance);if(!i.length)return void(o("nearbyStatus").textContent="No loaded reports within 50 metres. This does not mean the path is clear.");const r=i[0];o("nearbyStatus").textContent="Reported nearby: "+r.report.type+", approximately "+Math.round(r.distance)+" metres away. Report not verified.";const s=i.find(e=>Date.now()-(te.get(String(e.report.id))||0)>12e4);!s||Date.now()-ne<15e3||"speechSynthesis"in window&&speechSynthesis.pending||(xe("Caution. "+s.report.type+" was reported approximately "+Math.round(s.distance)+" metres away. This report is unverified.","en-MY",!1),navigator.vibrate&&navigator.vibrate([100,80,100]),te.set(String(s.report.id),Date.now()),ne=Date.now())}(t)},()=>{e===X&&(Ce(),o("nearbyStatus").textContent="Location unavailable. Allow permission and enable alerts again.")},{enableHighAccuracy:!0,maximumAge:0,timeout:15e3})}
+function xe(e,t=null,n=!0){if(r=e,!("speechSynthesis"in window))return void(o("voiceStatus").textContent="Speech is not supported by this browser.");n&&speechSynthesis.cancel();const i=new SpeechSynthesisUtterance(e);i.lang=t||("zh"===a?"zh-CN":"ms"===a?"ms-MY":"en-MY"),i.rate=Number(o("speechSpeed").value)||1;const s=o("voiceSelect").value,l=speechSynthesis.getVoices();""!==s&&l[Number(s)]&&(i.voice=l[Number(s)]),i.onstart=()=>{o("voiceStatus").textContent="Speaking..."},i.onend=()=>{o("voiceStatus").textContent="Speech finished."},i.onerror=()=>{o("voiceStatus").textContent="Speech could not be played. Try another voice."},speechSynthesis.speak(i)}
+function speakIntro(){xe("zh"===a?"欢迎使用 BlindPath。你可以开始导航、报告盲道问题、调整语音设置，或查看社区报告。":"ms"===a?"Selamat datang ke BlindPath. Anda boleh mula navigasi, melaporkan masalah laluan sentuhan, mengubah tetapan suara atau melihat laporan komuniti.":"Welcome to BlindPath. You can start navigation, report a tactile path issue, change voice settings, or view community reports.")}
+function repeatSpeech(){xe(r||("zh"===a?"欢迎使用 BlindPath。":"ms"===a?"Selamat datang ke BlindPath.":"Welcome to BlindPath."))}
+function _e(){"speechSynthesis"in window&&speechSynthesis.cancel(),o("voiceStatus").textContent="Speech stopped."}
+o("reportForm").addEventListener("submit",async e=>{if(e.preventDefault(),reportSaving)return;const t=++he,n={id:"local_"+crypto.randomUUID(),type:o("issueType").value,location:o("reportLocation").value.trim(),details:o("reportDetails").value.trim().slice(0,500),file:Y};if(!n.location)return void(o("gpsStatus").textContent="Enter the location before reviewing.");if(n.file&&(n.file.size>20971520||!z[n.file.type]))return void(o("gpsStatus").textContent="Choose a supported attachment up to 20 MB.");o("reviewReportButton").disabled=!0,o("gpsStatus").textContent="Looking up the location for your review. Nothing is being submitted.";let a=null;try{a=await O(n.location)}catch{}if(t===he&&ye(n)){if(n.coords=a?{lat:a.lat,lng:a.lon}:null,n.matchedName=a?.name||"Location not found",pendingReport=n,o("reportReviewIssue").textContent=n.type,o("reportReviewEntered").textContent=n.location,o("reportReviewMatched").textContent=n.coords?n.matchedName:"Not found. This report can only be saved on this browser without a map marker or nearby alerts. Edit the location to try again.",o("reportReviewCoordinates").textContent=n.coords?n.coords.lat.toFixed(6)+", "+n.coords.lng.toFixed(6):"Unavailable",o("reportReviewDescription").textContent=n.details||"No additional description.",o("confirmLocationLabel").textContent=n.coords?"I checked that this is the intended report location.":"I understand this will be saved locally without a mapped location or nearby alerts.",o("confirmReportLocation").checked=!1,o("reportReviewStatus").textContent="Check the details below. Nothing has been submitted yet.",be(),n.file){const e=document.createElement("p");e.textContent="Attachment: "+n.file.name+" ("+(n.file.size/1048576).toFixed(2)+" MB).",o("reportReviewMedia").appendChild(e),ge=URL.createObjectURL(n.file);const t=n.file.type.startsWith("video/"),a=document.createElement(t?"video":"img");a.src=ge,a.className="report-photo",t?(a.controls=!0,a.playsInline=!0,a.preload="metadata"):a.alt="Attachment to be submitted with this report",o("reportReviewMedia").appendChild(a)}else o("reportReviewMedia").textContent="No attachment selected.";o("reportForm").classList.add("hidden"),o("reportReviewPanel").classList.remove("hidden"),o("reportReviewHeading").focus(),o("reportLocationMap").classList.toggle("hidden",!n.coords),n.coords&&window.L&&(fe||(fe=L.map("reportLocationMap"),L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(fe)),fe.setView([n.coords.lat,n.coords.lng],18),ve&&fe.removeLayer(ve),ve=L.marker([n.coords.lat,n.coords.lng]).addTo(fe),setTimeout(()=>fe.invalidateSize(),100))}});
+["input","change"].forEach(e=>o("reportForm").addEventListener(e,()=>{reportSaving||(pendingReport||o("reviewReportButton").disabled)&&cancelReportReview(!1)}));
+o("reportConfirmForm").addEventListener("submit",async e=>{if(e.preventDefault(),reportSaving||!pendingReport)return;if(!o("confirmReportLocation").checked)return void(o("reportReviewStatus").textContent="Confirm the location or the unmapped-location notice before submitting.");const t=pendingReport;if(!ye(t))return cancelReportReview(!1),void(o("gpsStatus").textContent="Your report changed. Review the updated details before submitting.");reportSaving=!0,o("confirmReportButton").disabled=!0,o("editReportButton").disabled=!0,o("reportReviewStatus").textContent="Saving the report you reviewed...";try{const e={id:t.id,type:t.type,location:t.location,details:t.details,author:b()?.name||"Anonymous",lat:t.coords?.lat??null,lng:t.coords?.lng??null,created_at:(new Date).toISOString(),solved_count:0,is_solved:!1,media_type:t.file?.type.startsWith("video/")?"video":"image"},n=(await async function(e,t){t&&(e.media_ref=e.id,await ie("put",e.media_ref,t));let n={...e,sharing_state:"local",remote_id:null,remote_status:null,local_saved_at:(new Date).toISOString()};try{const t=getReports().filter(t=>t.id!==e.id);t.unshift(e),saveReports(t)}catch(t){if(e.media_ref)try{await ie("delete",e.media_ref)}catch{}throw t}try{Le(n)}catch{}if(!G||!oe(e))return{shared:!1,receipt:n};sharingReports.add(e.id);try{const e=await Re(n,t,!1);return{shared:"shared"===e.sharing_state,receipt:e}}catch{return{shared:!1,receipt:getMyReportReceipts().find(t=>t.id===e.id)||n}}finally{sharingReports.delete(e.id)}}(e,t.file)).shared;pendingReport=null,he++,be(),o("reportReviewPanel").classList.add("hidden"),o("reportForm").classList.remove("hidden"),o("reportForm").reset(),removeReportPhoto(),o("gpsStatus").textContent=n?"Report shared. Attachments are public through the reporting backend.":"Report saved on this browser only. It was not confirmed as shared to the cloud.",t.coords||(o("gpsStatus").textContent+=" No location was matched, so this report has no map marker or nearby alerts."),xe(n?"Your report was shared.":"Your report was saved on this device."),o("screen-report").classList.contains("active")&&(o("gpsStatus").setAttribute("tabindex","-1"),o("gpsStatus").focus());try{await refreshReports()}catch{o("gpsStatus").textContent+=" The report list could not be refreshed."}}catch(e){o("reportReviewStatus").textContent="Report was not saved. "+e.message+". Your reviewed details are still available; edit or try again."}finally{reportSaving=!1,o("confirmReportButton").disabled=!1,o("editReportButton").disabled=!1,o("reviewReportButton").disabled=!1}});
+const ke="blindpath_submission_receipts_v1",sharingReports=new Set;
+function getMyReportReceipts(){try{return JSON.parse(localStorage.getItem(ke)||"[]")}catch{return[]}}
+function Le(e){const t=getMyReportReceipts(),n=t.findIndex(t=>t.id===e.id);n<0?t.unshift(e):t[n]={...t[n],...e},localStorage.setItem(ke,JSON.stringify(t))}
+function Ee(e){localStorage.setItem(ke,JSON.stringify(getMyReportReceipts().filter(t=>String(t.id)!==String(e))))}
+function Me(){const e=new Map(getMyReportReceipts().map(e=>[String(e.id),e]));for(const t of getReports())e.has(String(t.id))||e.set(String(t.id),{...t,sharing_state:"local",legacy_local:!0});return[...e.values()].sort((e,t)=>String(t.created_at||"").localeCompare(String(e.created_at||"")))}
+async function Re(e,t,n=!0){if(!G)throw new Error("Cloud sharing is unavailable. Your local copy is retained.");if(!oe(e))throw new Error("This report has no matched location. Create a new report with a confirmed location before sharing.");const o=e.type+": "+(e.details||"");let a=null;if(n){const{data:t,error:n}=await G.from("tactile_reports").select("id,status,media_url,media_type").eq("latitude",Number(e.lat)).eq("longitude",Number(e.lng)).eq("description",o).eq("created_at",e.created_at).limit(1).abortSignal(AbortSignal.timeout(12e3));if(n)throw new Error("Could not check for an existing cloud copy. Nothing new was uploaded; try again when cloud access works.");a=t?.[0]||null}if(!a){let n=e.uploaded_media_url||null;if(t&&!n){const o=e.upload_path||"reports/"+crypto.randomUUID()+"."+z[t.type];Le(e={...e,upload_path:o});const{error:a}=await G.storage.from("tactile-report-media").upload(o,t,{contentType:t.type,upsert:!1});if(a&&"409"!==String(a.statusCode)&&!/already exists|duplicate/i.test(a.message||""))throw new Error("Attachment upload could not be confirmed. Your local copy is retained.");n=G.storage.from("tactile-report-media").getPublicUrl(o).data.publicUrl,Le(e={...e,uploaded_media_url:n})}Le(e={...e,sharing_state:"unconfirmed"});const{data:i,error:r}=await G.from("tactile_reports").insert([{issue_type:me(e.type),description:o,latitude:Number(e.lat),longitude:Number(e.lng),created_at:e.created_at,status:"open",media_url:n,media_type:n?e.media_type:null}]).select("id,status,media_url,media_type").abortSignal(AbortSignal.timeout(12e3));if(r||!i?.length)throw new Error("Cloud submission was not confirmed. A local copy is retained; a retry will check for a matching cloud report first.");a=i[0]}const i={...e,sharing_state:"shared",remote_id:a.id,remote_status:a.status||"open",media_url:a.media_url||e.uploaded_media_url||null,media_type:a.media_type||e.media_type,shared_at:(new Date).toISOString(),last_error:null};return Le(i),saveReports(getReports().filter(t=>t.id!==e.id)),i}
+async function Ne(e){if(sharingReports.has(e))return;let t=Me().find(t=>String(t.id)===String(e));if(t&&"shared"!==t.sharing_state)if(t.legacy_local)o("myReportsStatus").textContent="This report came from an older version without a reliable sharing receipt. Review and submit a new report instead of retrying it automatically.";else{sharingReports.add(e),renderMyReports(),o("myReportsStatus").textContent="Checking for a matching cloud copy before sharing...";try{let e=null;if(t.media_ref&&(e=await ie("get",t.media_ref),!e))throw new Error("The local attachment is missing. Nothing was shared. Create a new report if needed.");await Re(t,e,!0),o("myReportsStatus").textContent="Sharing confirmed. The report remains in this browser's submission history.",await refreshReports()}catch(e){const n=getMyReportReceipts().find(e=>e.id===t.id)||t;try{Le({...n,last_error:e.message})}catch{}o("myReportsStatus").textContent=e.message}finally{sharingReports.delete(e),renderMyReports()}}}
+async function refreshMyReportStatuses(){if(!G)return void(o("myReportsStatus").textContent="Cloud status is unavailable. Your browser history is still visible.");o("refreshMyReportsButton").disabled=!0;let e=0,t=0;try{for(const n of getMyReportReceipts().filter(e=>"shared"===e.sharing_state&&null!=e.remote_id))try{const{data:t,error:o}=await G.from("tactile_reports").select("id,status").eq("id",n.remote_id).limit(1).abortSignal(AbortSignal.timeout(12e3));if(o||!t?.length)throw new Error("Report is not readable.");Le({...n,remote_status:t[0].status,status_checked_at:(new Date).toISOString(),status_unavailable:!1}),e++}catch{t++;try{Le({...n,status_unavailable:!0})}catch{}}o("myReportsStatus").textContent=e+" cloud status checks completed."+(t?" "+t+" could not be checked; the last known status is retained.":"")}finally{o("refreshMyReportsButton").disabled=!1,renderMyReports()}}
+function renderMyReports(){const e=Me(),t=o("myReportsFilter").value,n=e.filter(e=>!t||("shared"===t?"shared"===e.sharing_state:"shared"!==e.sharing_state));o("myReportsCount").textContent=n.length+" submission"+(1===n.length?"":"s")+" shown.";const a=o("myReportsList");if(a.replaceChildren(),n.length)for(const e of n){const t=document.createElement("article");t.className="report-item";const n=document.createElement("strong");n.textContent=e.type||"Accessibility issue";const o=document.createElement("p");o.textContent="shared"===e.sharing_state?"Shared successfully":"unconfirmed"===e.sharing_state?"Cloud sharing unconfirmed — local copy retained":"Saved on this device";const i=document.createElement("p");i.className="muted",i.textContent=e.created_at?new Date(e.created_at).toLocaleString():e.created||"Date unavailable";const r=document.createElement("p");r.textContent="Location: "+(e.location||"Not provided");const s=document.createElement("p");if(s.textContent=e.details||"No additional description.",t.append(n,o,i,r,s),"shared"===e.sharing_state){const n=document.createElement("p");n.textContent="Last known cloud report status: "+("resolved"===e.remote_status?"Marked resolved":"open"===e.remote_status?"Open":e.remote_status||"Not checked")+(e.status_unavailable?". Latest check unavailable.":"")+" This is not an authenticated management review.",t.appendChild(n)}else if(oe(e))if(e.legacy_local){const e=document.createElement("p");e.textContent="Older local report. Sharing history is unknown; submit a new reviewed report if needed.",t.appendChild(e)}else{const n=document.createElement("button");n.className="secondary",n.textContent=sharingReports.has(e.id)?"Sharing...":"Retry Sharing",n.disabled=sharingReports.has(e.id),n.addEventListener("click",()=>Ne(e.id)),t.appendChild(n)}else{const e=document.createElement("p");e.textContent="No mapped location. Create a new report with a confirmed location to share it.",t.appendChild(e)}if(e.last_error){const n=document.createElement("p");n.className="muted",n.textContent="Last sharing attempt: "+e.last_error,t.appendChild(n)}if("shared"!==e.sharing_state){const n=document.createElement("button");n.className="danger",n.textContent="Delete Local Report",n.disabled=sharingReports.has(e.id),n.addEventListener("click",async()=>{confirm("Delete this local report and attachment? Any cloud copy will remain.")&&await Se(e.id)}),t.appendChild(n)}a.appendChild(t),re(t,e)}else a.textContent="No matching submissions on this browser yet."}
+const Pe="blindpath_management_demo_v1",Te={submitted:"Submitted",under_review:"Under Review",action_assigned:"Action Assigned",reported_resolved:"Reported Resolved",verified_resolved:"Verified Resolved"},Ae={submitted:"under_review",under_review:"action_assigned",action_assigned:"reported_resolved",reported_resolved:"verified_resolved"};
+let Oe={},De=null,Ie=null,Be=null;
+function Fe(e){return(e.cloud_source||"local")+":"+String(e.id)}
+function Ue(){localStorage.setItem(Pe,JSON.stringify(Oe))}
+function je(){return Object.values(Oe).filter(e=>e&&Te[e.status])}
+function Ge(){const e=o("dashboardFilter").value,t=o("dashboardTypeFilter").value,n=o("dashboardSearch").value.trim().toLowerCase();return je().filter(o=>(!e||o.status===e)&&(!t||o.type===t)&&(!n||[o.type,o.location,o.details,o.assignee].join(" ").toLowerCase().includes(n))).sort((e,t)=>String(t.created_at||"").localeCompare(String(e.created_at||"")))}
+function qe(e){const t=Date.parse(e.created_at);return Number.isFinite(t)?Math.max(0,Math.floor((Date.now()-t)/864e5))+" days since report":"Report age unavailable"}
+function renderDashboard(){const e=je();o("dashTotal").textContent=e.length,o("dashOpen").textContent=e.filter(e=>!["reported_resolved","verified_resolved"].includes(e.status)).length,o("dashReview").textContent=e.filter(e=>"reported_resolved"===e.status).length,o("dashVerified").textContent=e.filter(e=>"verified_resolved"===e.status).length;const t=o("dashboardTypeFilter").value;o("dashboardTypeFilter").replaceChildren();const n=document.createElement("option");n.value="",n.textContent="All issue types",o("dashboardTypeFilter").appendChild(n),[...new Set(e.map(e=>e.type))].sort().forEach(e=>{const t=document.createElement("option");t.value=e,t.textContent=e,o("dashboardTypeFilter").appendChild(t)}),[...o("dashboardTypeFilter").options].some(e=>e.value===t)&&(o("dashboardTypeFilter").value=t);const a=Ge(),i=o("dashboardList");i.replaceChildren(),o("dashboardCount").textContent=a.length+" matching report"+(1===a.length?"":"s")+".",a.length||(i.textContent=e.length?"No reports match these filters.":"No reports loaded yet. Refresh cloud reports or add clearly labelled sample reports to explore the dashboard.");for(const e of a){const t=document.createElement("div");t.className="report-item";const n=document.createElement("strong");n.textContent=(e.is_example?"SAMPLE · ":"")+e.type;const o=document.createElement("p");o.textContent="Demo workflow: "+Te[e.status];const a=document.createElement("p");a.textContent=e.location;const r=document.createElement("p");r.className="muted",r.textContent=qe(e)+(e.assignee?" · Assigned to "+e.assignee:"");const s=document.createElement("button");s.className="secondary",s.textContent="Review Report",s.addEventListener("click",()=>ze(e.key)),t.append(n,o,a,r,s),i.appendChild(t)}!function(e){const t=new Map;for(const n of e){if(!oe(n)||"verified_resolved"===n.status)continue;const e=Number(n.lat).toFixed(3)+", "+Number(n.lng).toFixed(3),o=(n.is_example?"sample:":"report:")+e,a=t.get(o)||{count:0,label:e,sample:n.is_example};a.count++,t.set(o,a)}const n=o("dashboardClusters");n.replaceChildren();const a=[...t.values()].filter(e=>e.count>1).sort((e,t)=>t.count-e.count).slice(0,5);if(!a.length){const e=document.createElement("li");return e.textContent="No repeated coordinate groups in the loaded records.",void n.appendChild(e)}for(const e of a){const t=document.createElement("li");t.textContent=(e.sample?"SAMPLE · ":"")+e.count+" reports around "+e.label,n.appendChild(t)}}(e),function(e){if(!o("screen-dashboard").classList.contains("active"))return;if(!window.L)return void(o("managementMap").textContent="Map unavailable. Reports remain available in the list.");Ie||(Ie=L.map("managementMap").setView([3.122,101.653],15),L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(Ie),Be=L.layerGroup().addTo(Ie)),Be.clearLayers();const t=[];for(const n of e){if(!oe(n))continue;const e=[Number(n.lat),Number(n.lng)];t.push(e);const o=document.createElement("div"),a=document.createElement("strong");a.textContent=(n.is_example?"SAMPLE · ":"")+n.type;const i=document.createElement("p");i.textContent=Te[n.status]+" (demo)";const r=document.createElement("button");r.className="secondary",r.textContent="Review Report",r.addEventListener("click",()=>ze(n.key)),o.append(a,i,r),L.circleMarker(e,{radius:9,color:n.is_example?"#6b46c1":"verified_resolved"===n.status?"#176536":"#a12626",fillOpacity:.8}).bindPopup(o).addTo(Be)}setTimeout(()=>{Ie.invalidateSize(),t.length&&Ie.fitBounds(L.latLngBounds(t),{padding:[25,25],maxZoom:17})},100)}(a)}
+function ze(e,t=!0){const n=Oe[e];if(!n)return;De=e,o("dashboardReviewPanel").classList.remove("hidden"),o("dashboardReviewTitle").textContent=(n.is_example?"SAMPLE · ":"")+n.type,o("dashboardReviewDetails").textContent=n.location+". "+n.details,o("reviewStage").replaceChildren();const a=new Set([n.status,Ae[n.status]]);"submitted"!==n.status&&a.add("under_review"),Object.entries(Te).forEach(([e,t])=>{if(!a.has(e))return;const n=document.createElement("option");n.value=e,n.textContent=t,o("reviewStage").appendChild(n)}),o("reviewStage").value=n.status,o("reviewAssignee").value=n.assignee,o("reviewNotes").value=n.notes,o("reviewEvidence").value=n.evidence,o("reviewStatus").textContent="Updates affect this browser's demonstration dashboard only.";const i=o("reviewHistory");i.replaceChildren();for(const e of n.history){const t=document.createElement("li");t.textContent=new Date(e.at).toLocaleString()+" · "+Te[e.status]+(e.assignee?" · "+e.assignee:"")+(e.notes?" · "+e.notes:"")+(e.evidence?" · Evidence: "+e.evidence:""),i.appendChild(t)}if(!n.history.length){const e=document.createElement("li");e.textContent="No management updates recorded yet.",i.appendChild(e)}t&&(o("dashboardReviewTitle").focus(),o("dashboardReviewPanel").scrollIntoView({behavior:"smooth",block:"start"}))}
+function addDashboardSamples(){const e=Date.now(),t={...Oe};[{id:"sample_vehicle",type:"Vehicle blocking tactile path",location:"Sample township entrance — fictional",details:"Example vehicle obstruction for dashboard practice.",lat:3.1221,lng:101.6531},{id:"sample_damage",type:"Damaged tactile path",location:"Sample walkway — fictional",details:"Example broken tactile paving, not a real incident.",lat:3.1222,lng:101.6532},{id:"sample_gap",type:"Missing tactile path",location:"Sample community facility — fictional",details:"Example infrastructure gap for planning discussion.",lat:3.123,lng:101.655}].forEach((t,n)=>{const o="example:"+t.id;Oe[o]||(Oe[o]={...t,key:o,source:"example",is_example:!0,created_at:new Date(e-864e5*(n+1)).toISOString(),status:"submitted",assignee:"",notes:"",evidence:"",history:[]})});try{Ue(),o("dashboardStatus").textContent="Added fictional sample reports to this browser's dashboard only."}catch{Oe=t,o("dashboardStatus").textContent="Samples could not be saved."}renderDashboard()}
+function removeDashboardSamples(){if(!confirm("Remove fictional sample records from this dashboard? Other reports will remain."))return;const e=Oe;Oe=Object.fromEntries(Object.entries(Oe).filter(([,e])=>!e.is_example));try{Ue()}catch{return Oe=e,void(o("dashboardStatus").textContent="Could not save the change.")}Oe[De]||(o("dashboardReviewPanel").classList.add("hidden"),De=null),o("dashboardStatus").textContent="Sample records removed.",renderDashboard()}
+function exportDashboardCSV(){const e=[["Source","Example","Issue","Location","Created","Demo stage","Assigned to","Notes","Evidence"]];Ge().forEach(t=>e.push([t.source,t.is_example?"YES":"NO",t.type,t.location,t.created_at||"",Te[t.status],t.assignee,t.notes,t.evidence]));const t=e=>{let t=String(e??"");return/^[\s]*[=+@-]/.test(t)&&(t="'"+t),'"'+t.replace(/"/g,'""')+'"'},n=new Blob(["\ufeff"+e.map(e=>e.map(t).join(",")).join("\r\n")],{type:"text/csv;charset=utf-8"}),o=URL.createObjectURL(n),a=document.createElement("a");a.href=o,a.download="blindpath-management-demo.csv",document.body.appendChild(a),a.click(),a.remove(),setTimeout(()=>URL.revokeObjectURL(o),1e3)}
+o("dashboardReviewForm").addEventListener("submit",e=>{e.preventDefault();const t=Oe[De];if(!t)return;const n=o("reviewStage").value,a=o("reviewAssignee").value.trim(),i=o("reviewNotes").value.trim(),r=o("reviewEvidence").value.trim(),s=new Set([t.status,Ae[t.status]]);if("submitted"!==t.status&&s.add("under_review"),!s.has(n))return void(o("reviewStatus").textContent="Choose the next workflow stage or reopen for review.");if("action_assigned"===n&&!a)return void(o("reviewStatus").textContent="Enter a responsible team or person before assigning action.");if(["reported_resolved","verified_resolved"].includes(n)&&!i)return void(o("reviewStatus").textContent="Add resolution notes before marking this stage.");if("verified_resolved"===n&&!r)return void(o("reviewStatus").textContent="Record the inspection or resolution evidence before demo verification.");const l=t;Oe[De]={...t,status:n,assignee:a,notes:i,evidence:r,history:[...t.history,{at:(new Date).toISOString(),status:n,assignee:a,notes:i,evidence:r}]};try{Ue()}catch{return Oe[De]=l,void(o("reviewStatus").textContent="Update not saved. Browser storage may be full.")}renderDashboard(),ze(De,!1),o("reviewStatus").textContent="Demo review saved on this browser. No cloud report or live hazard status was changed."});
+const Ve="blindpath_interface_mode_v1";let Ke=null;
+function Ye(e){["accessible","public"].includes(e)&&(Ke=e,document.body.classList.toggle("accessible-mode","accessible"===e),o("accessibleModeButton").setAttribute("aria-pressed",String("accessible"===e)),o("publicModeButton").setAttribute("aria-pressed",String("public"===e)),o("changeModeButton").textContent="accessible"===e?"Accessible Mode · Switch":"Public Mode · Switch",o("settingsModeLabel").textContent="Current mode: "+("accessible"===e?"Accessible Mode":"Public Mode")+".",o("appModeStatus").textContent="Selected: "+("accessible"===e?"Accessible Mode":"Public Mode")+".",o("keepModeButton").classList.remove("hidden"),o("journeyOptions").open="public"===e,"accessible"===e&&"foot"!==o("mode").value&&(o("mode").value="foot",D()))}
+function chooseAppMode(e){if(!["accessible","public"].includes(e))return;stopAllVoice(),Ye(e);let t=!0;try{localStorage.setItem(Ve,e)}catch{t=!1}goTo("home"),t||(o("homeIntro").textContent+=" Your mode could not be remembered on this browser."),"accessible"===e&&xe("Accessible Mode selected. Choose Start Navigation, Report an Issue, or Voice and Settings. More options contains community reports and your profile.","en-MY")}
+window.addEventListener("load",()=>{!function(){try{const e=JSON.parse(localStorage.getItem(Pe)||"{}");e&&"object"==typeof e&&!Array.isArray(e)&&(Oe=e)}catch{}renderDashboard()}(),function(){let e=null;try{e=localStorage.getItem(Ve)}catch{}["accessible","public"].includes(e)&&(Ye(e),goTo("home"))}(),S.forEach(e=>{const t=document.createElement("option");t.value=k(e),o("umPlaceNames").appendChild(t)}),["start","destination","mode"].forEach(e=>o(e).addEventListener("change",D)),window.L?(s=L.map("map").setView([3.122,101.653],15),L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:"© OpenStreetMap contributors"}).addTo(s),u=L.layerGroup().addTo(s),s.on("click",e=>{if(window.blindPathVenueSearch)return;if(null!==P)return;D(),o("destination").value=e.latlng.lat.toFixed(6)+", "+e.latlng.lng.toFixed(6);const t=L.marker(e.latlng).addTo(s);d&&s.removeLayer(d),d=t,o("routeStatus").textContent="Destination selected on the map. Choose Find Route."})):o("routeStatus").textContent="The map library could not load. Check your internet connection.",function(){if(!("speechSynthesis"in window))return;const e=()=>{const e=o("voiceSelect"),t=e.value;e.replaceChildren();const n=document.createElement("option");n.value="",n.textContent="Default device voice",e.appendChild(n),speechSynthesis.getVoices().forEach((t,n)=>{const o=document.createElement("option");o.value=String(n),o.textContent=t.name+" ("+t.lang+")",e.appendChild(o)}),[...e.options].some(e=>e.value===t)&&(e.value=t)};e(),speechSynthesis.onvoiceschanged=e}(),refreshReports(),y(),b()&&w()});
+
+/* Original navigation integration */
+(()=>{
+"use strict";
+if(window.blindPathNavigationMerged)return;
+window.blindPathNavigationMerged=!0;
+const e=e=>document.getElementById(e),t=window.fetch.bind(window),n=window.findRoute,o=window.L&&L.geoJSON;
+let a=null,i=0,r=0,l=0;
+function c(){r++,e("bpReadRoute")&&(e("bpReadRoute").textContent="Read Entire Route"),"speechSynthesis"in window&&speechSynthesis.cancel()}
+function d(){a&&a.controller.abort(),a=null,i++,c(),l=0,e("bpRouteInfo")&&e("bpRouteInfo").classList.add("hidden")}
+function u(t,n){if(!("speechSynthesis"in window))return void(e("bpNavigationStatus").textContent="Speech is not supported by this browser.");const o=new SpeechSynthesisUtterance(t);o.lang="en-MY",o.rate=Number(e("speechSpeed").value)||1;const a=e("voiceSelect").value;""!==a&&(o.voice=speechSynthesis.getVoices()[Number(a)]||null),o.onend=()=>{n&&n()},o.onerror=()=>{n&&c()},speechSynthesis.speak(o)}
+function p(t){const n=[...e("directionList").children];for(const[e,o]of n.entries()){o.style.background=e===t?"#fff2ce":"";const n=o.querySelector("button");n&&(e===t?n.setAttribute("aria-current","step"):n.removeAttribute("aria-current"))}}
+function m(t){const n=e("directionList").children[t];n&&(window.stopGuidance(!1),c(),l=t,p(t),u(n.textContent),e("bpNavigationStatus").textContent="Route preview, step "+(t+1)+". This does not track your position.")}
+function h(){if("Stop Reading"===e("bpReadRoute").textContent)return void c();c();const t=r;window.stopGuidance(!1);const n=[...e("directionList").children];n.length&&(e("bpReadRoute").textContent="Stop Reading",e("bpNavigationStatus").textContent="Reading a route preview. No walking is simulated.",function e(o){t===r&&(o>=n.length?c():(l=o,p(o),u(n[o].textContent,()=>{e(o+1)})))}(0))}
+const g=e=>e*Math.PI/180;
+function f(e,t){const n=Math.sin(g(t.lat-e.lat)/2)**2+Math.cos(g(e.lat))*Math.cos(g(t.lat))*Math.sin(g(t.lon-e.lon)/2)**2;return 12742e3*Math.asin(Math.min(1,Math.sqrt(n)))}
+function v(e,t){const n=Math.sin(g(t.lon-e.lon))*Math.cos(g(t.lat)),o=Math.cos(g(e.lat))*Math.sin(g(t.lat))-Math.sin(g(e.lat))*Math.cos(g(t.lat))*Math.cos(g(t.lon-e.lon));return(180*Math.atan2(n,o)/Math.PI+360)%360}
+function b(e){return Math.abs(e)<30?"straight":(Math.abs(e)<65?"slight ":Math.abs(e)>125?"sharp ":"")+(e>0?"right":"left")}
+function y(e,t){let n=null,o=25;for(const[a,i]of e){if(!i.edges.length)continue;const e=f(t,i);e<o&&(n=a,o=e)}return{id:n,distance:o}}
+if(o&&(L.geoJSON=function(e,t){if(e?.bp_segments){const n=e.bp_segments.map(e=>({type:"Feature",properties:{surface:e.surface},geometry:{type:"LineString",coordinates:e.coordinates}}));return o.call(this,{type:"FeatureCollection",features:n},{...t,style:e=>({color:"yes"===e.properties.surface?"#b45309":"#2563eb",weight:7,opacity:.95,dashArray:"unknown"===e.properties.surface?"8 6":null})})}return o.call(this,e,t)}),window.L){const e=L.map;L.map=function(t,...n){const o=e.call(this,t,...n);return"map"===t&&o.on("click",d),o}}
+window.fetch=async function(e,n){const o="string"==typeof e?e:e instanceof URL?e.href:e.url,i=a;if(!i||!o.startsWith("https://routing.openstreetmap.de/routed-foot/route/v1/driving/"))return t(e,n);if(i.prefer)try{const[e,n]=o.slice(62).split("?")[0].split(";").map(e=>e.split(",").map(Number)),route=await async function(e,n,o){if(f(e,n)>5e3)throw new Error("Tactile network search is limited to journeys up to 5 km.");const a='[out:json][timeout:12];way["highway"~"^(footway|path|pedestrian|living_street|steps|service|residential|unclassified|track)$"]('+[Math.min(e.lat,n.lat)-.003,Math.min(e.lon,n.lon)-.003,Math.max(e.lat,n.lat)+.003,Math.max(e.lon,n.lon)+.003].join(",")+");out body geom;",i=AbortSignal.any([o.controller.signal,AbortSignal.timeout(15e3)]),r=await t("https://overpass-api.de/api/interpreter",{method:"POST",body:new URLSearchParams({data:a}),signal:i});if(!r.ok)throw new Error("OSM pedestrian network is unavailable.");const l=await r.json();if(!Array.isArray(l.elements))throw new Error("OSM returned no network.");const c=function(e){const t=new Map;for(const n of e){const e=n.tags||{};if(["no","private"].includes(e.access)||["no","private"].includes(e.foot)||e["access:conditional"]||e["foot:conditional"])continue;const o=["footway","path","pedestrian","steps","living_street"].includes(e.highway),a=["yes","designated","permissive"].includes(e.foot);if(!o&&!a)continue;if(!n.nodes||!n.geometry||n.nodes.length!==n.geometry.length)continue;const i="yes"===e.tactile_paving?"yes":"no"===e.tactile_paving?"no":"unknown";n.nodes.forEach((e,o)=>{const a=n.geometry[o];Number.isFinite(a.lat)&&Number.isFinite(a.lon)&&!t.has(e)&&t.set(e,{...a,edges:[]})});for(let o=1;o<n.nodes.length;o++){const a=n.nodes[o-1],r=n.nodes[o],l=t.get(a),c=t.get(r);if(!l||!c||a===r)continue;const d=f(l,c);if(d<.1)continue;const u={length:d,cost:d*("yes"===i?.65:1),surface:i,name:e.name||""},p=e["oneway:foot"];"-1"!==p&&l.edges.push({...u,to:r}),"yes"!==p&&"1"!==p&&c.edges.push({...u,to:a})}if(t.size>25e3)throw new Error("Mapped network is too large for this browser.")}return t}(l.elements),d=y(c,e),u=y(c,n);if(null===d.id||null===u.id||d.id===u.id)throw new Error("No distinct mapped network endpoints within 25 metres.");const p=function(e,t,n){const o=[],a=new Map([[t,0]]),i=new Map;function r(e){o.push(e);let t=o.length-1;for(;t;){const n=t-1>>1;if(o[n][0]<=e[0])break;o[t]=o[n],t=n}o[t]=e}function l(){const e=o[0],t=o.pop();if(o.length){let e=0;for(;2*e+1<o.length;){let n=2*e+1;if(n+1<o.length&&o[n+1][0]<o[n][0]&&n++,o[n][0]>=t[0])break;o[e]=o[n],e=n}o[e]=t}return e}for(r([0,t]);o.length;){const[t,o]=l();if(t===a.get(o)){if(o===n)break;for(const n of e.get(o).edges){const e=t+n.cost;e<(a.get(n.to)??1/0)&&(a.set(n.to,e),i.set(n.to,{id:o,edge:n}),r([e,n.to]))}}}if(!i.has(n))return null;const c=[];let d=n;for(;d!==t;){const t=i.get(d);if(!t)return null;c.push({...t.edge,from:e.get(t.id),to:e.get(d)}),d=t.id}return c.reverse()}(c,d.id,u.id);if(!p?.length)throw new Error("No connected mapped pedestrian route. Gaps were not joined.");return o.meta={kind:"graph",startGap:d.distance,endGap:u.distance,tactile:p.filter(e=>"yes"===e.surface).reduce((e,t)=>e+t.length,0),unknown:p.filter(e=>"unknown"===e.surface).reduce((e,t)=>e+t.length,0)},function(e){const t=[];let n=null;for(const o of e){const e=v(o.from,o.to),a=null===n?0:(e-n+540)%360-180,i=t[t.length-1];if(!i||Math.abs(a)>=35||i.bpSurface!==o.surface){const n="yes"===o.surface?"OSM-tagged tactile paving, unverified":"no"===o.surface?"path tagged without tactile paving, unverified":"mapped path, tactile status unknown";t.push({name:(o.name?o.name+"; ":"")+n,distance:o.length,bpSurface:o.surface,maneuver:{type:t.length?"turn":"depart",modifier:b(a),bearing_after:e,location:[o.from.lon,o.from.lat]}})}else i.distance+=o.length;n=e}const o=e[e.length-1].to;t.push({name:"",distance:0,maneuver:{type:"arrive",location:[o.lon,o.lat]}});const a=e.reduce((e,t)=>e+t.length,0);return{distance:a,duration:a/1.1,geometry:{type:"LineString",coordinates:[[e[0].from.lon,e[0].from.lat],...e.map(e=>[e.to.lon,e.to.lat])],bp_segments:e.map(e=>({coordinates:[[e.from.lon,e.from.lat],[e.to.lon,e.to.lat]],surface:e.surface}))},legs:[{steps:t}]}}(p)}({lat:e[1],lon:e[0]},{lat:n[1],lon:n[0]},i);return i.route=route,new Response(JSON.stringify({code:"Ok",routes:[route]}),{headers:{"Content-Type":"application/json"}})}catch(e){if(i.controller.signal.aborted)throw e;i.meta={kind:"fallback",reason:e.message}}else i.meta={kind:"standard"};const r=await t(e,{...n,signal:AbortSignal.any([i.controller.signal,AbortSignal.timeout(2e4)])});if(r.ok){const e=await r.clone().json();i.route=e.routes?.[0]||null}return r};
+window.findRoute=async function(){d();const t={id:i,controller:new AbortController,prefer:e("bpPreferTactile").checked,meta:null,route:null};a=t,e("bpNavigationStatus").textContent="Finding a route. OSM tags and supplied campus points are unverified.";try{if(await n(),a!==t||t.controller.signal.aborted||!t.route)return;[...e("directionList").children].forEach((e,t)=>{const n=e.textContent;e.replaceChildren();const o=document.createElement("button");o.className="secondary",o.type="button",o.style.cssText="width:100%;text-align:left;margin:4px 0",o.textContent=n,o.addEventListener("click",()=>{m(t)}),e.appendChild(o)}),l=0;const o=t.meta,i=t.route.distance;e("bpRouteInfo").classList.remove("hidden"),e("bpTactileDistance").textContent="graph"===o.kind?Math.round(o.tactile)+" m ("+Math.round(o.tactile/i*100)+"%)":"Unknown — not measured",e("bpRouteLegend").textContent="graph"===o.kind?"Amber: tagged tactile paving. Blue: tactile paving tagged absent. Dashed blue: tactile status unknown. Tags are unverified.":"Blue: walking-service route. Tactile status is unknown along this route.","graph"===o.kind?e("bpNavigationStatus").textContent="OSM pedestrian route with tactile-tag preference. "+Math.round(o.unknown)+" m has unknown tactile status. Mapped route starts "+Math.round(o.startGap)+" m from the entered start and ends "+Math.round(o.endGap)+" m from the destination. These gaps and entrances are unverified; no connecting line is assumed. Steps and crossings may be present.":e("bpNavigationStatus").textContent=("fallback"===o.kind?"Connected tactile network unavailable. Using the walking routing service. ":"Walking routing service used. ")+"Tactile coverage is unknown."}finally{a===t&&(a=null)}};
+for(const e of["clearRoute","stopAllVoice","startGuidance","goTo"]){const t=window[e];window[e]=function(...n){return"clearRoute"===e?d():"goTo"===e&&"navigation"!==n[0]?(d(),window.stopGuidance(!1)):c(),t.apply(this,n)}}
+!function(){const t=document.createElement("section");t.className="good-note",t.innerHTML='<label for="bpPreferTactile" style="display:flex;align-items:center;gap:10px"><input id="bpPreferTactile" type="checkbox" checked style="width:24px;min-height:24px">Prefer OSM-tagged tactile paths when connected</label><p class="muted">Select a venue or map point. OSM tags do not establish accessibility.</p><div id="bpRouteInfo" class="hidden"><strong>OSM-tagged tactile distance: <span id="bpTactileDistance"></span></strong><p id="bpRouteLegend"></p></div><p id="bpNavigationStatus" class="status" role="status" aria-live="polite">Tactile routing uses connected mapped paths. If unavailable, it falls back to the walking routing service.</p>',e("map").before(t);const n=document.createElement("div");n.className="button-row",n.innerHTML='<button class="secondary" id="bpRepeatStep" type="button">Read Selected Step</button><button class="secondary" id="bpNextStep" type="button">Next Preview Step</button><button class="secondary" id="bpReadRoute" type="button">Read Entire Route</button>',e("directionList").before(n),e("bpRepeatStep").onclick=()=>{m(l)},e("bpNextStep").onclick=()=>{m(Math.min(l+1,e("directionList").children.length-1))},e("bpReadRoute").onclick=h;const o=()=>{const t=e("start").value,n=e("destination").value;d(),window.D(),e("start").value=t,e("destination").value=n,e("routeStatus").textContent="Journey changed. Choose Find Route to update directions."};for(const t of["start","destination","mode","bpPreferTactile"])for(const n of["input","change"])e(t).addEventListener(n,o);window.addEventListener("pagehide",d)}()
+})();
+
+/* Location-search update, already merged */
+(()=>{
+"use strict";
+if(window.blindPathVenueSearch)return;
+window.blindPathVenueSearch=!0;
+const e=e=>document.getElementById(e),t=window.findRoute,n=window.clearRoute,o=window.O,a=window.goTo,i={start:null,destination:null},r={start:0,destination:0},l={};
+let c=null,d=null,u=null,p=0,m=null,h=0,g=0,f=Promise.resolve(),v=0,b=!1;
+const y=e=>String(e).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").trim(),w=(e,t)=>Number.isFinite(e)&&Number.isFinite(t)&&Math.abs(e)<=90&&Math.abs(t)<=180;
+function S(){try{return JSON.parse(localStorage.getItem("blindpath_selected_places_v1")||"[]")}catch{return[]}}
+function C(t){e(t+"Matches").replaceChildren()}
+function x(t){r[t]++,l[t]?.abort(),delete l[t],e(t+"SearchButton").disabled=!1}
+function _(){const t=t=>i[t]?.text===e(t).value.trim()?i[t].lat+","+i[t].lon:e(t).value.trim();for(const n of["start","destination"])e(n+"Google")&&(e(n+"Google").href="https://www.google.com/maps/search/?api=1&query="+encodeURIComponent(t(n)||"Universiti Malaya"));e("venueGoogleRoute")&&(e("venueGoogleRoute").href="https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(t("start"))+"&destination="+encodeURIComponent(t("destination"))+"&travelmode="+("foot"===e("mode").value?"walking":"cycling"===e("mode").value?"bicycling":"driving"))}
+function k(){p++,m=null;const t=e("start").value,o=e("destination").value;n(),e("start").value=t,e("destination").value=o,_()}
+function E(t,n,o,a=!0){x(t),k(),i[t]={...n,text:e(t).value.trim()},C(t),_(),e(t+"Selected").textContent="Selected: "+n.name+" · "+n.lat.toFixed(6)+", "+n.lon.toFixed(6)+" · "+n.source+". Check the entrance on the map.","start"===t&&"Device GPS"!==n.source&&(e("startingSource").value="place"),a&&function(e,t){try{const n=S().filter(t=>t.query!==y(e));n.unshift({query:y(e),point:t}),localStorage.setItem("blindpath_selected_places_v1",JSON.stringify(n.slice(0,40)))}catch{}}(o,n),function(e){if(!c||!window.L)return;d&&c.removeLayer(d);const t=document.createElement("p");t.textContent=e.name,d=L.marker([e.lat,e.lon]).addTo(c).bindPopup(t).openPopup(),c.setView([e.lat,e.lon],18)}(n),e("routeStatus").textContent="Location selected. Select the other endpoint, then choose Find Route."}
+async function M(e,t){const n=await fetch(e,{signal:AbortSignal.any([t,AbortSignal.timeout(1e4)])});if(!n.ok)throw new Error("Place service unavailable");return n.json()}
+function R(e,t){const n=f.then(async()=>{if(t.aborted)throw new DOMException("Cancelled","AbortError");if(await new Promise(e=>setTimeout(e,Math.max(0,1100-(Date.now()-v)))),t.aborted)throw new DOMException("Cancelled","AbortError");v=Date.now();const n=/universiti malaya|university of malaya/i.test(e),o="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&addressdetails=1&q="+encodeURIComponent(e)+(n?"&viewbox=101.62,3.17,101.70,3.08&bounded=0":"");return(await M(o,t)).map(e=>({lat:Number(e.lat),lon:Number(e.lon),name:e.display_name,source:"OpenStreetMap search"}))});return f=n.catch(()=>{}),n}
+async function N(e,t){const n=c?c.getCenter():{lat:3.122,lng:101.653};return((await M("https://photon.komoot.io/api/?limit=8&lang=en&lat="+n.lat+"&lon="+n.lng+"&q="+encodeURIComponent(e),t)).features||[]).map(e=>{const t=e.properties||{},n=e.geometry?.coordinates||[];return{lat:Number(n[1]),lon:Number(n[0]),name:[t.name,t.housenumber,t.street,t.district,t.city,t.state,t.country].filter(Boolean).join(", "),source:"Photon / OpenStreetMap"}})}
+function P(e,t){const n=[];for(const o of e)if(w(o.lat,o.lon)&&o.name&&!(t&&(o.lat<3.04||o.lat>3.22||o.lon<101.57||o.lon>101.75)||n.some(e=>Math.abs(e.lat-o.lat)<15e-5&&Math.abs(e.lon-o.lon)<15e-5&&y(e.name).slice(0,25)===y(o.name).slice(0,25))||(n.push(o),8!==n.length)))break;return n}
+async function T(t){const n=e(t).value.trim();if(x(t),C(t),!n)return void(e(t+"Selected").textContent="Enter a venue name, address, or latitude, longitude.");const o=(e=>{const t=String(e).match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);return t&&w(+t[1],+t[2])?{lat:+t[1],lon:+t[2],name:"Entered coordinates",source:"Coordinates"}:null})(n);if(o)return void E(t,o,n,!1);if(/^\s*-?\d+(?:\.\d+)?\s*,/.test(n))return void(e(t+"Selected").textContent="Invalid coordinates. Latitude must be between -90 and 90; longitude between -180 and 180.");const a=r[t],i=new AbortController;l[t]=i,e(t+"SearchButton").disabled=!0;const c=function(e){let t=e.trim();if(/\b(?:persona\s*siswa|perdana\s*siswa|perdanasiswa)\b/i.test(t))return["Kompleks Perdanasiswa, Universiti Malaya","Kompleks Perdana Siswa, Kuala Lumpur"];const n=y(t).match(/^(?:kk|kolej(?: kediaman)?(?: ke)?)\s*(1[0-2]|[1-9])(?: um| universiti malaya)?$/);return n?["Kolej Kediaman "+["Tuanku Abdul Rahman","Tuanku Bahiyah","Tuanku Kurshiah","Bestari","Dayasari","Ibnu Sina","Za'ba","Kinabalu","Tun Syed Zahiruddin","Tun Ahmad Zaidi","Ungku Aziz","Raja Dr Nazrin Shah"][+n[1]-1]+", Universiti Malaya","Kolej Kediaman "+n[1]+", Universiti Malaya"]:(t=t.replace(/\bum\b/gi,"Universiti Malaya"),[t,/universit[iy].*malaya/i.test(t)?t.replace(/universit[iy].*malaya/i,"Kuala Lumpur"):t+", Malaysia"])}(n);e(t+"Selected").textContent="Searching for "+c[0]+". Choose a matching venue below.";let d=0,u=[];const p=S().find(e=>e.query===y(n));p?.point&&u.push({...p.point,source:"Previously selected on this browser"});try{for(const o of[...new Set(c)]){const l=await Promise.allSettled([N(o,i.signal),R(o,i.signal)]);for(const e of l)"fulfilled"===e.status?u.push(...e.value):d++;if(i.signal.aborted||a!==r[t]||e(t).value.trim()!==n)return;if(u=P(u,/universiti malaya|university of malaya/i.test(c[0])),u.length)break}if(a!==r[t])return;e(t+"Selected").textContent=u.length?"Possible matches — select the exact venue. Building points may not be entrances.":(d?"Some place services could not be reached. ":"")+"No match returned. Try the full address, search in Google Maps, or choose a point on the map.";const o=e(t+"Matches");for(const e of u){const a=document.createElement("button");a.type="button",a.className="secondary",a.style.cssText="display:block;width:100%;text-align:left;margin:6px 0",a.textContent=e.name+" · "+e.source,a.addEventListener("click",()=>E(t,e,n)),o.appendChild(a)}}finally{a===r[t]&&(e(t+"SearchButton").disabled=!1,delete l[t])}}
+if(window.useMyLocation=function(){if(!navigator.geolocation||!window.isSecureContext)return void(e("startSelected").textContent="GPS needs HTTPS or localhost and browser location permission. Enter a place or choose a map point instead.");x("start"),k(),i.start=null,C("start");const t=++h;e("startingSource").value="gps",e("startSelected").textContent="Getting your current location. Please allow location access.",navigator.geolocation.getCurrentPosition(n=>{if(t!==h||"gps"!==e("startingSource").value)return;const o=n.coords;w(o.latitude,o.longitude)&&Number.isFinite(o.accuracy)&&Number.isFinite(n.timestamp)&&!(Date.now()-n.timestamp>6e4)?(e("start").value="My current location",E("start",{lat:o.latitude,lon:o.longitude,name:"My current location (GPS uncertainty ±"+Math.round(o.accuracy)+" m)",source:"Device GPS",timestamp:n.timestamp},"",!1),o.accuracy>30&&(e("startSelected").textContent+=" GPS is approximate. Route planning is available, but live guidance waits for better accuracy.")):e("startSelected").textContent="GPS did not return a recent valid position. Try again or choose a map point."},n=>{t===h&&(e("startSelected").textContent=1===n.code?"Location permission denied. Allow location access in the browser, or enter a starting place.":"GPS is unavailable or timed out. Try outdoors, enter a starting place, or select a map point.")},{enableHighAccuracy:!0,timeout:15e3,maximumAge:0})},
+window.O=async function(e){if(m){const t=m.points[m.index++];if(!t||t.text!==e)throw new Error("Journey changed. Select both endpoints again.");return{lat:t.lat,lon:t.lon,name:t.name}}return o(e)},
+window.findRoute=async function(){const n=++g;if(k(),!e("start").value.trim())return e("routeStatus").textContent="Choose Use My Current Location or enter a starting venue.",void e("start").focus();if(!e("destination").value.trim())return e("routeStatus").textContent="Enter a destination, then search and select a match.",void e("destination").focus();if("gps"===e("startingSource").value&&(!i.start||Date.now()-(i.start.timestamp||0)>6e4))return window.useMyLocation(),void(e("routeStatus").textContent="Refreshing GPS. When the location is shown, choose Find Route again.");const o=["start","destination"].filter(t=>!i[t]||i[t].text!==e(t).value.trim());if(o.length){if(await Promise.all(o.map(e=>T(e))),n!==g)return;return["start","destination"].every(t=>i[t]?.text===e(t).value.trim())?window.findRoute():void(e("routeStatus").textContent="Select a matching location for each endpoint, then choose Find Route.")}const a=p,r={points:[{...i.start},{...i.destination}],index:0};m=r;try{if(await t(),a!==p)return;e("routeStatus").textContent.startsWith("Could not find a route")&&(e("routeStatus").textContent="Both places are selected, but the routing service could not connect them. Choose a nearby public entrance on the map or open this journey in Google Maps.")}finally{m===r&&(m=null)}},
+window.clearRoute=function(){if(b)return n();h++,p++,g++,m=null,u=null;for(const t of["start","destination"])x(t),i[t]=null,C(t),e(t+"Selected").textContent="No location selected.";e("startingSource").value="place",d&&c&&c.removeLayer(d),d=null,n()},
+window.goTo=function(e){if("navigation"!==e){for(const e of["start","destination"])x(e);h++,u=null,m=null,p++,g++}return a(e)},
+window.L){const t=L.map;L.map=function(n,...o){const a=t.call(this,n,...o);return"map"===n&&(c=a,a.on("click",t=>{const n=u||"destination",o=e("destination").value;queueMicrotask(()=>{const a={lat:t.latlng.lat,lon:t.latlng.lng,name:"Selected map point",source:"Point selected on map"};"start"===n&&(e("destination").value=o),e(n).value=a.lat.toFixed(6)+", "+a.lon.toFixed(6),u=null,E(n,a,e(n).value,!1)})})),a}}
+!function(){for(const t of["start","destination","mode","bpPreferTactile"])if(e(t))for(const n of["input","change"])e(t).addEventListener(n,()=>{b=!0,setTimeout(()=>{b=!1},0)},!0);
+e("start").removeAttribute("list"),e("destination").removeAttribute("list");
+const t=document.createElement("div");
+t.className="good-note",t.innerHTML='<label for="startingSource">Starting point</label><select id="startingSource"><option value="place">Enter a venue or choose a map point</option><option value="gps">Use my current location (GPS)</option></select><button class="secondary" type="button" id="venueGPS" style="margin-top:10px">Use My Current Location as Start</button><p>Search a name, select the exact match, then find your route. Results come from two OpenStreetMap-based indexes; some venues may still be missing.</p>',e("start").closest(".field-grid").before(t);
+for(const t of["start","destination"]){const n=document.createElement("div");n.innerHTML='<div class="button-row"><button class="secondary" type="button" id="'+t+'SearchButton">Search Places</button><button class="secondary" type="button" id="'+t+'MapButton">Choose on Map</button></div><p id="'+t+'Selected" class="status" role="status" aria-live="polite">No location selected.</p><div id="'+t+'Matches"></div><a id="'+t+'Google" target="_blank" rel="noopener noreferrer">Search this place in Google Maps</a>',e(t).after(n);const o=_;o(),e(t+"SearchButton").onclick=()=>T(t),e(t+"MapButton").onclick=()=>{k(),u=t,h++,"start"===t&&(e("startingSource").value="place"),e("routeStatus").textContent="Tap the map to set your "+("start"===t?"starting point":"destination")+".",e("map").scrollIntoView({block:"center"})},e(t).addEventListener("input",()=>{p++,g++,m=null,u=null,x(t),i[t]=null,C(t),e(t+"Selected").textContent="Search and select a matching location.","start"===t&&(h++,e("startingSource").value="place"),o()}),e(t).addEventListener("keydown",e=>{"Enter"===e.key&&(e.preventDefault(),T(t))})}
+e("venueGPS").onclick=()=>window.useMyLocation(),["mode","bpPreferTactile"].forEach(t=>e(t)?.addEventListener("change",()=>{p++,m=null}));
+e("startingSource").onchange=()=>{h++,"gps"===e("startingSource").value?window.useMyLocation():(k(),i.start=null,e("start").value="",e("startSelected").textContent="Enter a starting venue or choose a map point.")};
+const n=document.createElement("p");n.className="good-note",n.innerHTML='<a id="venueGoogleRoute" target="_blank" rel="noopener noreferrer" href="https://www.google.com/maps/">Open this journey in Google Maps</a><br>Google may list additional venues. This opens Google Maps separately; it does not import Google place data or confirm accessibility.',e("routeStatus").after(n);
+const o=e("bpPreferTactile")?.closest("section")?.querySelector("p.muted");o&&(o.textContent="Select the exact venue or entrance before routing. Tactile-path coverage depends on unverified OSM tags; unknown paths remain unknown.");
+window.addEventListener("pagehide",()=>{h++;for(const e of["start","destination"])x(e)})
+}()
+})();
 </script>
 </body>
 </html>
