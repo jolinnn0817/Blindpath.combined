@@ -348,6 +348,11 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
         </div>
       </div>
 
+      <section id="friend-tactilePanel" class="tactile-details" aria-labelledby="friend-tactileHeading" style="padding:14px;margin:14px 0;background:#fff7df;border:1px solid #e5cb78;border-radius:10px">
+        <h2 id="friend-tactileHeading">Tactile information</h2>
+        <p id="friend-tactileStatus" role="status" aria-live="polite">Find a route to load tactile information.</p>
+        <button type="button" id="friend-retryTactile" class="secondary" disabled onclick="friendNav.retryTactileCheck()">Retry Tactile Check</button>
+      </section>
       <!-- Turn-by-Turn Voice Controls -->
       <div class="voice-controls" id="friend-voiceBar" style="display: none;">
         <span style="font-size: 13px; font-weight: bold;">Voice Guidance:</span>
@@ -4455,9 +4460,11 @@ window.addEventListener("load",()=>{
     function cancelJourney(){
       const old=activeJourney;activeJourney=null;journeyNumber++;
       if(old)old.controller.abort();
+      document.getElementById('friend-retryTactile').disabled=true;
       const button=document.getElementById('friend-routeBtn');button.disabled=false;button.textContent='Find Route';
       if(tactileState==='pending'){
         tactileState='unknown';document.getElementById('friend-tactileCoverage').textContent='Not checked';
+        setTactileStatus('Tactile check stopped. Find a route to check again.');
         document.getElementById('friend-status').textContent='Tactile check stopped. Choose Find Route to check again.';
       }
     }
@@ -4471,23 +4478,6 @@ window.addEventListener("load",()=>{
         if(!response.ok)throw new Error('Service returned '+response.status);
         return await response.json();
       }finally{clearTimeout(timer);signal?.removeEventListener('abort',abort);}
-    }
-    async function detectPedestrianPaths(bounds,signal){
-      const box='('+[bounds.getSouth(),bounds.getWest(),bounds.getNorth(),bounds.getEast()].join(',')+')';
-      const cached=cacheRead(tactileCache,box);if(cached)return cached;
-      // Only retrieve tactile-related features; the route service already supplies the path.
-      const keys=['tactile_paving','sidewalk:both:tactile_paving','sidewalk:right:tactile_paving','sidewalk:left:tactile_paving','sidewalk:tactile_paving','blind:tactile_paving','blind:description'];
-      const query='[out:json][timeout:7];('+keys.map(key=>'way["'+key+'"]'+box+';').join('')+'node["tactile_paving"]'+box+';);out body geom;';
-      const failures=[];
-      for(const server of ['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter']){
-        try{
-          const data=await fetchJSON(server,{method:'POST',body:new URLSearchParams({data:query})},signal,8000);
-          if(!Array.isArray(data.elements)||data.remark)throw new Error('Incomplete tactile map data');
-          const features=data.elements.map(element=>({...element,isTactile:isElementTactile(element.tags)}));
-          cacheWrite(tactileCache,box,features);return features;
-        }catch(error){if(signal.aborted)throw error;failures.push(error.message);}
-      }
-      throw new Error('Tactile map service unavailable. '+failures.join('; '));
     }
     async function getDirectCampusWalkingRoute(start,destination,signal){
       const key=start.lon+','+start.lat+';'+destination.lon+','+destination.lat;
@@ -4531,31 +4521,113 @@ window.addEventListener("load",()=>{
       }
       flush();routeLine.addTo(map);
     }
+    let tactileMapLayer=null;
+    function setTactileStatus(text){document.getElementById('friend-tactileStatus').textContent=text;}
+    function tactileBox(bounds){return '('+[bounds.getSouth(),bounds.getWest(),bounds.getNorth(),bounds.getEast()].join(',')+')';}
+    async function detectPedestrianPaths(bounds,signal,onProgress=()=>{},force=false){
+      const box=tactileBox(bounds);
+      if(force)tactileCache.delete(box);
+      const cached=cacheRead(tactileCache,box);
+      if(cached){onProgress('Loaded recent tactile map data.');return cached;}
+      // Restore the supplied friend's full search and its 35-second server budget.
+      const query='[out:json][timeout:35];('+ 
+        'way["highway"~"^(footway|path|pedestrian|living_street|service|residential|tertiary|unclassified|steps|crossing|track)$"]'+box+';'+
+        'way["tactile_paving"]'+box+';'+
+        'node["tactile_paving"~"^(yes|primitive|contrasted|incorrect)$"]'+box+';'+
+        'node["highway"="crossing"]["tactile_paving"="yes"]'+box+';);out body geom;';
+      const failures=[];
+      const servers=['https://overpass-api.de/api/interpreter','https://overpass.kumi.systems/api/interpreter'];
+      for(let index=0;index<servers.length;index++){
+        if(signal.aborted)throw new DOMException('Cancelled','AbortError');
+        onProgress('Checking tactile map data — server '+(index+1)+' of '+servers.length+'. The route is already available; this check can take up to 40 seconds per server.');
+        try{
+          // GET matches the original working friend implementation.
+          const data=await fetchJSON(servers[index]+'?data='+encodeURIComponent(query),{},signal,40000);
+          if(!Array.isArray(data.elements)||data.remark)throw new Error(data.remark||'Incomplete tactile map data');
+          const features=data.elements.map(element=>({...element,isTactile:isElementTactile(element.tags)}));
+          cacheWrite(tactileCache,box,features);return features;
+        }catch(error){
+          if(signal.aborted)throw error;
+          failures.push('Server '+(index+1)+': '+(error.name==='AbortError'?'request timed out':error.message));
+        }
+      }
+      throw new Error(failures.join('. '));
+    }
+    function renderTactileFeatures(features){
+      const layer=L.layerGroup();
+      let ways=0,points=0;
+      for(const feature of features){
+        if(!feature.isTactile)continue;
+        if(feature.geometry?.length>1){
+          ways++;
+          L.polyline(feature.geometry.map(point=>[point.lat,point.lon]),{color:'#b45309',weight:4,opacity:0.6,dashArray:'3 5'})
+            .bindTooltip('Mapped tactile tags nearby — not verified route coverage').addTo(layer);
+        }else if(Number.isFinite(feature.lat)&&Number.isFinite(feature.lon)){
+          points++;
+          L.circleMarker([feature.lat,feature.lon],{radius:5,color:'#b45309',fillColor:'#fbbf24',fillOpacity:0.9})
+            .bindTooltip('Mapped tactile point indicator — not a continuous path').addTo(layer);
+        }
+      }
+      if(tactileMapLayer)map.removeLayer(tactileMapLayer);
+      tactileMapLayer=layer.addTo(map);return{ways,points};
+    }
     async function finishTactileCheck(current,segments,totalDistance,outcome){
-      if(activeJourney!==current||current.controller.signal.aborted)return;
-      const status=document.getElementById('friend-status');
+      const valid=()=>activeJourney===current&&!current.controller.signal.aborted&&outcome.checkId===current.tactileGeneration;
+      if(!valid())return;
       if(outcome.error){
-        tactileState='unknown';document.getElementById('friend-tactileCoverage').textContent='Unavailable';
-        status.textContent='Route ready: '+Math.round(totalDistance)+' m. Tactile information is unavailable; route remains usable as a preview.';
+        tactileState=current.lastTactileSummary?'ready':'unknown';
+        if(!current.lastTactileSummary)document.getElementById('friend-tactileCoverage').textContent='Unavailable — retry';
+        setTactileStatus('Tactile map search failed. '+outcome.error.message+'. '+
+          (current.lastTactileSummary?'Previous tactile result retained. ':'No tactile result was obtained; this does not mean tactile paving is absent. ')+
+          'Choose Retry Tactile Check. Your route remains displayed.');
         return;
       }
       const near=makeTactileIndex(outcome.features);
       for(let index=0;index<segments.length;index++){
-        if(activeJourney!==current||current.controller.signal.aborted)return;
+        if(!valid())return;
         const segment=segments[index];
         segment.isTactile=near({lat:(segment.from.lat+segment.to.lat)/2,lon:(segment.from.lon+segment.to.lon)/2});
         if(index&&index%200===0)await new Promise(resolve=>setTimeout(resolve,0));
       }
-      if(activeJourney!==current||current.controller.signal.aborted)return;
+      if(!valid())return;
+      const counts=renderTactileFeatures(outcome.features);
       const tactileDistance=segments.filter(segment=>segment.isTactile).reduce((sum,segment)=>sum+segment.distance,0);
       const percent=totalDistance?Math.round(tactileDistance/totalDistance*100):0;
       tactileState='ready';drawSegments(segments);
-      document.getElementById('friend-tactileCoverage').textContent=percent+'% ('+Math.round(tactileDistance)+'m near tags)';
-      status.textContent='Route ready: '+Math.round(totalDistance)+' m. Tactile check complete: '+percent+'% is near mapped tactile indicators (estimated, not verified coverage).';
-      stopAutoPlay();
-      currentStepIdx=Math.min(currentStepIdx,Math.max(0,instructions.length-1));
+      const summary=counts.ways+' tactile-tagged ways and '+counts.points+' tactile point indicators found nearby. '+
+        Math.round(tactileDistance)+' m ('+percent+'%) of the route is within 18 m of mapped tactile indicators; this is an estimate, not verified coverage. '+
+        'Dotted amber shows nearby tactile-tagged ways; amber circles show point indicators.';
+      current.lastTactileSummary=summary;
+      document.getElementById('friend-tactileCoverage').textContent=counts.ways||counts.points?percent+'% ('+Math.round(tactileDistance)+'m near tags)':'No tags returned';
+      setTactileStatus((counts.ways||counts.points?summary:'The map search completed but returned no positive tactile tags. This does not establish that paving is absent.'));
+      stopAutoPlay();currentStepIdx=Math.min(currentStepIdx,Math.max(0,instructions.length-1));
       instructions=buildSpokenInstructions(segments);renderDirectionsUI(instructions);highlightStep(currentStepIdx);
+      if(!isListening)document.getElementById('friend-status').textContent='Route ready: '+Math.round(totalDistance)+' m. Tactile check complete; details are below.';
     }
+    async function runTactileCheck(current,force=false){
+      if(activeJourney!==current||!current.segments)return;
+      if(current.tactileController)current.tactileController.abort();
+      const controller=new AbortController();current.tactileController=controller;
+      const checkId=(current.tactileGeneration||0)+1;current.tactileGeneration=checkId;
+      const abort=()=>controller.abort();current.controller.signal.addEventListener('abort',abort,{once:true});
+      tactileState='pending';
+      if(!current.lastTactileSummary)document.getElementById('friend-tactileCoverage').textContent='Checking…';
+      document.getElementById('friend-retryTactile').disabled=false;
+      setTactileStatus('Starting tactile check. The route does not need to wait.');
+      try{
+        const features=await detectPedestrianPaths(current.bounds,controller.signal,text=>{
+          if(activeJourney===current&&checkId===current.tactileGeneration&&!controller.signal.aborted)setTactileStatus(text);
+        },force);
+        await finishTactileCheck(current,current.segments,current.totalDistance,{features,checkId});
+      }catch(error){
+        if(!controller.signal.aborted)await finishTactileCheck(current,current.segments,current.totalDistance,{error,checkId});
+      }finally{current.controller.signal.removeEventListener('abort',abort);}
+    }
+    function retryTactileCheck(){
+      if(!activeJourney?.segments){setTactileStatus('Find a route before checking tactile information.');return;}
+      activeJourney.background=runTactileCheck(activeJourney,true);
+    }
+
     async function findRoute(){
       stopListening(false);
       const startText=document.getElementById('friend-start').value.trim();
@@ -4565,10 +4637,12 @@ window.addEventListener("load",()=>{
       if(!start||!destination){announce('Could not find '+(!start?startText:destinationText)+'. Try a location name from your friend’s list.');return;}
       cancelJourney();stopAutoPlay();
       if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}
+      if(tactileMapLayer){map.removeLayer(tactileMapLayer);tactileMapLayer=null;}
       const current={id:journeyNumber,controller:new AbortController()};activeJourney=current;
       const button=document.getElementById('friend-routeBtn');button.disabled=true;button.textContent='Finding Route…';
       document.getElementById('friend-distance').textContent='—';document.getElementById('friend-duration').textContent='—';
       tactileState='pending';document.getElementById('friend-tactileCoverage').textContent='Checking…';
+      setTactileStatus('Find the route first; tactile information will load automatically afterwards.');
       document.getElementById('friend-voiceBar').style.display='none';document.getElementById('friend-directionsList').replaceChildren();instructions=[];
       if(routeLine){map.removeLayer(routeLine);routeLine=null;}
       if(startMarker)map.removeLayer(startMarker);if(destinationMarker)map.removeLayer(destinationMarker);if(userMarker){map.removeLayer(userMarker);userMarker=null;}
@@ -4579,7 +4653,7 @@ window.addEventListener("load",()=>{
       bounds.extend([bounds.getSouth()-0.005,bounds.getWest()-0.005]);bounds.extend([bounds.getNorth()+0.005,bounds.getEast()+0.005]);
       announce('Finding route. Tactile information will load separately.');
       // Attach the error handler immediately so a failed background search cannot reject unhandled.
-      const tactilePromise=detectPedestrianPaths(bounds,current.controller.signal).then(features=>({features}),error=>({error}));
+
       try{
         const route=await getDirectCampusWalkingRoute(start,destination,current.controller.signal);
         if(activeJourney!==current||current.controller.signal.aborted)return;
@@ -4596,9 +4670,9 @@ window.addEventListener("load",()=>{
         instructions=buildSpokenInstructions(segments);currentStepIdx=0;renderDirectionsUI(instructions);highlightStep(0);
         announce('Route ready: '+Math.round(totalDistance)+' metres. Checking tactile information in the background.');
         button.disabled=false;button.textContent='Find Route';
-        current.background=tactilePromise.then(outcome=>finishTactileCheck(current,segments,totalDistance,outcome)).catch(error=>{
-          if(activeJourney===current&&!current.controller.signal.aborted){tactileState='unknown';document.getElementById('friend-tactileCoverage').textContent='Unavailable';document.getElementById('friend-status').textContent='Route ready. Tactile check could not finish.';}
-        });
+        current.bounds=bounds;current.segments=segments;current.totalDistance=totalDistance;
+        current.background=runTactileCheck(current);
+
       }catch(error){
         if(activeJourney!==current||current.controller.signal.aborted)return;
         current.controller.abort();tactileState='unknown';document.getElementById('friend-tactileCoverage').textContent='Not checked';
@@ -4835,6 +4909,8 @@ window.addEventListener("load",()=>{
     }
 
     function clearRoute() {
+      if(tactileMapLayer){map.removeLayer(tactileMapLayer);tactileMapLayer=null;}
+      setTactileStatus("Find a route to load tactile information.");
       stopListening(false);
       cancelJourney();
       stopAutoPlay();
@@ -4872,7 +4948,7 @@ window.addEventListener("load",()=>{
       }
       return recognizer;
     };
-    window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,stopListening,toggleTapDestination,
+    window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,stopListening,toggleTapDestination,retryTactileCheck,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
       pause:()=>{stopListening(false);cancelJourney();if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
