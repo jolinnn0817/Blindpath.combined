@@ -4418,13 +4418,13 @@ window.addEventListener("load",()=>{
         [out:json][timeout:35];
         (
           way["highway"~"^(footway|path|pedestrian|living_street|service|residential|tertiary|unclassified|steps|crossing|track)$"]
-            (south,{west},north,{east});
+            (${south},${west},${north},${east});
           way["tactile_paving"]
-            (south,{west},north,{east});
+            (${south},${west},${north},${east});
           node["tactile_paving"~"^(yes|primitive|contrasted|incorrect)$"]
-            (south,{west},north,{east});
+            (${south},${west},${north},${east});
           node["highway"="crossing"]["tactile_paving"="yes"]
-            (south,{west},north,{east});
+            (${south},${west},${north},${east});
         );
         out body geom;
       `;
@@ -4451,7 +4451,7 @@ window.addEventListener("load",()=>{
     }
 
     async function getDirectCampusWalkingRoute(start, destination) {
-      const url = `https://router.project-osrm.org/route/v1/foot/start.lon,{start.lat};destination.lon,{destination.lat}?overview=full&geometries=geojson&steps=true`;
+      const url = `https://router.project-osrm.org/route/v1/foot/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
@@ -4532,7 +4532,7 @@ window.addEventListener("load",()=>{
         item.innerHTML = `
           <div class="step-number">${idx + 1}</div>
           <div style="flex-grow: 1;">
-            <span class="step-badge badgeClass">{badgeLabel}</span>
+            <span class="step-badge ${badgeClass}">${badgeLabel}</span>
             <div style="font-weight: bold; font-size: 14px;">${step.turnText}</div>
             <div style="font-size: 13px; color: #475569; margin-top: 2px;">${step.speechText}</div>
           </div>
@@ -4751,7 +4751,7 @@ window.addEventListener("load",()=>{
         const estDuration = Math.max(1, Math.round(totalDist / 1.1 / 60));
 
         document.getElementById("friend-distance").textContent = `${Math.round(totalDist)} m`;
-        document.getElementById("friend-tactileCoverage").textContent = `percent%({Math.round(tactileDist)}m)`;
+        document.getElementById("friend-tactileCoverage").textContent = `${percent}% (${Math.round(tactileDist)}m)`;
         document.getElementById("friend-duration").textContent = `${estDuration} min`;
 
         instructions = buildSpokenInstructions(segments);
@@ -4759,7 +4759,7 @@ window.addEventListener("load",()=>{
         renderDirectionsUI(instructions);
         highlightStep(0);
 
-        document.getElementById("friend-status").textContent = `Direct route found: Math.round(totalDist)m({percent}% tactile blind path).`;
+        document.getElementById("friend-status").textContent = `Direct route found: ${Math.round(totalDist)} m (${percent}% tactile blind path).`;
         speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. First instruction: ${instructions[0].speechText}`);
 
       } catch (err) {
