@@ -296,58 +296,52 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
 </section>
 
 <section id="screen-navigation" class="screen">
-<div class="friend-navigation">
+<div class="friend-navigation"><header><h1>Tactile Blind Path Navigation</h1><p>Voice-guided accessible route planner prioritizing tactile blind paving paths.</p></header><div class="container">
     <section class="panel">
-      <h1>Plan Your Journey</h1><p>Choose a searched place or select the exact entrance on the map.</p>
+      <h2>Plan Your Journey</h2>
 
-      <label for="fn-start">Starting Point</label>
-      <input id="fn-start" type="text" placeholder="e.g. Faculty of Science, Universiti Malaya">
+      <label for="friend-start">Starting Point</label>
+      <input id="friend-start" type="text" placeholder="e.g. Faculty of Science, Universiti Malaya">
 
-      <label for="fn-destination">Destination</label>
-      <input id="fn-destination" type="text" placeholder="e.g. Kolej Kediaman Ke-3, Universiti Malaya">
+      <label for="friend-destination">Destination</label>
+      <input id="friend-destination" type="text" placeholder="e.g. Kolej Kediaman Ke-3, Universiti Malaya">
 
       <div class="btn-row">
-        <button id="fn-routeBtn" type="button" onclick="friendNav.findRoute()">Find Route</button>
+        <button id="friend-routeBtn" type="button" onclick="friendNav.findRoute()">Find Route</button>
         <button class="secondary" type="button" onclick="friendNav.useMyLocation()">Use My Location</button>
-        <button class="secondary" type="button" onclick="friendNav.toggleVoice()">Voice: <span id="fn-voiceStatus">ON</span></button>
+        <button class="secondary" type="button" onclick="friendNav.toggleVoice()">Voice: <span id="friend-voiceStatus">ON</span></button>
         <button class="secondary" type="button" onclick="friendNav.clearRoute()">Clear</button>
       </div>
 
-      <section class="location-tools">
-<label for="fn-campusOnly"><input id="fn-campusOnly" type="checkbox" checked style="width:24px"> Search within Universiti Malaya</label>
-<label for="fn-mapTarget">Tap map to set</label><select id="fn-mapTarget"><option value="fn-destination">Destination</option><option value="fn-start">Starting point</option></select>
-<p id="fn-matches" role="status" aria-live="polite">Matched locations will appear here with coordinates.</p>
-<div id="fn-placePicker" hidden role="region" aria-label="Choose matched place"><h2 id="fn-placeHeading"></h2><label for="fn-placeOptions">Matched locations</label><select id="fn-placeOptions"></select><div class="btn-row"><button type="button" id="fn-previewPlace">Show on Map</button><button type="button" id="fn-acceptPlace">Use Selected Location</button><button type="button" id="fn-cancelPlace">Cancel Search</button></div></div>
-</section>
-<div id="fn-status" role="status" aria-live="polite">
+      <div id="friend-status" role="status" aria-live="polite">
         Ready. Enter starting point and destination to find a route.
       </div>
 
       <div class="stats">
         <div class="stat">
           Distance
-          <strong id="fn-distance">—</strong>
+          <strong id="friend-distance">—</strong>
         </div>
         <div class="stat">
           Tactile Blind Path
-          <strong id="fn-tactileCoverage">—</strong>
+          <strong id="friend-tactileCoverage">—</strong>
         </div>
         <div class="stat">
           Duration
-          <strong id="fn-duration">—</strong>
+          <strong id="friend-duration">—</strong>
         </div>
       </div>
 
       <!-- Voice Guidance Controls -->
-      <div class="voice-controls" id="fn-voiceBar" style="display: none;">
+      <div class="voice-controls" id="friend-voiceBar" style="display: none;">
         <span style="font-size: 13px; font-weight: bold;">Voice Guidance:</span>
         <button class="secondary" onclick="friendNav.speakCurrentStep()">Repeat Step</button>
         <button class="secondary" onclick="friendNav.nextStepVoice()">Next Step</button>
-        <button class="accent" id="fn-autoPlayBtn" onclick="friendNav.toggleAutoPlay()">Read Entire Route</button>
-        <button class="secondary" id="fn-simBtn" onclick="friendNav.toggleSimulation()">Preview Walk (simulation)</button>
+        <button class="accent" id="friend-autoPlayBtn" onclick="friendNav.toggleAutoPlay()">Read Entire Route</button>
+        <button class="secondary" id="friend-simBtn" onclick="friendNav.toggleSimulation()">Simulate Walk</button>
       </div>
 
-      <div class="directions-container" id="fn-directionsList">
+      <div class="directions-container" id="friend-directionsList">
         <p style="color: #64748b; margin: 0; text-align: center;">Turn-by-turn guidance will appear here once route is found.</p>
       </div>
     </section>
@@ -358,12 +352,12 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
           <div class="legend-color" style="background: #d97706;"></div> Tactile Blind Paving
         </div>
         <div class="legend-item">
-          <div class="legend-color" style="background: #2563eb;"></div> Other mapped path (check tactile status)
+          <div class="legend-color" style="background: #2563eb;"></div> Regular Sidewalk / Way
         </div>
       </div>
-      <div id="fn-map"></div><p>Dashed blue means tactile status unknown. Place-search results may identify a building centre; tap the map to select an entrance. OSM tags and map labels are unverified.</p>
+      <div id="friend-map"></div>
     </section>
-  </div>
+  </div></div>
 
 <div class="card hidden" aria-hidden="true" inert>
 <h1>Navigation</h1>
@@ -3846,12 +3840,12 @@ window.addEventListener("load",()=>{
     }.friend-navigation button:disabled{
       opacity: 0.55;
       cursor: not-allowed;
-    }.friend-navigation #fn-map{
+    }.friend-navigation #friend-map{
       width: 100%;
       height: 420px;
       border-radius: 12px;
       z-index: 1;
-    }.friend-navigation #fn-status{
+    }.friend-navigation #friend-status{
       margin-top: 12px;
       padding: 12px;
       background: #eaf2ee;
@@ -3929,14 +3923,13 @@ window.addEventListener("load",()=>{
       font-size: 12px;
       font-weight: bold;
       margin-bottom: 8px;
-    }.friend-navigation .legend-item{ display: flex; align-items: center; gap: 6px; }.friend-navigation .legend-color{ width: 18px; height: 6px; border-radius: 3px; }@media (max-width: 600px){.friend-navigation .stats{ grid-template-columns: 1fr; }.friend-navigation #fn-map{ height: 320px; }
+    }.friend-navigation .legend-item{ display: flex; align-items: center; gap: 6px; }.friend-navigation .legend-color{ width: 18px; height: 6px; border-radius: 3px; }@media (max-width: 600px){.friend-navigation .stats{ grid-template-columns: 1fr; }.friend-navigation #friend-map{ height: 320px; }
     }
-  .friend-navigation select{width:100%;padding:11px;border:1px solid #ccd3dd;border-radius:7px;background:white;font:inherit}.friend-navigation [hidden]{display:none!important}.friend-navigation .location-tools{margin:12px 0}.friend-navigation #fn-placePicker{background:#edf5f0;padding:14px;border-radius:10px}.friend-navigation #fn-matches{font-size:14px;overflow-wrap:anywhere}.friend-navigation #fn-map{height:420px}.friend-navigation .container{padding:0;margin:0;max-width:none}.friend-navigation .panel{box-shadow:none;border:1px solid #d8e2dc}.friend-navigation .instruction-step:focus-visible{outline:3px solid #174c3c}</style>
+  </style>
 <script>
 (() => {
-"use strict";
 
-    const map = L.map("fn-map").setView([3.1209, 101.6538], 16);
+    const map = L.map("friend-map").setView([3.1209, 101.6538], 16);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
@@ -3958,6 +3951,98 @@ window.addEventListener("load",()=>{
 
     const locationCache = new Map();
 
+    // Direct coordinates lookup for UM landmarks not tagged as single points in OSM
+    const umDirectLocations = {
+      "fakulti sains": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
+      "faculty of science": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
+      "fakulti bahasa": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "faculty of languages": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "fakulti sastera": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "faculty of arts": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "fakulti undang-undang": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
+      "faculty of law": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
+      "dtc": { lat: 3.1209, lon: 101.6579, name: "Dewan Tunku Canselor (DTC), Universiti Malaya" },
+      "perpustakaan": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" },
+      "main library": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" }
+    };
+
+    // Direct coordinates for all 12 UM Residential Colleges (KK1 - KK12)
+    const umResidentialColleges = {
+      "kk1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej 1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman pertama": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman ke-1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "1st residential college": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "astaka": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+
+      "kk2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej 2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman kedua": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman ke-2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "2nd residential college": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+
+      "kk3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ketiga": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke-3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "3rd residential college": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+
+      "kk4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej 4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman keempat": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman ke-4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "4th residential college": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+
+      "kk5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej 5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman kelima": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman ke-5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "5th residential college": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+
+      "kk6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej 6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman keenam": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman ke-6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "6th residential college": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+
+      "kk7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej 7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ketujuh": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ke-7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "7th residential college": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+
+      "kk8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej 8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman kelapan": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman ke-8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "8th residential college": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+
+      "kk9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej 9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman kesembilan": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman ke-9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "9th residential college": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+
+      "kk10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej 10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman kesepuluh": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman ke-10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "10th residential college": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+
+      "kk11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej 11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman kesebelas": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman ke-11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "11th residential college": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+
+      "kk12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej 12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman kedua belas": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman ke-12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "12th residential college": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" }
+    };
+
     function speakText(text, onComplete = null) {
       if (!voiceEnabled || !("speechSynthesis" in window)) {
         if (onComplete) onComplete();
@@ -3967,9 +4052,7 @@ window.addEventListener("load",()=>{
       window.speechSynthesis.cancel();
 
       const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = Number(document.getElementById("speechSpeed").value) || 1;
-      const selectedVoice=document.getElementById("voiceSelect").value;
-      if(selectedVoice!=="")utterance.voice=speechSynthesis.getVoices()[Number(selectedVoice)]||null;
+      utterance.rate = 0.95;
       utterance.lang = "en-US";
 
       if (onComplete) {
@@ -3981,13 +4064,13 @@ window.addEventListener("load",()=>{
     }
 
     function announce(msg) {
-      document.getElementById("fn-status").textContent = msg;
+      document.getElementById("friend-status").textContent = msg;
       speakText(msg);
     }
 
     function toggleVoice() {
       voiceEnabled = !voiceEnabled;
-      document.getElementById("fn-voiceStatus").textContent = voiceEnabled ? "ON" : "OFF";
+      document.getElementById("friend-voiceStatus").textContent = voiceEnabled ? "ON" : "OFF";
       if (!voiceEnabled) {
         window.speechSynthesis.cancel();
         stopAutoPlay();
@@ -4025,36 +4108,49 @@ window.addEventListener("load",()=>{
       return diff > 0 ? "Make a sharp right" : "Make a sharp left";
     }
 
-    async function geocode(place, fieldId) {
-      const token=journeyGeneration;
-      const clean=place.trim();
-      const coordinateMatch=clean.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-      if(coordinateMatch){
-        const lat=Number(coordinateMatch[1]),lon=Number(coordinateMatch[2]);
-        if(lat < -90 || lat > 90 || lon < -180 || lon > 180)throw new Error('Coordinates are outside valid latitude/longitude ranges.');
-        return {lat,lon,name:'Selected coordinates'};
+    async function geocode(place, isRetry = false) {
+      let clean = place.trim().toLowerCase();
+
+      // 1. Direct coordinates match (lat, lon)
+      const coordMatch = place.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (coordMatch) {
+        return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: place };
       }
-      const campus=document.getElementById('fn-campusOnly').checked;
-      const cacheKey=(campus?'campus:':'global:')+clean.toLowerCase();
-      if(locationCache.has(cacheKey))return locationCache.get(cacheKey);
-      const collegeNames=['Tuanku Abdul Rahman','Tuanku Bahiyah','Tuanku Kurshiah','Bestari','Dayasari','Ibnu Sina',"Za'ba",'Kinabalu','Tun Syed Zahiruddin','Tun Ahmad Zaidi','Ungku Aziz','Raja Dr Nazrin Shah'];
-      const alias=clean.match(/^(?:kk|kolej(?:\s+kediaman)?(?:\s+ke[- ]?)?)\s*(1[0-2]|[1-9])$/i);
-      let query=alias?'Kolej Kediaman '+collegeNames[Number(alias[1])-1]:clean;
-      if(campus&&!/universit[iy]|malaya/i.test(query))query+=', Universiti Malaya, Kuala Lumpur';
-      await new Promise(resolve=>setTimeout(resolve,Math.max(0,1100-(Date.now()-lastGeocodeTime))));
-      if(token!==journeyGeneration || routeController?.signal.aborted)throw new DOMException('Cancelled','AbortError');
-      lastGeocodeTime=Date.now();
-      const params=new URLSearchParams({format:'jsonv2',limit:'6',addressdetails:'1',q:query});
-      if(campus){params.set('viewbox','101.63,3.16,101.69,3.09');params.set('bounded','1');params.set('countrycodes','my');}
-      const response=await fetch('https://nominatim.openstreetmap.org/search?'+params,{signal:requestSignal(20000)});
-      if(!response.ok)throw new Error('Location search is unavailable. Select the entrance directly on the map.');
-      const data=await response.json();
-      const choices=data.map(result=>({lat:Number(result.lat),lon:Number(result.lon),name:result.display_name}))
-        .filter(point=>Number.isFinite(point.lat)&&Number.isFinite(point.lon));
-      if(!choices.length)throw new Error('No matching place found. Try a full name, turn off the campus filter for places outside UM, or select the entrance on the map.');
-      const selected=await choosePlace(choices,fieldId);
-      locationCache.set(cacheKey,selected);
-      return selected;
+
+      // 2. Direct lookup for UM faculties
+      for (const [key, val] of Object.entries(umDirectLocations)) {
+        if (clean.includes(key)) {
+          return val;
+        }
+      }
+
+      // 3. Direct coordinates for UM residential colleges
+      for (const [key, val] of Object.entries(umResidentialColleges)) {
+        if (clean.includes(key)) {
+          return val;
+        }
+      }
+
+      if (locationCache.has(clean)) return locationCache.get(clean);
+
+      // 4. Query Nominatim with cleaned string
+      const queryTerm = clean.replace(/ke-(\d+)/g, "ke $1");
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(queryTerm);
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Location lookup service unavailable.");
+      const list = await res.json();
+
+      if (!list.length) {
+        if (!isRetry && !queryTerm.includes("universiti malaya") && !queryTerm.includes("um")) {
+          return await geocode(queryTerm + " Universiti Malaya", true);
+        }
+        throw new Error(`Location "${place}" not found. Try entering KK1 to KK12, or the specific faculty name.`);
+      }
+
+      const result = { lat: Number(list[0].lat), lon: Number(list[0].lon), name: list[0].display_name };
+      locationCache.set(place.trim().toLowerCase(), result);
+      return result;
     }
 
     async function detectPedestrianPaths(bounds) {
@@ -4074,7 +4170,7 @@ window.addEventListener("load",()=>{
 
       for (const server of servers) {
         try {
-          const res = await fetch(server + "?data=" + encodeURIComponent(query), {signal: requestSignal(40000)});
+          const res = await fetch(server + "?data=" + encodeURIComponent(query));
           if (!res.ok) continue;
           const data = await res.json();
           if (Array.isArray(data.elements)) {
@@ -4083,328 +4179,213 @@ window.addEventListener("load",()=>{
               isTactile: e.tags?.tactile_paving === "yes"
             }));
           }
-        } catch (err) {if(routeController?.signal.aborted)throw err;}
+        } catch (err) {}
       }
       return [];
     }
 
     async function getOSRMRoute(start, destination) {
-      const url = `https://routing.openstreetmap.de/routed-foot/route/v1/driving/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
-      const res = await fetch(url, {signal: requestSignal(20000)});
+      const url = `https://router.project-osrm.org/route/v1/foot/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
       if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found.");
       return data.routes[0];
     }
 
-
-    const radians = value => value * Math.PI / 180;
-  function buildWalkingGraph(features) {
-    const nodes = new Map();
-
-    for (const feature of features) {
-      const tags = feature.tags || {};
-
-      if (
-        ["no", "private"].includes(tags.access) ||
-        ["no", "private"].includes(tags.foot) ||
-        tags["access:conditional"] ||
-        tags["foot:conditional"]
-      ) {
-        continue;
-      }
-
-      const pedestrianWay = [
-        "footway",
-        "path",
-        "pedestrian",
-        "steps",
-        "living_street"
-      ].includes(tags.highway);
-
-      const explicitFootAccess = [
-        "yes",
-        "designated",
-        "permissive"
-      ].includes(tags.foot);
-
-      const sharedWalkingWay = [
-        "service",
-        "residential",
-        "unclassified",
-        "track",
-        "crossing"
-      ].includes(tags.highway);
-
-      if (
-        !pedestrianWay &&
-        !explicitFootAccess &&
-        !sharedWalkingWay
-      ) {
-        continue;
-      }
-
-      if (
-        !feature.nodes ||
-        !feature.geometry ||
-        feature.nodes.length !== feature.geometry.length
-      ) {
-        continue;
-      }
-
-      const surface =
-        tags.tactile_paving === "yes" ? "yes" :
-        tags.tactile_paving === "no" ? "no" : "unknown";
-
-      feature.nodes.forEach((id, index) => {
-        const point = feature.geometry[index];
-
-        if (
-          Number.isFinite(point.lat) &&
-          Number.isFinite(point.lon) &&
-          !nodes.has(id)
-        ) {
-          nodes.set(id, {
-            ...point,
-            edges: []
-          });
-        }
-      });
-
-      for (let index = 1; index < feature.nodes.length; index++) {
-        const fromId = feature.nodes[index - 1];
-        const toId = feature.nodes[index];
-        const from = nodes.get(fromId);
-        const to = nodes.get(toId);
-
-        if (!from || !to || fromId === toId) continue;
-
-        const length = distanceMetres(from, to);
-        if (length < 0.1) continue;
-
-        const edge = {
-          length,
-          cost: length * (surface === "yes" ? 0.2 : 1),
-          surface,
-          name: tags.name || ""
-        };
-
-        const oneWay = tags["oneway:foot"];
-
-        if (oneWay !== "-1") {
-          from.edges.push({
-            ...edge,
-            to: toId
-          });
-        }
-
-        if (oneWay !== "yes" && oneWay !== "1") {
-          to.edges.push({
-            ...edge,
-            to: fromId
-          });
-        }
-      }
-
-      if (nodes.size > 25000) {
-        throw new Error(
-          "Mapped network is too large for this browser."
-        );
-      }
-    }
-
-    return nodes;
-  }
-
-  // Search within 120 metres without drawing an assumed connector.
-  function nearestNode(nodes, point) {
-    // Snap to the actual mapped segment, including long segments with distant nodes.
-    const scaleY = 110540;
-    const scaleX = 111320 * Math.cos(radians(point.lat));
-    let best = null;
-    let bestDistance = 120;
-    for (const [fromId, from] of nodes) {
-      for (const edge of from.edges) {
-        const to = nodes.get(edge.to);
-        if (!to) continue;
-        const ax = (from.lon - point.lon) * scaleX;
-        const ay = (from.lat - point.lat) * scaleY;
-        const dx = (to.lon - from.lon) * scaleX;
-        const dy = (to.lat - from.lat) * scaleY;
-        const lengthSquared = dx * dx + dy * dy;
-        if (!lengthSquared) continue;
-        const t = Math.max(0, Math.min(1, -(ax * dx + ay * dy) / lengthSquared));
-        const distance = Math.hypot(ax + t * dx, ay + t * dy);
-        if (distance < bestDistance) {
-          bestDistance = distance;
-          best = {fromId, toId:edge.to, t, from, to};
-        }
-      }
-    }
-    if (!best) return {id:null, distance:120};
-    if (best.t <= 0.000001) return {id:best.fromId, distance:bestDistance};
-    if (best.t >= 0.999999) return {id:best.toId, distance:bestDistance};
-    const id = "snap-" + nodes.size;
-    const snap = {lat:best.from.lat + best.t * (best.to.lat - best.from.lat),
-      lon:best.from.lon + best.t * (best.to.lon - best.from.lon), edges:[]};
-    nodes.set(id, snap);
-    // Split existing directed edges. Never add a connection across an unmapped gap.
-    for (const [sourceId, targetId] of [[best.fromId,best.toId],[best.toId,best.fromId]]) {
-      const source = nodes.get(sourceId);
-      const target = nodes.get(targetId);
-      const matching = source.edges.filter(edge => edge.to === targetId);
-      source.edges = source.edges.filter(edge => edge.to !== targetId);
-      for (const edge of matching) {
-        const first = distanceMetres(source,snap);
-        const second = distanceMetres(snap,target);
-        const factor = edge.cost / edge.length;
-        source.edges.push({...edge,to:id,length:first,cost:first * factor});
-        snap.edges.push({...edge,to:targetId,length:second,cost:second * factor});
-      }
-    }
-    return {id, distance:bestDistance};
-  }
-
-  // Dijkstra routing with a binary heap.
-  function findShortestRoute(nodes, startId, endId) {
-    const heap = [];
-    const costs = new Map([[startId, 0]]);
-    const previous = new Map();
-
-    function push(item) {
-      heap.push(item);
-      let index = heap.length - 1;
-
-      while (index) {
-        const parent = (index - 1) >> 1;
-        if (heap[parent][0] <= item[0]) break;
-
-        heap[index] = heap[parent];
-        index = parent;
-      }
-
-      heap[index] = item;
-    }
-
-    function pop() {
-      const first = heap[0];
-      const last = heap.pop();
-
-      if (heap.length) {
-        let index = 0;
-
-        while (2 * index + 1 < heap.length) {
-          let child = 2 * index + 1;
-
-          if (
-            child + 1 < heap.length &&
-            heap[child + 1][0] < heap[child][0]
-          ) {
-            child++;
-          }
-
-          if (heap[child][0] >= last[0]) break;
-
-          heap[index] = heap[child];
-          index = child;
-        }
-
-        heap[index] = last;
-      }
-
-      return first;
-    }
-
-    push([0, startId]);
-
-    while (heap.length) {
-      const [cost, id] = pop();
-
-      if (cost !== costs.get(id)) continue;
-      if (id === endId) break;
-
-      for (const edge of nodes.get(id).edges) {
-        const nextCost = cost + edge.cost;
-
-        if (nextCost < (costs.get(edge.to) ?? Infinity)) {
-          costs.set(edge.to, nextCost);
-          previous.set(edge.to, {
-            id,
-            edge
-          });
-          push([nextCost, edge.to]);
-        }
-      }
-    }
-
-    if (!previous.has(endId)) return null;
-
-    const segments = [];
-    let id = endId;
-
-    while (id !== startId) {
-      const entry = previous.get(id);
-      if (!entry) return null;
-
-      segments.push({
-        ...entry.edge,
-        from: nodes.get(entry.id),
-        to: nodes.get(id)
-      });
-
-      id = entry.id;
-    }
-
-    return segments.reverse();
-  }
-
-
     function buildRoutingGraph(features, start, destination) {
-      const nodes = buildWalkingGraph(features);
-      const first = nearestNode(nodes,start);
-      const last = nearestNode(nodes,destination);
-      routeGaps = {start:first.distance,end:last.distance};
-      return {nodes,startId:first.id,destId:last.id};
-    }
-    function runDijkstra(data) {
-      if (data.startId === null || data.destId === null || data.startId === data.destId) return null;
-      const segments = findShortestRoute(data.nodes,data.startId,data.destId);
-      return segments && segments.map(segment => ({...segment,distance:segment.length,
-        isTactile:segment.surface === 'yes',unknown:segment.surface === 'unknown'}));
-    }
-    function buildSpokenInstructions(segments) {
-      const list=[];
-      let previous=null;
-      for (const segment of segments) {
-        const heading=getBearing(segment.from,segment.to);
-        const angle=previous === null ? 0 : ((heading-previous+540)%360)-180;
-        const surface=segment.isTactile ? 'OSM-tagged tactile path' : segment.unknown ? 'mapped path with unknown tactile status' : 'path tagged without tactile paving';
-        const last=list[list.length-1];
-        if (!last || Math.abs(angle)>=35 || last.surface!==surface) {
-          list.push({point:segment.from,distance:segment.distance,isTactile:segment.isTactile,
-            surface,turnText:list.length ? getTurnDescription(angle) : 'Start along the mapped route'});
-        } else last.distance+=segment.distance;
-        previous=heading;
+      const graph = new Map();
+      const coordinates = new Map();
+      const deadEnds = new Set();
+
+      function addNode(pt) {
+        const id = `${pt.lat.toFixed(7)},${pt.lon.toFixed(7)}`;
+        if (!coordinates.has(id)) {
+          coordinates.set(id, { lat: pt.lat, lon: pt.lon });
+          graph.set(id, []);
+        }
+        return id;
       }
-      for (const step of list) step.speechText=step.turnText+'. Continue for '+Math.round(step.distance)+' metres on the '+step.surface+'.';
-      list.push({point:segments[segments.length-1].to,distance:0,isTactile:false,
-        turnText:'End of mapped route',speechText:'End of the mapped route. Check the selected destination entrance.'});
+
+      function addEdge(u, v, isTactile, isSynth = false) {
+        if (u === v) return;
+        const ptA = coordinates.get(u);
+        const ptB = coordinates.get(v);
+        const len = distanceMetres(ptA, ptB);
+        if (len < 0.1) return;
+
+        // Tactile paving gets heavy priority (0.2x cost)
+        let cost = len * (isTactile ? 0.2 : 1.0);
+        if (isSynth) cost = len * 2.0;
+
+        graph.get(u).push({ target: v, length: len, cost, isTactile });
+        graph.get(v).push({ target: u, length: len, cost, isTactile });
+      }
+
+      for (const f of features) {
+        if (!f.geometry || f.geometry.length < 2) continue;
+        const tags = f.tags || {};
+        if (tags.foot === "no" || tags.access === "no" || tags.access === "private") continue;
+
+        const isTactile = tags.tactile_paving === "yes";
+        const nodeIds = f.geometry.map(pt => addNode(pt));
+
+        deadEnds.add(nodeIds[0]);
+        deadEnds.add(nodeIds[nodeIds.length - 1]);
+
+        for (let i = 0; i < nodeIds.length - 1; i++) {
+          addEdge(nodeIds[i], nodeIds[i + 1], isTactile);
+        }
+      }
+
+      // Connect isolated campus paths within 35m
+      const deadEndList = Array.from(deadEnds);
+      for (let i = 0; i < deadEndList.length; i++) {
+        const idA = deadEndList[i];
+        const coordA = coordinates.get(idA);
+        for (let j = i + 1; j < deadEndList.length; j++) {
+          const idB = deadEndList[j];
+          const coordB = coordinates.get(idB);
+          if (distanceMetres(coordA, coordB) <= 35) {
+            addEdge(idA, idB, false, true);
+          }
+        }
+      }
+
+      const startId = addNode(start);
+      const destId = addNode(destination);
+
+      for (const [id, coord] of coordinates) {
+        if (id === startId || id === destId) continue;
+        if (distanceMetres(start, coord) <= 120) addEdge(startId, id, false, true);
+        if (distanceMetres(destination, coord) <= 120) addEdge(destId, id, false, true);
+      }
+
+      return { graph, coordinates, startId, destId };
+    }
+
+    function runDijkstra(graphData) {
+      const { graph, coordinates, startId, destId } = graphData;
+      const costs = new Map();
+      const previous = new Map();
+      const unvisited = new Set(graph.keys());
+
+      for (const id of graph.keys()) costs.set(id, Infinity);
+      costs.set(startId, 0);
+
+      while (unvisited.size > 0) {
+        let current = null;
+        let lowest = Infinity;
+
+        for (const node of unvisited) {
+          const c = costs.get(node);
+          if (c < lowest) {
+            lowest = c;
+            current = node;
+          }
+        }
+
+        if (current === null || lowest === Infinity || current === destId) break;
+        unvisited.delete(current);
+
+        for (const edge of graph.get(current)) {
+          if (!unvisited.has(edge.target)) continue;
+          const alt = lowest + edge.cost;
+          if (alt < costs.get(edge.target)) {
+            costs.set(edge.target, alt);
+            previous.set(edge.target, { from: current, edge });
+          }
+        }
+      }
+
+      if (!Number.isFinite(costs.get(destId))) return null;
+
+      const segments = [];
+      let curr = destId;
+      while (curr !== startId) {
+        const step = previous.get(curr);
+        segments.push({
+          from: coordinates.get(step.from),
+          to: coordinates.get(curr),
+          distance: step.edge.length,
+          isTactile: step.edge.isTactile
+        });
+        curr = step.from;
+      }
+
+      segments.reverse();
+      return segments;
+    }
+
+    function buildSpokenInstructions(segments) {
+      if (!segments.length) return [];
+
+      const list = [];
+      let accumulatedDist = segments[0].distance;
+      let currentTactile = segments[0].isTactile;
+      let startPoint = segments[0].from;
+      let incomingBearing = getBearing(startPoint, segments[0].to);
+
+      for (let i = 1; i < segments.length; i++) {
+        const seg = segments[i];
+        const segBearing = getBearing(seg.from, seg.to);
+        const turnAngle = ((segBearing - incomingBearing + 540) % 360) - 180;
+        const pavingChanged = seg.isTactile !== currentTactile;
+
+        if (Math.abs(turnAngle) >= 35 || pavingChanged) {
+          const surfaceName = currentTactile ? "tactile blind path" : "ordinary walking path";
+          const turnPhrase = list.length === 0 ? "Start walking" : getTurnDescription(turnAngle);
+
+          list.push({
+            point: startPoint,
+            distance: Math.round(accumulatedDist),
+            isTactile: currentTactile,
+            turnText: turnPhrase,
+            speechText: `${turnPhrase}. Walk ${Math.round(accumulatedDist)} metres on the ${surfaceName}.`
+          });
+
+          startPoint = seg.from;
+          accumulatedDist = seg.distance;
+          currentTactile = seg.isTactile;
+          incomingBearing = segBearing;
+        } else {
+          accumulatedDist += seg.distance;
+          incomingBearing = segBearing;
+        }
+      }
+
+      const finalSurface = currentTactile ? "tactile path" : "ordinary path";
+      list.push({
+        point: startPoint,
+        distance: Math.round(accumulatedDist),
+        isTactile: currentTactile,
+        turnText: list.length === 0 ? "Walk straight" : "Continue straight",
+        speechText: `Continue straight for ${Math.round(accumulatedDist)} metres on the ${finalSurface} to destination.`
+      });
+
+      list.push({
+        point: segments[segments.length - 1].to,
+        distance: 0,
+        isTactile: false,
+        turnText: "Arrived",
+        speechText: "You have arrived at your destination."
+      });
+
       return list;
     }
+
     function renderDirectionsUI(steps) {
-      const container = document.getElementById("fn-directionsList");
+      const container = document.getElementById("friend-directionsList");
       container.innerHTML = "";
 
       steps.forEach((step, idx) => {
         const item = document.createElement("div");
         item.className = "instruction-step";
-        item.id = `fn-step-${idx}`;
+        item.id = `friend-step-${idx}`;
         item.onclick = () => selectStep(idx);
-        item.tabIndex=0; item.setAttribute('role','button');
-        item.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();selectStep(idx);}};
 
         const badgeClass = step.isTactile ? "badge-tactile" : "badge-regular";
-        const badgeLabel = idx === steps.length - 1 ? "Finish" : (step.isTactile ? "Tactile Paving" : "Tactile status: see step");
+        const badgeLabel = idx === steps.length - 1 ? "Finish" : (step.isTactile ? "Tactile Paving" : "Regular Walkway");
 
         item.innerHTML = `
           <div class="step-number">${idx + 1}</div>
@@ -4417,7 +4398,7 @@ window.addEventListener("load",()=>{
         container.appendChild(item);
       });
 
-      document.getElementById("fn-voiceBar").style.display = "flex";
+      document.getElementById("friend-voiceBar").style.display = "flex";
     }
 
     function selectStep(idx) {
@@ -4429,7 +4410,7 @@ window.addEventListener("load",()=>{
 
     function highlightStep(idx) {
       document.querySelectorAll(".friend-navigation .instruction-step").forEach(el => el.classList.remove("active"));
-      const el = document.getElementById(`fn-step-${idx}`);
+      const el = document.getElementById(`friend-step-${idx}`);
       if (el) {
         el.classList.add("active");
         el.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -4443,7 +4424,7 @@ window.addEventListener("load",()=>{
             color: "#b45309",
             fillColor: "#f59e0b",
             fillOpacity: 1
-          }).addTo(map).bindTooltip("Direction preview marker — not your GPS position");
+          }).addTo(map);
         } else {
           userMarker.setLatLng([pt.lat, pt.lon]);
         }
@@ -4477,8 +4458,8 @@ window.addEventListener("load",()=>{
     function startAutoPlay() {
       if (!instructions.length) return;
       isAutoPlaying = true;
-      document.getElementById("fn-autoPlayBtn").textContent = "Pause Reading";
-      document.getElementById("fn-autoPlayBtn").style.background = "#dc2626";
+      document.getElementById("friend-autoPlayBtn").textContent = "Pause Reading";
+      document.getElementById("friend-autoPlayBtn").style.background = "#dc2626";
 
       function playNext() {
         if (!isAutoPlaying) return;
@@ -4500,7 +4481,7 @@ window.addEventListener("load",()=>{
     function stopAutoPlay() {
       isAutoPlaying = false;
       clearTimeout(autoPlayTimer);
-      const btn = document.getElementById("fn-autoPlayBtn");
+      const btn = document.getElementById("friend-autoPlayBtn");
       if (btn) {
         btn.textContent = "Read Entire Route";
         btn.style.background = "#d97706";
@@ -4511,11 +4492,11 @@ window.addEventListener("load",()=>{
       if (simulationTimer) {
         clearInterval(simulationTimer);
         simulationTimer = null;
-        document.getElementById("fn-simBtn").textContent = "Preview Walk (simulation)";
+        document.getElementById("friend-simBtn").textContent = "Simulate Walk";
         return;
       }
 
-      document.getElementById("fn-simBtn").textContent = "Stop Simulation";
+      document.getElementById("friend-simBtn").textContent = "Stop Simulation";
       currentStepIdx = 0;
       highlightStep(0);
       speakCurrentStep();
@@ -4528,45 +4509,39 @@ window.addEventListener("load",()=>{
         } else {
           clearInterval(simulationTimer);
           simulationTimer = null;
-          document.getElementById("fn-simBtn").textContent = "Preview Walk (simulation)";
+          document.getElementById("friend-simBtn").textContent = "Simulate Walk";
         }
       }, 5500);
     }
 
     async function findRoute() {
-      const startText = document.getElementById("fn-start").value.trim();
-      const destText = document.getElementById("fn-destination").value.trim();
-      const btn = document.getElementById("fn-routeBtn");
+      const startText = document.getElementById("friend-start").value.trim();
+      const destText = document.getElementById("friend-destination").value.trim();
+      const btn = document.getElementById("friend-routeBtn");
 
       if (!startText || !destText) {
         announce("Please enter both a starting point and destination.");
         return;
       }
 
-      cancelLookup();
-      stopMicrophone(false);
-      const token=journeyGeneration;
-      routeController=new AbortController();
       stopAutoPlay();
       if (simulationTimer) clearInterval(simulationTimer);
-      let fallbackUsed=false;
+
       btn.disabled = true;
       btn.textContent = "Finding Route...";
 
       try {
         announce("Searching locations...");
-        const start = await geocode(startText, "fn-start");
-        const destination = await geocode(destText, "fn-destination");
-        if(token!==journeyGeneration)return;
-        document.getElementById('fn-matches').textContent='Start: '+start.name+' ('+start.lat.toFixed(6)+', '+start.lon.toFixed(6)+'). Destination: '+destination.name+' ('+destination.lat.toFixed(6)+', '+destination.lon.toFixed(6)+').';
+        const start = await geocode(startText);
+        const destination = await geocode(destText);
 
         if (startMarker) map.removeLayer(startMarker);
         if (destinationMarker) map.removeLayer(destinationMarker);
         if (routeLine) map.removeLayer(routeLine);
         if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
 
-        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup(document.createTextNode("Start: "+start.name)).openPopup();
-        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup(document.createTextNode("Destination: "+destination.name));
+        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start").openPopup();
+        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination");
 
         const bounds = L.latLngBounds([start.lat, start.lon], [destination.lat, destination.lon]);
         bounds.extend([bounds.getSouth() - 0.006, bounds.getWest() - 0.006]);
@@ -4574,7 +4549,6 @@ window.addEventListener("load",()=>{
 
         announce("Searching tactile and pedestrian network...");
         const features = await detectPedestrianPaths(bounds);
-        if(token!==journeyGeneration)return;
 
         const graphData = buildRoutingGraph(features, start, destination);
         let segments = runDijkstra(graphData);
@@ -4582,20 +4556,40 @@ window.addEventListener("load",()=>{
         // Fallback to general pedestrian network if graph has isolated gaps
         if (!segments || segments.length === 0) {
           const fallback = await getOSRMRoute(start, destination);
-          fallbackUsed=true;
-          const rawCoords=fallback.geometry.coordinates.map(c=>({lat:c[1],lon:c[0]}));
-          segments=rawCoords.slice(1).map((point,index)=>({from:rawCoords[index],to:point,
-            distance:distanceMetres(rawCoords[index],point),isTactile:false,unknown:true}));
+          const rawCoords = fallback.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
+
+          segments = [];
+          for (let i = 0; i < rawCoords.length - 1; i++) {
+            const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
+            const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
+
+            let isNearTactile = false;
+            for (const f of features) {
+              if (f.isTactile && f.geometry) {
+                for (const pt of f.geometry) {
+                  if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 6) {
+                    isNearTactile = true;
+                    break;
+                  }
+                }
+              }
+              if (isNearTactile) break;
+            }
+
+            segments.push({
+              from: rawCoords[i],
+              to: rawCoords[i+1],
+              distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
+              isTactile: isNearTactile
+            });
+          }
         }
-        if(token!==journeyGeneration)return;
-        if(!segments.length)throw new Error('No route geometry was returned.');
 
         // Draw ONLY the selected route: Amber = Tactile, Blue = Regular Walkway
         routeLine = L.featureGroup();
         segments.forEach(seg => {
           L.polyline([[seg.from.lat, seg.from.lon], [seg.to.lat, seg.to.lon]], {
             color: seg.isTactile ? "#d97706" : "#2563eb",
-            dashArray: seg.unknown ? "8 6" : null,
             weight: 7,
             opacity: 0.95
           }).addTo(routeLine);
@@ -4610,9 +4604,9 @@ window.addEventListener("load",()=>{
         const percent = totalDist > 0 ? Math.round((tactileDist / totalDist) * 100) : 0;
         const estDuration = Math.max(1, Math.round(totalDist / 1.1 / 60));
 
-        document.getElementById("fn-distance").textContent = `${Math.round(totalDist)} m`;
-        document.getElementById("fn-tactileCoverage").textContent = fallbackUsed ? "Unknown (walking service)" : `${percent}% (${Math.round(tactileDist)}m tagged)`;
-        document.getElementById("fn-duration").textContent = `${estDuration} min`;
+        document.getElementById("friend-distance").textContent = `${Math.round(totalDist)} m`;
+        document.getElementById("friend-tactileCoverage").textContent = `${percent}% (${Math.round(tactileDist)}m)`;
+        document.getElementById("friend-duration").textContent = `${estDuration} min`;
 
         // Generate and format spoken instructions
         instructions = buildSpokenInstructions(segments);
@@ -4620,14 +4614,14 @@ window.addEventListener("load",()=>{
         renderDirectionsUI(instructions);
         highlightStep(0);
 
-        const summary=fallbackUsed ? 'Walking-service route found. Tactile coverage is unknown.' :
-          'Mapped route found: '+Math.round(totalDist)+' metres; '+percent+' percent tagged tactile paving. The mapped route starts '+Math.round(routeGaps.start)+' metres from the selected start and ends '+Math.round(routeGaps.end)+' metres from the destination. Endpoint gaps are not joined.';
-        document.getElementById('fn-status').textContent=summary;
-        speakText(summary+' Route preview: '+instructions[0].speechText);
+        document.getElementById("friend-status").textContent = `Route found: ${Math.round(totalDist)} m (${percent}% tactile paving).`;
+        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. Starting instructions: ${instructions[0].speechText}`);
+
       } catch (err) {
-        if(token===journeyGeneration && err.name!=='AbortError')announce(err.message||'Failed to find a connected route.');
+        announce(err.message || "Failed to find connected route.");
       } finally {
-        if(token===journeyGeneration){btn.disabled=false;btn.textContent='Find Route';}
+        btn.disabled = false;
+        btn.textContent = "Find Route";
       }
     }
 
@@ -4636,26 +4630,20 @@ window.addEventListener("load",()=>{
         announce("Geolocation is not supported by your browser.");
         return;
       }
-      cancelLookup();
-      const token=journeyGeneration;
       announce("Locating position...");
       navigator.geolocation.getCurrentPosition(
         pos => {
-          if(token!==journeyGeneration)return;
           const lat = pos.coords.latitude;
           const lon = pos.coords.longitude;
-          document.getElementById("fn-start").value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+          document.getElementById("friend-start").value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
           map.setView([lat, lon], 16);
           announce("Current location set as starting point.");
         },
-        () => {if(token===journeyGeneration)announce("GPS location unavailable.");},
-        {enableHighAccuracy:true,timeout:15000,maximumAge:0}
+        () => announce("GPS location unavailable.")
       );
     }
 
-    function clearRoute(announceEnabled = true) {
-      cancelLookup();
-      stopMicrophone(false);
+    function clearRoute() {
       stopAutoPlay();
       if (simulationTimer) clearInterval(simulationTimer);
       if (locationWatcher) navigator.geolocation.clearWatch(locationWatcher);
@@ -4665,144 +4653,21 @@ window.addEventListener("load",()=>{
       if (routeLine) map.removeLayer(routeLine);
       if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
 
-      document.getElementById("fn-start").value = "";
-      document.getElementById("fn-destination").value = "";
-      document.getElementById("fn-distance").textContent = "—";
-      document.getElementById("fn-tactileCoverage").textContent = "—";
-      document.getElementById("fn-duration").textContent = "—";
-      document.getElementById("fn-voiceBar").style.display = "none";
-      document.getElementById("fn-directionsList").innerHTML = '<p style="color: #64748b; margin: 0; text-align: center;">Turn-by-turn guidance will appear here once route is found.</p>';
+      document.getElementById("friend-start").value = "";
+      document.getElementById("friend-destination").value = "";
+      document.getElementById("friend-distance").textContent = "—";
+      document.getElementById("friend-tactileCoverage").textContent = "—";
+      document.getElementById("friend-duration").textContent = "—";
+      document.getElementById("friend-voiceBar").style.display = "none";
+      document.getElementById("friend-directionsList").innerHTML = '<p style="color: #64748b; margin: 0; text-align: center;">Turn-by-turn guidance will appear here once route is found.</p>';
 
-      if(announceEnabled)announce("Route cleared.");
+      announce("Route cleared.");
     }
   
-    let journeyGeneration=0;
-    let routeController=null;
-    let pendingChoice=null;
-    let lastGeocodeTime=0;
-    let routeGaps={start:0,end:0};
-    function requestSignal(milliseconds){
-      return routeController ? AbortSignal.any([routeController.signal,AbortSignal.timeout(milliseconds)]) : AbortSignal.timeout(milliseconds);
-    }
-    function cancelLookup(){
-      journeyGeneration++;
-      if(routeController)routeController.abort();
-      routeController=null;
-      if(pendingChoice){pendingChoice();pendingChoice=null;}
-      document.getElementById('fn-placePicker').hidden=true;
-      document.getElementById('fn-routeBtn').disabled=false;
-      document.getElementById('fn-routeBtn').textContent='Find Route';
-    }
-    function choosePlace(choices,fieldId){
-      const panel=document.getElementById('fn-placePicker');
-      const select=document.getElementById('fn-placeOptions');
-      document.getElementById('fn-placeHeading').textContent='Choose your '+(fieldId==='fn-start'?'starting point':'fn-destination');
-      select.replaceChildren();
-      choices.forEach((choice,index)=>{const option=document.createElement('option');option.value=String(index);option.textContent=choice.name+' ('+choice.lat.toFixed(6)+', '+choice.lon.toFixed(6)+')';select.append(option);});
-      panel.hidden=false;
-      panel.scrollIntoView({block:'nearest'});
-      select.focus();
-      announce('Choose the matching '+(fieldId==='fn-start'?'starting point':'fn-destination')+' from the results, then choose Use Selected Location.');
-      return new Promise((resolve,reject)=>{
-        pendingChoice=()=>{panel.hidden=true;reject(new DOMException('Cancelled','AbortError'));};
-        document.getElementById('fn-acceptPlace').onclick=()=>{
-          const chosen=choices[Number(select.value)];
-          if(!chosen)return;
-          pendingChoice=null;panel.hidden=true;
-          resolve(chosen);
-        };
-        document.getElementById('fn-cancelPlace').onclick=()=>{cancelLookup();announce('Location search cancelled. You can choose a location on the map.');};
-        document.getElementById('fn-previewPlace').onclick=()=>{
-          const chosen=choices[Number(select.value)];if(!chosen)return;
-          map.setView([chosen.lat,chosen.lon],18);
-          L.popup().setLatLng([chosen.lat,chosen.lon]).setContent(document.createTextNode(chosen.name)).openOn(map);
-        };
-      });
-    }
-    function invalidateJourney(){
-      const first=document.getElementById('fn-start').value;
-      const last=document.getElementById('fn-destination').value;
-      clearRoute(false);
-      document.getElementById('fn-start').value=first;
-      document.getElementById('fn-destination').value=last;
-      document.getElementById('fn-matches').textContent='Journey changed. Choose Find Route to update the selected locations.';
-    }
-    map.on('click',event=>{
-      invalidateJourney();
-      const target=document.getElementById('fn-mapTarget').value;
-      document.getElementById(target).value=event.latlng.lat.toFixed(6)+', '+event.latlng.lng.toFixed(6);
-      const marker=L.marker([event.latlng.lat,event.latlng.lng]).addTo(map).bindPopup(target==='fn-start'?'Selected starting entrance':'Selected destination entrance');
-      if(target==='fn-start')startMarker=marker;else destinationMarker=marker;
-      announce((target==='fn-start'?'Starting point':'Destination')+' set to the map point. Choose Find Route when ready.');
-    });
-    for(const id of ['fn-start','fn-destination'])document.getElementById(id).addEventListener('input',()=>{invalidateJourney();});
-    document.getElementById('fn-campusOnly').addEventListener('change',()=>{locationCache.clear();invalidateJourney();});
-    // Microphone controls stay inside the new navigation page.
-    const speechAPI=window.SpeechRecognition||window.webkitSpeechRecognition;
-    let microphone=null;
-    let microphoneToken=0;
-    const microphoneBar=document.createElement('div');
-    microphoneBar.className='voice-controls';
-    microphoneBar.innerHTML='<label for="fn-microphoneLanguage">Microphone language</label><select id="fn-microphoneLanguage"><option value="en-MY">English (Malaysia)</option><option value="ms-MY">Bahasa Melayu</option><option value="zh-CN">中文</option></select><button type="button" id="fn-speakStart">🎤 Speak Starting Point</button><button type="button" id="fn-speakDestination">🎤 Speak Destination</button><button type="button" id="fn-voiceCommand">🎤 Voice Command</button><button type="button" id="fn-stopMic" disabled>Stop Microphone</button><p id="fn-microphoneStatus" role="fn-status" aria-live="polite">Choose a microphone button and say a place name. Your browser may process speech online.</p>';
-    document.getElementById('fn-status').before(microphoneBar);
-    function stopMicrophone(say=true){
-      microphoneToken++;
-      const old=microphone;microphone=null;
-      if(old)try{old.abort();}catch{}
-      document.getElementById('fn-stopMic').disabled=true;
-      document.getElementById('fn-speakStart').setAttribute('aria-pressed','false');
-      document.getElementById('fn-speakDestination').setAttribute('aria-pressed','false');
-      document.getElementById('fn-voiceCommand').setAttribute('aria-pressed','false');
-      if(say)announce('Microphone stopped.');
-    }
-    function dictate(fieldId,buttonId){
-      stopMicrophone(false);stopAutoPlay();
-      if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('fn-simBtn').textContent='Preview Walk (simulation)';}
-      if('speechSynthesis' in window)speechSynthesis.cancel();
-      if(!speechAPI){announce('Speech recognition is unavailable. Use device keyboard dictation or type a place name.');return;}
-      if(!window.isSecureContext){announce('Open this page using HTTPS or localhost to use the microphone.');return;}
-      const token=microphoneToken;
-      const recognition=new speechAPI();microphone=recognition;
-      let transcript='',error='';
-      recognition.lang=document.getElementById('fn-microphoneLanguage').value;
-      recognition.continuous=false;recognition.interimResults=false;
-      document.getElementById('fn-stopMic').disabled=false;
-      document.getElementById(buttonId).setAttribute('aria-pressed','true');
-      recognition.onstart=()=>{if(token===microphoneToken)document.getElementById('fn-microphoneStatus').textContent='Listening. Say the place name.';};
-      recognition.onresult=event=>{if(token!==microphoneToken)return;transcript=event.results[event.resultIndex][0].transcript.trim();recognition.stop();};
-      recognition.onerror=event=>{if(token!==microphoneToken)return;error=event.error==='not-allowed'?'Microphone permission denied. Allow microphone access and try again.':'Speech recognition failed: '+event.error+'. Try again or type the location.';};
-      recognition.onend=()=>{
-        if(token!==microphoneToken)return;
-        stopMicrophone(false);
-        if(error){document.getElementById('fn-microphoneStatus').textContent=error;announce(error);return;}
-        if(!transcript){announce('No speech heard. Choose the microphone button and try again.');return;}
-        if(fieldId==='command'){
-          const key=transcript.toLowerCase().trim().replace(/[.!?]+$/,'');
-          const start=transcript.match(/^(?:start at|starting point(?: is)?)\s+(.+)/i);
-          const end=transcript.match(/^(?:destination(?: is)?|go to)\s+(.+)/i);
-          if(start||end){invalidateJourney();document.getElementById(start?'fn-start':'fn-destination').value=(start||end)[1].trim();announce('Heard '+(start||end)[1]+'. Choose Find Route to select the matching result.');return;}
-          const commands={'find route':findRoute,'use my location':useMyLocation,'repeat direction':speakCurrentStep,'read route':toggleAutoPlay,'stop voice':()=>{stopAutoPlay();if('speechSynthesis' in window)speechSynthesis.cancel();}};
-          if(commands[key])commands[key]();else announce('Command not recognised. Say find route, use my location, repeat direction, read route, start at followed by a place, or destination followed by a place.');
-          return;
-        }
-        invalidateJourney();document.getElementById(fieldId).value=transcript;
-        const text='Heard '+transcript+'. Choose Find Route and select the matching search result.';
-        document.getElementById('fn-microphoneStatus').textContent=text;announce(text);
-      };
-      try{recognition.start();}catch{stopMicrophone(false);announce('Could not start the microphone. Check browser permissions.');}
-    }
-    document.getElementById('fn-speakStart').onclick=()=>dictate('fn-start','fn-speakStart');
-    document.getElementById('fn-speakDestination').onclick=()=>dictate('fn-destination','fn-speakDestination');
-    document.getElementById('fn-voiceCommand').onclick=()=>dictate('command','fn-voiceCommand');
-    document.getElementById('fn-stopMic').onclick=()=>stopMicrophone();
-    document.getElementById('fn-microphoneLanguage').onchange=()=>stopMicrophone(false);
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){stopMicrophone(false);stopAutoPlay();}});
-    if(!speechAPI){document.getElementById('fn-voiceCommand').disabled=true;document.getElementById('fn-speakStart').disabled=true;document.getElementById('fn-speakDestination').disabled=true;}
-
 
     window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
-      pause:()=>{cancelLookup();stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('fn-simBtn').textContent='Preview Walk (simulation)';}if('speechSynthesis' in window)speechSynthesis.cancel();stopMicrophone(false);}};
+      pause:()=>{stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
     window.goTo=function(screen){if(screen!=='navigation')window.friendNav.pause();const result=previousGoTo.apply(this,arguments);if(screen==='navigation')window.friendNav.activate();return result;};
     window.x=function(){};
