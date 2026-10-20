@@ -5322,5 +5322,509 @@ body.accessible-mode #screen-navigation #bpNavigationStatus{
   });
 })();
 </script>  
+<style>
+#screen-navigation .mic-panel{
+  background:#edf5f0;
+  border:1px solid #b6d6c4;
+  border-radius:12px;
+  padding:14px;
+  margin:16px 0;
+}
+#screen-navigation .mic-panel button,
+#screen-navigation .mic-field-button{
+  min-height:48px;
+}
+#screen-navigation .mic-field-button{
+  margin-top:8px;
+}
+#screen-navigation .mic-active{
+  background:#9c2525;
+  color:white;
+}
+</style>
+
+<script>
+(() => {
+  if (window.blindPathMicrophone) return;
+  window.blindPathMicrophone = true;
+
+  const $ = id => document.getElementById(id);
+
+  const Recognition =
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition;
+
+  const panel = document.createElement("section");
+  panel.className = "mic-panel";
+  panel.setAttribute("aria-label", "Microphone controls");
+
+  panel.innerHTML = `
+    <h2>Use your voice</h2>
+
+    <label for="micLanguage">Microphone language</label>
+    <select id="micLanguage">
+      <option value="en-MY">English (Malaysia)</option>
+      <option value="ms-MY">Bahasa Melayu</option>
+      <option value="zh-CN">中文</option>
+    </select>
+
+    <div class="button-row">
+      <button
+        type="button"
+        class="primary"
+        id="micCommand"
+        aria-pressed="false"
+      >
+        🎤 Voice Command
+      </button>
+
+      <button
+        type="button"
+        class="secondary"
+        id="micStop"
+        disabled
+      >
+        Stop Microphone
+      </button>
+    </div>
+
+    <p
+      id="micStatus"
+      class="status"
+      role="status"
+      aria-live="polite"
+    >
+      Choose a microphone button, then speak after the prompt.
+    </p>
+
+    <details>
+      <summary>Voice commands (English)</summary>
+      <p>
+        Say “start at Faculty of Science”,
+        “destination KK3”,
+        “find route”,
+        “use my location”,
+        “start navigation”,
+        “repeat direction”,
+        “read route”, or “stop voice”.
+      </p>
+    </details>
+
+    <p class="muted">
+      Your browser may send speech to its recognition service.
+      Microphone access starts only when you choose a microphone
+      button. Nothing is recorded or saved by BlindPath.
+    </p>
+  `;
+
+  $("routeStatus").before(panel);
+
+  const fieldButtons = [];
+
+  for (const [id, label] of [
+    ["start", "Speak Starting Point"],
+    ["destination", "Speak Destination"]
+  ]) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.id = "mic-" + id;
+    button.className = "secondary mic-field-button";
+    button.textContent = "🎤 " + label;
+
+    button.setAttribute(
+      "aria-label",
+      label + " using microphone"
+    );
+    button.setAttribute("aria-pressed", "false");
+
+    $(id).after(button);
+
+    button.addEventListener("click", () => {
+      listen(id, button);
+    });
+
+    fieldButtons.push(button);
+  }
+
+  const buttons = [
+    ...fieldButtons,
+    $("micCommand")
+  ];
+
+  let active = null;
+  let generation = 0;
+  let promptTimer = null;
+
+  function message(text, spoken = false) {
+    $("micStatus").textContent = text;
+
+    if (spoken && typeof window.je === "function") {
+      window.je(text, "en-MY");
+    }
+  }
+
+  function resetButtons() {
+    buttons.forEach(button => {
+      button.classList.remove("mic-active");
+      button.setAttribute("aria-pressed", "false");
+    });
+
+    $("micStop").disabled = true;
+  }
+
+  function cancel(announce = true) {
+    generation++;
+    clearTimeout(promptTimer);
+
+    const old = active;
+    active = null;
+
+    if (old) {
+      try {
+        old.abort();
+      } catch {}
+    }
+
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+
+    resetButtons();
+
+    if (announce) {
+      message("Microphone stopped.", true);
+    }
+  }
+
+  function fill(id, transcript) {
+    $(id).value = transcript;
+
+    $(id).dispatchEvent(
+      new Event("input", { bubbles: true })
+    );
+
+    $(id).dispatchEvent(
+      new Event("change", { bubbles: true })
+    );
+
+    message(
+      (id === "start" ? "Starting point" : "Destination") +
+      " set to " + transcript +
+      ". Choose Find Route when ready.",
+      true
+    );
+  }
+
+  function command(text) {
+    const normalized = text
+      .toLowerCase()
+      .trim()
+      .replace(/[.!?]+$/, "");
+
+    const start = text.match(
+      /^(?:start at|starting point(?: is)?)\s+(.+)/i
+    );
+
+    const destination = text.match(
+      /^(?:destination(?: is)?|go to)\s+(.+)/i
+    );
+
+    if (start) {
+      return fill("start", start[1].trim());
+    }
+
+    if (destination) {
+      return fill("destination", destination[1].trim());
+    }
+
+    const actions = {
+      "find route": () => {
+        $("routeButton").click();
+      },
+
+      "use my location": () => {
+        window.useMyLocation();
+      },
+
+      "start navigation": () => {
+        if (
+          $("voiceNavigation").classList.contains("hidden")
+        ) {
+          return message(
+            "Find a route before starting navigation.",
+            true
+          );
+        }
+
+        window.startGuidance();
+      },
+
+      "repeat direction": () => {
+        window.repeatDirection();
+      },
+
+      "read route": () => {
+        if (!$("directionList").children.length) {
+          return message(
+            "Find a route before reading directions.",
+            true
+          );
+        }
+
+        $("bpReadRoute").click();
+      },
+
+      "stop voice": () => {
+        window.stopAllVoice();
+        message("Voice guidance stopped.");
+      }
+    };
+
+    if (actions[normalized]) {
+      message("Heard: " + text);
+      actions[normalized]();
+    } else {
+      message(
+        "Command not recognised. Try “find route”, " +
+        "or use the Speak Starting Point and " +
+        "Speak Destination buttons.",
+        true
+      );
+    }
+  }
+
+  function listen(target, button) {
+    cancel(false);
+
+    if (!Recognition) {
+      return message(
+        "Speech recognition is unavailable in this browser. " +
+        "Use the text fields or device keyboard dictation.",
+        true
+      );
+    }
+
+    if (!window.isSecureContext) {
+      return message(
+        "Open BlindPath using HTTPS or localhost " +
+        "to use the microphone.",
+        true
+      );
+    }
+
+    // Pause other speech so it is not heard as microphone input.
+    window.stopAllVoice();
+
+    const token = generation;
+
+    let transcript = "";
+    let error = "";
+    let started = false;
+
+    const recognition = new Recognition();
+    active = recognition;
+
+    recognition.lang = $("micLanguage").value;
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+
+    button.classList.add("mic-active");
+    button.setAttribute("aria-pressed", "true");
+    $("micStop").disabled = false;
+
+    const errors = {
+      "not-allowed":
+        "Microphone permission was denied. Allow microphone " +
+        "access in your browser, then try again.",
+
+      "service-not-allowed":
+        "Speech recognition is blocked by this browser " +
+        "or its settings.",
+
+      "audio-capture":
+        "No microphone is available. Check your microphone " +
+        "connection and permissions.",
+
+      "network":
+        "The speech service could not connect. Check your " +
+        "internet connection and try again.",
+
+      "no-speech":
+        "No speech was heard. Choose the microphone " +
+        "button and try again.",
+
+      "language-not-supported":
+        "This speech language is unavailable. Choose another " +
+        "microphone language."
+    };
+
+    recognition.onstart = () => {
+      if (token !== generation) return;
+
+      message(
+        "Listening. " +
+        (
+          target === "command"
+            ? "Say one command."
+            : "Say your " +
+              (
+                target === "start"
+                  ? "starting point."
+                  : "destination."
+              )
+        )
+      );
+    };
+
+    recognition.onresult = event => {
+      if (token !== generation) return;
+
+      transcript =
+        event.results[event.resultIndex][0]
+          .transcript.trim();
+
+      recognition.stop();
+    };
+
+    recognition.onerror = event => {
+      if (token !== generation) return;
+
+      error = errors[event.error] ||
+        "Speech recognition stopped. Choose a microphone " +
+        "button to try again.";
+    };
+
+    recognition.onend = () => {
+      if (token !== generation) return;
+
+      active = null;
+      clearTimeout(promptTimer);
+      resetButtons();
+
+      if (error) {
+        return message(error, true);
+      }
+
+      if (!transcript) {
+        return message(
+          "No speech was heard. Choose a microphone " +
+          "button and try again.",
+          true
+        );
+      }
+
+      if (target === "command") {
+        command(transcript);
+      } else {
+        fill(target, transcript);
+      }
+    };
+
+    const begin = () => {
+      if (token !== generation || started) return;
+
+      started = true;
+      clearTimeout(promptTimer);
+
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+
+      try {
+        recognition.start();
+      } catch {
+        active = null;
+        resetButtons();
+
+        message(
+          "Could not start the microphone. Check browser " +
+          "permissions and try again.",
+          true
+        );
+      }
+    };
+
+    const prompt =
+      target === "command"
+        ? "After this prompt, say one command."
+        : "After this prompt, say your " +
+          (
+            target === "start"
+              ? "starting point."
+              : "destination."
+          );
+
+    message(prompt);
+
+    if (
+      "speechSynthesis" in window &&
+      window.SpeechSynthesisUtterance
+    ) {
+      const utterance =
+        new SpeechSynthesisUtterance(prompt);
+
+      utterance.lang = "en-MY";
+      utterance.rate =
+        Number($("speechSpeed").value) || 1;
+
+      utterance.onend = begin;
+      utterance.onerror = begin;
+
+      promptTimer = setTimeout(begin, 6000);
+      window.speechSynthesis.speak(utterance);
+    } else {
+      begin();
+    }
+  }
+
+  $("micCommand").addEventListener("click", () => {
+    listen("command", $("micCommand"));
+  });
+
+  $("micStop").addEventListener("click", () => {
+    cancel();
+  });
+
+  $("micLanguage").addEventListener("change", () => {
+    cancel(false);
+  });
+
+  // Cancel listening before changing routes or pages.
+  for (const name of [
+    "goTo",
+    "clearRoute",
+    "findRoute",
+    "stopAllVoice",
+    "startGuidance"
+  ]) {
+    const original = window[name];
+
+    window[name] = function(...args) {
+      cancel(false);
+      return original.apply(this, args);
+    };
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.hidden) cancel(false);
+  });
+
+  window.addEventListener("pagehide", () => {
+    cancel(false);
+  });
+
+  if (!Recognition) {
+    buttons.forEach(button => {
+      button.disabled = true;
+    });
+
+    message(
+      "Speech recognition is unavailable in this browser. " +
+      "You can use device keyboard dictation or type your locations."
+    );
+  }
+})();
+</script>  
 </body>
 </html>
