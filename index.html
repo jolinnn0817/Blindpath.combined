@@ -300,6 +300,8 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
     <section class="panel">
       <h2>Plan Your Journey</h2>
 
+      <p class="tap-banner">Tap an open area of this screen to speak your destination, or say “from KK4 to KK10”. Buttons, text fields and the map keep their usual actions.</p>
+
       <!-- Master Voice Command -->
       <button id="friend-masterMicBtn" class="voice-master" type="button" onclick="friendNav.startMasterVoiceInput()" style="width: 100%; justify-content: center; margin-bottom: 8px; font-size: 15px;">
         🎙️ Speak Route Command ("Go to...", "From... To...")
@@ -4309,12 +4311,12 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // TAP ANYWHERE SCREEN LISTENER FOR BLIND USERS
     // =========================================================================
-    document.addEventListener("click", (e) => {
-      if(!e.target.closest(".friend-navigation"))return;
-      // Don't override if the user intentionally taps a specific button or text field
-      if (e.target.closest("button") || e.target.closest("input") || e.target.closest("#friend-map") || e.target.closest(".instruction-step")) {
-        return;
-      }
+    document.addEventListener("click", (event) => {
+      // Any open area of the screen can start the existing voice input.
+      // Keep controls and map interactions working normally.
+      if (!document.getElementById("screen-navigation").classList.contains("active")) return;
+      if (isListening || event.defaultPrevented) return;
+      if (event.target.closest('button,input,textarea,select,option,label,a,summary,[role="button"],[role="slider"],[contenteditable],#friend-map,.instruction-step')) return;
       startMasterVoiceInput();
     });
 
