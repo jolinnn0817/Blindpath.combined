@@ -330,6 +330,17 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
         Ready. Tap anywhere on screen to speak your route.
       </div>
 
+      <section class="live-location-panel" aria-labelledby="friend-trackingHeading" style="padding:14px;margin:14px 0;background:#edf5f0;border:1px solid #b6d6c4;border-radius:10px">
+        <h2 id="friend-trackingHeading">Live Location</h2>
+        <div class="btn-row">
+          <button type="button" id="friend-trackStart" onclick="friendNav.startLiveTracking()">Start Live Tracking</button>
+          <button type="button" class="secondary" id="friend-trackStop" disabled onclick="friendNav.stopLiveTracking()">Stop Tracking</button>
+          <button type="button" class="secondary" id="friend-trackCenter" disabled onclick="friendNav.centerLiveLocation()">Centre on Me</button>
+        </div>
+        <label for="friend-trackFollow" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="friend-trackFollow" checked style="width:24px;height:24px">Keep the map centred on me</label>
+        <p id="friend-trackingStatus" role="status" aria-live="polite">Live location tracking is off.</p>
+        <p style="font-size:13px">Blue dot: your live GPS position. Orange marker: route preview or simulation. Tracking runs while this page is visible and stops when you leave it. Tracking does not recalculate your route automatically.</p>
+      </section>
       <div class="stats">
         <div class="stat">
           Distance
@@ -4566,7 +4577,7 @@ window.addEventListener("load",()=>{
             color: "#b45309",
             fillColor: "#f59e0b",
             fillOpacity: 1
-          }).addTo(map);
+          }).addTo(map).bindTooltip("Route preview marker — not your live GPS position");
         } else {
           userMarker.setLatLng([pt.lat, pt.lon]);
         }
@@ -4770,6 +4781,90 @@ window.addEventListener("load",()=>{
       }
     }
 
+    // Independent GPS marker: route previews never change this position.
+    let liveWatch=null;
+    let liveTracking=false;
+    let liveGeneration=0;
+    let liveMarker=null;
+    let liveAccuracyCircle=null;
+    let liveFix=null;
+    let liveFirstFix=true;
+    let liveLastStatus=0;
+    let liveAccuracyGood=null;
+    function setTrackingStatus(text,spoken=false){
+      document.getElementById('friend-trackingStatus').textContent=text;
+      if(spoken&&!isListening)speakText(text);
+    }
+    function stopLiveTracking(spoken=true){
+      liveGeneration++;liveTracking=false;
+      if(liveWatch!==null&&navigator.geolocation)navigator.geolocation.clearWatch(liveWatch);
+      liveWatch=null;
+      if(liveMarker){map.removeLayer(liveMarker);liveMarker=null;}
+      if(liveAccuracyCircle){map.removeLayer(liveAccuracyCircle);liveAccuracyCircle=null;}
+      liveFix=null;liveLastStatus=0;liveAccuracyGood=null;
+      document.getElementById('friend-trackStart').disabled=false;
+      document.getElementById('friend-trackStop').disabled=true;
+      document.getElementById('friend-trackCenter').disabled=true;
+      setTrackingStatus('Live location tracking is off.',spoken);
+    }
+    function showLivePosition(position,token){
+      if(!liveTracking||token!==liveGeneration)return;
+      const c=position.coords;
+      if(!c||!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||!Number.isFinite(c.accuracy)||
+        c.latitude < -90||c.latitude > 90||c.longitude < -180||c.longitude > 180||c.accuracy < 0||
+        !Number.isFinite(position.timestamp)||Date.now()-position.timestamp>30000){
+        setTrackingStatus('Waiting for a recent, valid GPS position.');return;
+      }
+      liveFix={lat:c.latitude,lon:c.longitude,accuracy:c.accuracy,time:position.timestamp};
+      const point=[c.latitude,c.longitude];
+      if(!liveMarker){
+        liveMarker=L.circleMarker(point,{radius:9,color:'#fff',weight:3,fillColor:'#0369a1',fillOpacity:1})
+          .addTo(map).bindTooltip('Your live GPS position');
+        liveAccuracyCircle=L.circle(point,{radius:c.accuracy,color:'#0284c7',weight:1,fillColor:'#38bdf8',fillOpacity:0.12}).addTo(map);
+      }else{
+        liveMarker.setLatLng(point);liveAccuracyCircle.setLatLng(point);liveAccuracyCircle.setRadius(c.accuracy);
+      }
+      document.getElementById('friend-trackCenter').disabled=false;
+      const good=c.accuracy<=50;
+      if(document.getElementById('friend-trackFollow').checked&&good){
+        if(liveFirstFix)map.setView(point,17);else map.panTo(point,{animate:false});
+      }
+      const changed=liveAccuracyGood!==good;
+      if(liveFirstFix||changed||Date.now()-liveLastStatus>=5000){
+        const text='Tracking your location. Accuracy approximately '+Math.round(c.accuracy)+' metres. '+
+          (good?'Blue dot: live GPS. Shaded circle: location uncertainty.':'GPS accuracy is low; the map will not follow until accuracy improves.');
+        setTrackingStatus(text,liveFirstFix);liveLastStatus=Date.now();
+      }
+      liveFirstFix=false;liveAccuracyGood=good;
+    }
+    function startLiveTracking(){
+      if(liveTracking)return;
+      if(!navigator.geolocation){setTrackingStatus('This browser does not support location tracking.',true);return;}
+      if(!window.isSecureContext){setTrackingStatus('Live location needs HTTPS or localhost. Open your published GitHub Pages website.',true);return;}
+      liveGeneration++;const token=liveGeneration;
+      liveTracking=true;liveFirstFix=true;liveLastStatus=0;liveAccuracyGood=null;
+      document.getElementById('friend-trackStart').disabled=true;
+      document.getElementById('friend-trackStop').disabled=false;
+      setTrackingStatus('Requesting location permission. Allow location access to see your live position.',true);
+      try{
+        const id=navigator.geolocation.watchPosition(position=>showLivePosition(position,token),error=>{
+          if(!liveTracking||token!==liveGeneration)return;
+          if(error.code===1){stopLiveTracking(false);setTrackingStatus('Location permission denied. Allow location access in your browser, then choose Start Live Tracking.',true);}
+          else setTrackingStatus(error.code===3?'GPS update timed out. Waiting for the next location update…':'GPS position is temporarily unavailable. Waiting for a location update…');
+        },{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+        if(liveTracking&&token===liveGeneration)liveWatch=id;else navigator.geolocation.clearWatch(id);
+      }catch{
+        stopLiveTracking(false);setTrackingStatus('Could not start location tracking. Check browser location permission.',true);
+      }
+    }
+    function centerLiveLocation(){
+      if(!liveFix||Date.now()-liveFix.time>30000){setTrackingStatus('Waiting for a fresh GPS position before centring the map.');return;}
+      map.setView([liveFix.lat,liveFix.lon],17);
+    }
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden&&liveTracking){stopLiveTracking(false);setTrackingStatus('Tracking stopped because the page was hidden. Choose Start Live Tracking to resume.');}
+    });
+
     function useMyLocation(onSuccessCallback = null) {
       if (!navigator.geolocation) {
         announce("Geolocation is not supported by your browser.");
@@ -4834,9 +4929,9 @@ window.addEventListener("load",()=>{
       }
       return recognizer;
     };
-    window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,
+    window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
-      pause:()=>{if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
+      pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
     window.goTo=function(screen){if(screen!=='navigation')window.friendNav.pause();const result=previousGoTo.apply(this,arguments);if(screen==='navigation')window.friendNav.activate();return result;};
     window.x=function(){};
