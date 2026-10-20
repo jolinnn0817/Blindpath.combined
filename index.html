@@ -4971,5 +4971,356 @@ window.addEventListener("load",()=>{
   initializeNavigationIntegration();
 })();
 </script>
+<style>
+#screen-navigation>.card{
+  padding:20px;
+  background:#fff;
+}
+#screen-navigation .field-grid{
+  display:block;
+}
+#screen-navigation h1{
+  margin-bottom:5px;
+  font-size:24px;
+}
+#screen-navigation .nav-description{
+  color:#5b6a63;
+  margin-bottom:18px;
+}
+#screen-navigation .nav-stats{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0;
+}
+#screen-navigation .nav-stat{
+  background:#edf5f0;
+  padding:14px 8px;
+  border-radius:9px;
+  text-align:center;
+  font-size:14px;
+}
+#screen-navigation .nav-stat strong{
+  display:block;
+  margin-top:5px;
+  color:#174c3c;
+  font-size:20px;
+}
+#screen-navigation #voiceNavigation{
+  border:0;
+  box-shadow:none;
+  padding:0;
+  margin:18px 0;
+}
+#screen-navigation #directionList{
+  max-height:270px;
+  overflow:auto;
+  border:1px solid #d8e2dc;
+  border-radius:9px;
+  padding:10px 10px 10px 36px;
+  margin-top:12px;
+}
+#screen-navigation #directionList button{
+  border:0;
+  background:#f3f7f4;
+  font-weight:400;
+}
+#screen-navigation .nav-map-panel{
+  border-top:1px solid #d8e2dc;
+  padding-top:16px;
+  margin-top:20px;
+}
+#screen-navigation .nav-legend{
+  display:flex;
+  flex-wrap:wrap;
+  gap:12px;
+  font-size:13px;
+}
+#screen-navigation .nav-key{
+  display:inline-block;
+  width:20px;
+  margin-right:5px;
+  border-top:5px solid #2563eb;
+  vertical-align:middle;
+}
+#screen-navigation .nav-key.tactile{
+  border-color:#b45309;
+}
+#screen-navigation .nav-key.unknown{
+  border-top-style:dashed;
+}
+#screen-navigation .nav-key.nearby{
+  border-color:#b45309;
+  border-top-style:dotted;
+}
+#screen-navigation #map{
+  height:420px;
+  margin-top:12px;
+}
+#screen-navigation .nav-more{
+  border:1px solid #d8e2dc;
+  border-radius:10px;
+  padding:8px 12px;
+  margin:14px 0;
+  background:#f8faf9;
+}
+#screen-navigation .nav-more>summary{
+  color:#174c3c;
+}
+#screen-navigation #bpRouteInfo{
+  margin:12px 0;
+}
+#screen-navigation #bpNavigationStatus{
+  font-size:14px;
+}
+body.accessible-mode #screen-navigation #bpNavigationStatus{
+  font-size:18px;
+}
+@media(max-width:600px){
+  #screen-navigation .nav-stats{
+    grid-template-columns:1fr;
+  }
+  #screen-navigation #map{
+    height:320px;
+  }
+  #screen-navigation>.card{
+    padding:16px;
+  }
+}
+</style>
+
+<script>
+(() => {
+  if (window.blindPathSimpleNavigation) return;
+  window.blindPathSimpleNavigation = true;
+
+  const get = id => document.getElementById(id);
+  const card = document.querySelector(
+    "#screen-navigation > .card"
+  );
+
+  if (!card) return;
+
+  // Simple heading and location fields.
+  card.querySelector("h1").textContent = "Plan Your Journey";
+
+  const intro = card.querySelector("h1 + p");
+  intro.classList.add("nav-description");
+  intro.textContent =
+    "Find a walking route that prioritises mapped tactile paving.";
+
+  get("start").placeholder =
+    "e.g. Faculty of Science, Universiti Malaya";
+
+  get("destination").placeholder =
+    "e.g. KK3, Universiti Malaya";
+
+  // Keep the original working buttons.
+  const actions = get("routeButton").parentElement;
+
+  actions.append(
+    get("routeButton"),
+    actions.querySelector('[onclick="useMyLocation()"]'),
+    actions.querySelector('[onclick="stopAllVoice()"]'),
+    actions.querySelector('[onclick="clearRoute()"]')
+  );
+
+  // Summary cards.
+  const stats = document.createElement("div");
+  stats.className = "nav-stats";
+  stats.setAttribute("aria-live", "polite");
+
+  stats.innerHTML = `
+    <div class="nav-stat">
+      Distance
+      <strong id="simpleDistance">—</strong>
+    </div>
+    <div class="nav-stat">
+      Mapped tactile paving
+      <strong id="simpleTactile">—</strong>
+    </div>
+    <div class="nav-stat">
+      Duration
+      <strong id="simpleDuration">—</strong>
+    </div>
+  `;
+
+  get("routeStatus").after(stats);
+
+  // Bring the existing voice controls together.
+  const navigation = get("voiceNavigation");
+
+  navigation.querySelector("h2").textContent =
+    "Voice Guidance";
+
+  const gpsNote = navigation.querySelector("h2 + p");
+  gpsNote.textContent =
+    "GPS guidance needs location access. Preview controls " +
+    "read the route without tracking your position.";
+
+  const previewControls = get("bpReadRoute").parentElement;
+  navigation.querySelector("h2").after(previewControls);
+
+  get("bpRepeatStep").textContent = "Repeat Step";
+  get("bpNextStep").textContent = "Next Step";
+
+  stats.after(navigation);
+
+  // Keep tactile preference beside the main controls.
+  const integration =
+    get("bpPreferTactile").closest("section");
+
+  const preference =
+    get("bpPreferTactile").closest("label");
+
+  actions.before(preference);
+  preference.style.fontSize = "14px";
+
+  // Put supplementary controls into expandable sections.
+  const more = document.createElement("details");
+  more.className = "nav-more";
+  more.innerHTML =
+    "<summary>Journey options & route details</summary>";
+
+  const extras = document.createElement("details");
+  extras.className = "nav-more";
+  extras.innerHTML =
+    "<summary>Nearby reports & obstacle alerts</summary>";
+
+  const nearby =
+    get("nearbyAlertButton").closest("section");
+
+  extras.append(
+    nearby,
+    get("routeObstacles"),
+    get("routeScore")
+  );
+
+  const journey = get("journeyOptions");
+  journey.open = false;
+
+  more.append(
+    journey,
+    get("routeResult"),
+    get("rideAssist")
+  );
+
+  [...card.children]
+    .filter(node => node.classList.contains("notice"))
+    .forEach(node => more.append(node));
+
+  const map = get("map");
+
+  const mapHint = [...card.querySelectorAll("p")]
+    .find(node =>
+      node.textContent.startsWith("Type a college name")
+    );
+
+  if (mapHint) more.append(mapHint);
+
+  const integrationNote =
+    integration.querySelector("p.muted");
+
+  if (integrationNote) more.append(integrationNote);
+
+  const info = get("bpRouteInfo");
+  const status = get("bpNavigationStatus");
+
+  more.append(info);
+  stats.after(status);
+  integration.remove();
+
+  // Map and colour legend.
+  const mapPanel = document.createElement("section");
+  mapPanel.className = "nav-map-panel";
+  mapPanel.setAttribute(
+    "aria-label",
+    "Journey map and legend"
+  );
+
+  mapPanel.innerHTML = `
+    <div class="nav-legend">
+      <span>
+        <i class="nav-key tactile" aria-hidden="true"></i>
+        Tactile paving
+      </span>
+      <span>
+        <i class="nav-key" aria-hidden="true"></i>
+        Tagged without tactile paving
+      </span>
+      <span>
+        <i class="nav-key unknown" aria-hidden="true"></i>
+        Status unknown
+      </span>
+      <span>
+        <i class="nav-key nearby" aria-hidden="true"></i>
+        Nearby tactile paths
+      </span>
+    </div>
+  `;
+
+  mapPanel.append(map);
+
+  const back = card.querySelector(
+    '[onclick="goTo(\'home\')"]'
+  ).parentElement;
+
+  back.before(more, extras, mapPanel);
+
+  // Update summary cards from the existing route results.
+  const updateStats = () => {
+    const result = get("routeResult");
+    const shown = !result.classList.contains("hidden");
+    const text = result.textContent;
+
+    const distance = text.match(
+      /Distance:\s*([\d.]+)\s*km/
+    );
+
+    const duration = text.match(
+      /Estimated time:\s*(\d+)\s*minutes/
+    );
+
+    get("simpleDistance").textContent =
+      shown && distance ? distance[1] + " km" : "—";
+
+    get("simpleDuration").textContent =
+      shown && duration ? duration[1] + " min" : "—";
+
+    const tactile = get("bpTactileDistance").textContent;
+
+    get("simpleTactile").textContent =
+      shown && !info.classList.contains("hidden")
+        ? tactile.startsWith("Unknown")
+          ? "Unknown"
+          : tactile || "—"
+        : "—";
+  };
+
+  const observer = new MutationObserver(updateStats);
+
+  const observerOptions = {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ["class"]
+  };
+
+  observer.observe(
+    get("routeResult"),
+    observerOptions
+  );
+
+  observer.observe(info, observerOptions);
+  updateStats();
+
+  window.addEventListener("load", () => {
+    if (typeof s !== "undefined" && s) {
+      s.invalidateSize();
+    }
+  });
+})();
+</script>  
 </body>
 </html>
