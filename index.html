@@ -330,6 +330,25 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
         Ready. Tap anywhere on screen to speak your route.
       </div>
 
+      <section class="live-location-panel" aria-labelledby="friend-trackingHeading" style="padding:14px;margin:14px 0;background:#edf5f0;border:1px solid #b6d6c4;border-radius:10px">
+        <h2 id="friend-trackingHeading">Live Location</h2>
+        <div class="btn-row">
+          <button type="button" id="friend-trackStart" onclick="friendNav.startLiveTracking()">Start Live Tracking</button>
+          <button type="button" class="secondary" id="friend-trackStop" disabled onclick="friendNav.stopLiveTracking()">Stop Tracking</button>
+          <button type="button" class="secondary" id="friend-trackCenter" disabled onclick="friendNav.centerLiveLocation()">Centre on Me</button>
+        </div>
+        <label for="friend-trackFollow" style="display:flex;align-items:center;gap:8px"><input type="checkbox" id="friend-trackFollow" checked style="width:24px;height:24px">Keep the map centred on me</label>
+        <p id="friend-trackingStatus" role="status" aria-live="polite">Live location tracking is off.</p>
+        <p style="font-size:13px">Blue dot: your live GPS position. Orange marker: route preview or simulation. Tracking runs while this page is visible and stops when you leave it. Tracking does not recalculate your route automatically.</p>
+      </section>
+<section style="padding:14px;background:#edf5f0;border-radius:10px" aria-labelledby="friend-gpsHeading">
+<h2 id="friend-gpsHeading">GPS Spoken Navigation</h2>
+<div class="btn-row"><button type="button" onclick="friendNav.navigateFromGPS()">Navigate from My GPS</button>
+<button type="button" onclick="friendNav.startGPSNavigation()">Start GPS on Current Route</button>
+<button type="button" onclick="friendNav.stopGPSNavigation()">Stop GPS Directions</button>
+<button type="button" onclick="friendNav.repeatGPSDirection()">Repeat GPS Direction</button></div>
+<p id="friend-gpsStatus" role="status" aria-live="polite">Enter or speak a destination, then choose Navigate from My GPS.</p>
+<p>Keep this page visible while walking. GPS directions pause if your position is uncertain or away from the route. GPS cannot confirm obstacles or safe road crossings.</p></section>
       <div class="stats">
         <div class="stat">
           Distance
@@ -4456,6 +4475,7 @@ window.addEventListener("load",()=>{
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
       if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found between these points.");
+      setGPSNavigationRoute(data.routes[0]);
       return data.routes[0];
     }
 
@@ -4566,7 +4586,7 @@ window.addEventListener("load",()=>{
             color: "#b45309",
             fillColor: "#f59e0b",
             fillOpacity: 1
-          }).addTo(map);
+          }).addTo(map).bindTooltip("Route preview marker — not your live GPS position");
         } else {
           userMarker.setLatLng([pt.lat, pt.lon]);
         }
@@ -4770,6 +4790,90 @@ window.addEventListener("load",()=>{
       }
     }
 
+    // Independent GPS marker: route previews never change this position.
+    let liveWatch=null;
+    let liveTracking=false;
+    let liveGeneration=0;
+    let liveMarker=null;
+    let liveAccuracyCircle=null;
+    let liveFix=null;
+    let liveFirstFix=true;
+    let liveLastStatus=0;
+    let liveAccuracyGood=null;
+    function setTrackingStatus(text,spoken=false){
+      document.getElementById('friend-trackingStatus').textContent=text;
+      if(spoken&&!isListening)speakText(text);
+    }
+    function stopLiveTracking(spoken=true){
+      liveGeneration++;liveTracking=false;
+      if(liveWatch!==null&&navigator.geolocation)navigator.geolocation.clearWatch(liveWatch);
+      liveWatch=null;
+      if(liveMarker){map.removeLayer(liveMarker);liveMarker=null;}
+      if(liveAccuracyCircle){map.removeLayer(liveAccuracyCircle);liveAccuracyCircle=null;}
+      liveFix=null;liveLastStatus=0;liveAccuracyGood=null;
+      document.getElementById('friend-trackStart').disabled=false;
+      document.getElementById('friend-trackStop').disabled=true;
+      document.getElementById('friend-trackCenter').disabled=true;
+      setTrackingStatus('Live location tracking is off.',spoken);
+    }
+    function showLivePosition(position,token){
+      if(!liveTracking||token!==liveGeneration)return;
+      const c=position.coords;
+      if(!c||!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||!Number.isFinite(c.accuracy)||
+        c.latitude < -90||c.latitude > 90||c.longitude < -180||c.longitude > 180||c.accuracy < 0||
+        !Number.isFinite(position.timestamp)||Date.now()-position.timestamp>30000){
+        setTrackingStatus('Waiting for a recent, valid GPS position.');return;
+      }
+      liveFix={lat:c.latitude,lon:c.longitude,accuracy:c.accuracy,time:position.timestamp};
+      const point=[c.latitude,c.longitude];
+      if(!liveMarker){
+        liveMarker=L.circleMarker(point,{radius:9,color:'#fff',weight:3,fillColor:'#0369a1',fillOpacity:1})
+          .addTo(map).bindTooltip('Your live GPS position');
+        liveAccuracyCircle=L.circle(point,{radius:c.accuracy,color:'#0284c7',weight:1,fillColor:'#38bdf8',fillOpacity:0.12}).addTo(map);
+      }else{
+        liveMarker.setLatLng(point);liveAccuracyCircle.setLatLng(point);liveAccuracyCircle.setRadius(c.accuracy);
+      }
+      document.getElementById('friend-trackCenter').disabled=false;
+      const good=c.accuracy<=50;
+      if(document.getElementById('friend-trackFollow').checked&&good){
+        if(liveFirstFix)map.setView(point,17);else map.panTo(point,{animate:false});
+      }
+      const changed=liveAccuracyGood!==good;
+      if(liveFirstFix||changed||Date.now()-liveLastStatus>=5000){
+        const text='Tracking your location. Accuracy approximately '+Math.round(c.accuracy)+' metres. '+
+          (good?'Blue dot: live GPS. Shaded circle: location uncertainty.':'GPS accuracy is low; the map will not follow until accuracy improves.');
+        setTrackingStatus(text,liveFirstFix);liveLastStatus=Date.now();
+      }
+      liveFirstFix=false;liveAccuracyGood=good;
+    }
+    function startLiveTracking(){
+      if(liveTracking)return;
+      if(!navigator.geolocation){setTrackingStatus('This browser does not support location tracking.',true);return;}
+      if(!window.isSecureContext){setTrackingStatus('Live location needs HTTPS or localhost. Open your published GitHub Pages website.',true);return;}
+      liveGeneration++;const token=liveGeneration;
+      liveTracking=true;liveFirstFix=true;liveLastStatus=0;liveAccuracyGood=null;
+      document.getElementById('friend-trackStart').disabled=true;
+      document.getElementById('friend-trackStop').disabled=false;
+      setTrackingStatus('Requesting location permission. Allow location access to see your live position.',true);
+      try{
+        const id=navigator.geolocation.watchPosition(position=>showLivePosition(position,token),error=>{
+          if(!liveTracking||token!==liveGeneration)return;
+          if(error.code===1){stopLiveTracking(false);setTrackingStatus('Location permission denied. Allow location access in your browser, then choose Start Live Tracking.',true);}
+          else setTrackingStatus(error.code===3?'GPS update timed out. Waiting for the next location update…':'GPS position is temporarily unavailable. Waiting for a location update…');
+        },{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+        if(liveTracking&&token===liveGeneration)liveWatch=id;else navigator.geolocation.clearWatch(id);
+      }catch{
+        stopLiveTracking(false);setTrackingStatus('Could not start location tracking. Check browser location permission.',true);
+      }
+    }
+    function centerLiveLocation(){
+      if(!liveFix||Date.now()-liveFix.time>30000){setTrackingStatus('Waiting for a fresh GPS position before centring the map.');return;}
+      map.setView([liveFix.lat,liveFix.lon],17);
+    }
+    document.addEventListener('visibilitychange',()=>{
+      if(document.hidden&&liveTracking){stopLiveTracking(false);setTrackingStatus('Tracking stopped because the page was hidden. Choose Start Live Tracking to resume.');}
+    });
+
     function useMyLocation(onSuccessCallback = null) {
       if (!navigator.geolocation) {
         announce("Geolocation is not supported by your browser.");
@@ -4834,9 +4938,113 @@ window.addEventListener("load",()=>{
       }
       return recognizer;
     };
-    window.friendNav={findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,
+    // GPS guidance uses the routing service's maneuvers; preview markers never drive it.
+    let gpsPlan=null,gpsActive=false,gpsRequest=0,gpsProgress=null,gpsLastTime=0,gpsLastMessage='';
+    const gpsSaid=new Set();
+    function gpsStatus(message,voice=false){
+      document.getElementById('friend-gpsStatus').textContent=message;
+      if(voice&&!isListening&&message!==gpsLastMessage){speakText(message);gpsLastMessage=message;}
+    }
+    function gpsDistance(a,b){const r=Math.PI/180;return Math.hypot((a[0]-b[0])*111195*Math.cos((a[1]+b[1])*r/2),(a[1]-b[1])*111195);}
+    function gpsProject(point,plan,min=0,max=Infinity){
+      let best=null;
+      for(let i=1;i<plan.points.length;i++){
+        const a=plan.points[i-1],b=plan.points[i],scale=111195*Math.cos(point[1]*Math.PI/180);
+        const ax=(a[0]-point[0])*scale,ay=(a[1]-point[1])*111195,bx=(b[0]-point[0])*scale,by=(b[1]-point[1])*111195;
+        const dx=bx-ax,dy=by-ay,len=dx*dx+dy*dy,t=len?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/len)):0;
+        const along=plan.cumulative[i-1]+t*(plan.cumulative[i]-plan.cumulative[i-1]);
+        if(along<min||along>max)continue;
+        const distance=Math.hypot(ax+t*dx,ay+t*dy);
+        if(!best||distance<best.distance)best={along,distance};
+      }
+      return best;
+    }
+    function setGPSNavigationRoute(route){
+      gpsPlan=null;
+      const points=route.geometry?.coordinates;
+      if(!Array.isArray(points)||points.length<2||points.some(p=>!Array.isArray(p)||!Number.isFinite(p[0])||!Number.isFinite(p[1])))return;
+      const plan={points,cumulative:[0],steps:[]};
+      for(let i=1;i<points.length;i++)plan.cumulative.push(plan.cumulative[i-1]+gpsDistance(points[i-1],points[i]));
+      let last=0;
+      for(const leg of route.legs||[])for(const step of leg.steps||[]){
+        const m=step.maneuver;
+        if(!m||!Array.isArray(m.location))continue;
+        const p=gpsProject(m.location,plan,last-2);
+        if(!p)continue;
+        last=Math.max(last,p.along);
+        if(m.type==='depart'||m.type==='arrive')continue;
+        const modifier=(m.modifier||'straight').replace(/-/g,' ');
+        const action=m.type==='roundabout'||m.type==='rotary'?'At the roundabout, take exit '+(m.exit||'shown on the map'):modifier==='straight'?'Continue straight':'Turn '+modifier;
+        plan.steps.push({along:last,text:action+(step.name?' onto '+step.name:'')});
+      }
+      if(!(route.legs||[]).some(l=>l.steps?.length))return;
+      plan.total=plan.cumulative[plan.cumulative.length-1];gpsPlan=plan;
+    }
+    function stopGPSNavigation(){
+      gpsRequest++;gpsActive=false;if('speechSynthesis' in window)speechSynthesis.cancel();gpsProgress=null;gpsSaid.clear();gpsLastMessage='';
+      gpsStatus('GPS voice navigation is off.');
+    }
+    function gpsGuide(position){
+      if(!gpsActive||!gpsPlan)return;
+      const c=position?.coords,age=Date.now()-position?.timestamp;
+      if(!c||!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||!Number.isFinite(c.accuracy)||c.accuracy<0||c.accuracy>25||!Number.isFinite(age)||age>15000||age< -5000){gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);return;}
+      const point=[c.longitude,c.latitude];
+      const elapsed=gpsLastTime?Math.max(0,(position.timestamp-gpsLastTime)/1000):0;
+      const match=gpsProject(point,gpsPlan,gpsProgress===null?0:gpsProgress-20,gpsProgress===null?Infinity:gpsProgress+Math.min(100,elapsed*3+30));
+      if(!match||match.distance>Math.max(30,c.accuracy+10)){gpsStatus('Guidance paused. You appear away from the mapped route. Check your position and find a new route if needed.',true);return;}
+      if(gpsLastTime&&position.timestamp<=gpsLastTime)return;
+      gpsProgress=match.along;gpsLastTime=position.timestamp;
+      if(gpsPlan.total-match.along<=12&&gpsDistance(point,gpsPlan.points[gpsPlan.points.length-1])<=12){
+        gpsStatus('You are near the end of the mapped route. Check the destination entrance.',true);gpsActive=false;return;
+      }
+      const next=gpsPlan.steps.find(s=>s.along>=match.along-8);
+      if(!next){gpsStatus('Continue along the mapped route. Approximately '+Math.round(gpsPlan.total-match.along)+' metres remaining.',true);return;}
+      const distance=Math.max(0,next.along-match.along),stage=distance<=10?'now':distance<=35?'soon':'ahead',key=gpsPlan.steps.indexOf(next)+':'+stage;
+      const text=stage==='now'?next.text+' nearby.': 'In approximately '+Math.round(distance)+' metres, '+next.text.toLowerCase()+'.';
+      gpsStatus(text);
+      if(!gpsSaid.has(key)&&!isListening){speakText(text);gpsLastMessage=text;gpsSaid.add(key);}
+    }
+    function startGPSNavigation(){
+      if(!gpsPlan){gpsStatus('Find a route first. GPS guidance needs walking maneuvers from the routing service.',true);return;}
+      stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}
+      gpsProgress=null;gpsLastTime=0;gpsSaid.clear();gpsLastMessage='';gpsActive=true;
+      gpsStatus('GPS navigation started. Waiting for your position.',true);startLiveTracking();
+      if(!liveTracking){gpsActive=false;gpsStatus('GPS navigation could not start. Check location permission and HTTPS.',true);}
+      else if(liveFix)gpsGuide({coords:{latitude:liveFix.lat,longitude:liveFix.lon,accuracy:liveFix.accuracy},timestamp:liveFix.time});
+    }
+    function navigateFromGPS(){
+      if(!document.getElementById('friend-destination').value.trim()){gpsStatus('Enter or speak your destination first.',true);return;}
+      if(!navigator.geolocation||!window.isSecureContext){gpsStatus('Open the HTTPS website and allow location access.',true);return;}
+      stopGPSNavigation();const request=gpsRequest;
+      gpsStatus('Getting your GPS starting point. Allow location access.',true);
+      navigator.geolocation.getCurrentPosition(async position=>{
+        if(request!==gpsRequest)return;
+        const c=position.coords;
+        if(!Number.isFinite(c.latitude)||!Number.isFinite(c.longitude)||!Number.isFinite(c.accuracy)||c.accuracy<0||c.accuracy>25||Date.now()-position.timestamp>15000){gpsStatus('GPS accuracy is too low. Move to an open area and try Navigate from My GPS again.',true);return;}
+        document.getElementById('friend-start').value=c.latitude.toFixed(6)+', '+c.longitude.toFixed(6);
+        await findRoute(true);
+        if(request===gpsRequest&&gpsPlan)startGPSNavigation();
+      },()=>{if(request===gpsRequest)gpsStatus('Could not get your location. Check location permission and try again.',true);},{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+    }
+    const originalGPSShow=showLivePosition;
+    showLivePosition=function(position,token){originalGPSShow(position,token);if(liveTracking&&token===liveGeneration)gpsGuide(position);};
+    const originalGPSStop=stopLiveTracking;
+    stopLiveTracking=function(spoken=true){stopGPSNavigation();originalGPSStop(spoken);};
+    const originalGPSFind=findRoute;
+    findRoute=async function(fromGPS=false){if(fromGPS!==true)gpsRequest++;gpsActive=false;gpsPlan=null;gpsStatus('Finding route. GPS guidance will be available when it is ready.');await originalGPSFind();};
+    const originalGPSClear=clearRoute;
+    clearRoute=function(){stopGPSNavigation();gpsPlan=null;originalGPSClear();};
+    function repeatGPSDirection(){if(gpsActive&&!isListening)speakText(document.getElementById('friend-gpsStatus').textContent);}
+    const gpsPreviewSpeak=speakCurrentStep,gpsPreviewNext=nextStepVoice,gpsPreviewAuto=toggleAutoPlay,gpsPreviewSim=toggleSimulation;
+    speakCurrentStep=function(){stopGPSNavigation();return gpsPreviewSpeak();};
+    nextStepVoice=function(){stopGPSNavigation();return gpsPreviewNext();};
+    toggleAutoPlay=function(){stopGPSNavigation();return gpsPreviewAuto();};
+    toggleSimulation=function(){stopGPSNavigation();return gpsPreviewSim();};
+    setInterval(()=>{if(gpsActive&&(!liveFix||Date.now()-liveFix.time>15000))gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);},3000);
+
+    window.friendNav={navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
-      pause:()=>{if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
+      pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
     window.goTo=function(screen){if(screen!=='navigation')window.friendNav.pause();const result=previousGoTo.apply(this,arguments);if(screen==='navigation')window.friendNav.activate();return result;};
     window.x=function(){};
