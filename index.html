@@ -4017,170 +4017,141 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // ACCURATE VERIFIED PHYSICAL LOCATIONS (OPENSTREETMAP ALIGNED)
     // =========================================================================
-    const campusLocations = {
-      "kk1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej 1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej kediaman pertama": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej kediaman ke-1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "1st residential college": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "astaka": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
-
-      "kk2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej 2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej kediaman kedua": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej kediaman ke-2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "2nd residential college": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-
-      "kk3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej 3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ketiga": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ke-3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ke 3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "3rd residential college": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-
-      "kk4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej 4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej kediaman keempat": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej kediaman ke-4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "4th residential college": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
-
-      "kk5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej 5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej kediaman kelima": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej kediaman ke-5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "5th residential college": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-
-      "kk6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej 6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej kediaman keenam": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej kediaman ke-6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "6th residential college": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-
-      "kk7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej 7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej kediaman ketujuh": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej kediaman ke-7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "7th residential college": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-
-      "kk8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej 8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej kediaman kelapan": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej kediaman ke-8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "8th residential college": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-
-      "kk9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej 9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej kediaman kesembilan": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej kediaman ke-9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "9th residential college": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-
-      "kk10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej 10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej kediaman kesepuluh": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej kediaman ke-10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "10th residential college": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-
-      "kk11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej 11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej kediaman kesebelas": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej kediaman ke-11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "11th residential college": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-
-      "kk12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej 12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej kediaman kedua belas": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej kediaman ke-12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "12th residential college": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-
-      "fakulti sastera dan sains sosial": { lat: 3.121025, lon: 101.652283, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
-      "faculty of arts and social sciences": { lat: 3.121025, lon: 101.652283, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
-      "fakulti alam bina": { lat: 3.116292, lon: 101.655051, name: "Faculty of Built Environment, Universiti Malaya" },
-      "faculty built environment": { lat: 3.116292, lon: 101.655051, name: "Faculty of Built Environment, Universiti Malaya" },
-      "fakulti perniagaan dan ekonomi": { lat: 3.118532, lon: 101.653184, name: "Faculty of Business and Economics, Universiti Malaya" },
-      "faculty of business and economics": { lat: 3.118532, lon: 101.653184, name: "Faculty of Business and Economics, Universiti Malaya" },
-      "fakulti sains komputer dan teknologi maklumat": { lat: 3.1284285, lon: 101.6502099, name: "Faculty of Computer Science and Information Technology, Universiti Malaya" },
-      "faculty of computer science and information technology": { lat: 3.1284285, lon: 101.6502099, name: "Faculty of Computer Science and Information Technology, Universiti Malaya" },
-      "fakulti seni kreatif": { lat: 3.121081, lon: 101.656695, name: "Faculty of Creative Arts, Universiti Malaya" },
-      "faculty of creative arts": { lat: 3.121081, lon: 101.656695, name: "Faculty of Creative Arts, Universiti Malaya" },
-      "fakulti pergigian": { lat: 3.111149, lon: 101.653044, name: "Faculty of Dentistry, Universiti Malaya" },
-      "faculty of dentistry": { lat: 3.111149, lon: 101.653044, name: "Faculty of Dentistry, Universiti Malaya" },
-      "fakulti pendidikan": { lat: 3.120114, lon: 101.652661, name: "Faculty of Education, Universiti Malaya" },
-      "faculty of education": { lat: 3.120114, lon: 101.652661, name: "Faculty of Education, Universiti Malaya" },
-      "fakulti kejuruteraan": { lat: 3.118076, lon: 101.655844, name: "Faculty of Engineering, Universiti Malaya" },
-      "faculty of engineering": { lat: 3.118076, lon: 101.655844, name: "Faculty of Engineering, Universiti Malaya" },
-      "fakulti bahasa dan linguistik": { lat: 3.122262, lon: 101.651419, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
-      "faculty of languages and linguistics": { lat: 3.122262, lon: 101.651419, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
-      "fakulti undang-undang": { lat: 3.117790, lon: 101.661363, name: "Faculty of Law, Universiti Malaya" },
-      "faculty of law": { lat: 3.117790, lon: 101.661363, name: "Faculty of Law, Universiti Malaya" },
-      "fakulti perubatan": { lat: 3.114715, lon: 101.653227, name: "Faculty of Medicine, Universiti Malaya" },
-      "faculty of medicine": { lat: 3.114715, lon: 101.653227, name: "Faculty of Medicine, Universiti Malaya" },
-      "fakulti farmasi": { lat: 3.115320, lon: 101.651848, name: "Faculty of Pharmacy, Universiti Malaya" },
-      "faculty of pharmacy": { lat: 3.115320, lon: 101.651848, name: "Faculty of Pharmacy, Universiti Malaya" },
-      "fakulti sains": { lat: 3.121914, lon: 101.653869, name: "Faculty of Science, Universiti Malaya" },
-      "faculty of science": { lat: 3.121914, lon: 101.653869, name: "Faculty of Science, Universiti Malaya" },
-      "fakulti sains sukan dan rekreasi": { lat: 3.130095, lon: 101.659679, name: "Faculty of Sports and Exercise Science, Universiti Malaya" },
-      "faculty of sports and exercise science": { lat: 3.130095, lon: 101.659679, name: "Faculty of Sports and Exercise Science, Universiti Malaya" },
-      "akademi pengajian islam": { lat: 3.133066, lon: 101.657240, name: "Academy of Islamic Studies, Universiti Malaya" },
-      "academy of islamic studies": { lat: 3.133066, lon: 101.657240, name: "Academy of Islamic Studies, Universiti Malaya" },
-      "akademi pengajian melayu": { lat: 3.124764, lon: 101.652473, name: "Academy of Malay Studies, Universiti Malaya" },
-      "academy of malay studies": { lat: 3.124764, lon: 101.652473, name: "Academy of Malay Studies, Universiti Malaya" },
-      "pusat asasi sains": { lat: 3.122943, lon: 101.659235, name: "Foundation Studies in Science, Universiti Malaya" },
-      "foundation studies in science": { lat: 3.122943, lon: 101.659235, name: "Foundation Studies in Science, Universiti Malaya" },
-      "dtc": { lat: 3.121600, lon: 101.656486, name: "Dewan Tunku Canselor (DTC), Universiti Malaya" },
-      "perpustakaan": { lat: 3.120311, lon: 101.654110, name: "Main Library, Universiti Malaya" },
-      "main library": { lat: 3.120311, lon: 101.654110, name: "Main Library, Universiti Malaya" },
-      "kps": { lat: 3.120468, lon: 101.656110, name: "Perdanasiswa Complex, Universiti Malaya" },
-      "arena stadium": { lat: 3.131118, lon: 101.659582, name: "Arena Stadium, Universiti Malaya" },
-      "swimming pool and sports centre": { lat: 3.128788, lon: 101.659540, name: "Swimming Pool and Sports Centre, Universiti Malaya" },
-      "varsity lake": { lat: 3.119268, lon: 101.656639, name: "Varsity Lake, Universiti Malaya" },
-      "rimba ilmu botanical garden": { lat: 3.131062, lon: 101.657894, name: "Rimba Ilmu Botanical Garden, Universiti Malaya" },
-      "student health clinic": { lat: 3.1218203, lon: 101.6525930, name: "Student Health Clinic, Universiti Malaya" },
-      "museum of asian arts": { lat: 3.118218, lon: 101.653179, name: "Museum of Asian Arts, Universiti Malaya" },
-      "main exam halls and centre": { lat: 3.115219, lon: 101.658800, name: "Main Exam Halls and Centre, Universiti Malaya" },
-      "um central": { lat: 3.121040, lon: 101.653613, name: "UM Central, Universiti Malaya" },
-      "um arena": { lat: 3.131041, lon: 101.658843, name: "UM Arena, Universiti Malaya" },
-      "high impact research building": { lat: 3.122075, lon: 101.656478, name: "High Impact Research Building, Universiti Malaya" },
-      "kk mart": { lat: 3.121177, lon: 101.655557, name: "KK Mart, Universiti Malaya" }
+    const locationCache = new Map();
+    const umDirectLocations = {
+      "fakulti sains": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
+      "faculty of science": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
+      "fakulti bahasa": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "faculty of languages": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "fakulti sastera": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "faculty of arts": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "fakulti undang-undang": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
+      "faculty of law": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
+      "dtc": { lat: 3.1209, lon: 101.6579, name: "Dewan Tunku Canselor (DTC), Universiti Malaya" },
+      "perpustakaan": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" },
+      "main library": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" }
     };
 
-    function resolveLocation(query) {
-      if (!query) return null;
-      const gps = query.trim().match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-      if(gps){
-        const lat=Number(gps[1]),lon=Number(gps[2]);
-        if(lat < -90 || lat > 90 || lon < -180 || lon > 180)return null;
-        return {lat,lon,name:query};
-      }
-      const clean = query.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ");
+    // Direct coordinates for all 12 UM Residential Colleges (KK1 - KK12)
+    const umResidentialColleges = {
+      "kk1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej 1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman pertama": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman ke-1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "1st residential college": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "astaka": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
 
-      const coordMatch = clean.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      "kk2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej 2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman kedua": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman ke-2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "2nd residential college": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+
+      "kk3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ketiga": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke-3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "3rd residential college": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+
+      "kk4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej 4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman keempat": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman ke-4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "4th residential college": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+
+      "kk5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej 5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman kelima": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman ke-5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "5th residential college": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+
+      "kk6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej 6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman keenam": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman ke-6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "6th residential college": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+
+      "kk7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej 7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ketujuh": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ke-7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "7th residential college": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+
+      "kk8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej 8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman kelapan": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman ke-8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "8th residential college": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+
+      "kk9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej 9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman kesembilan": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman ke-9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "9th residential college": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+
+      "kk10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej 10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman kesepuluh": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman ke-10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "10th residential college": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+
+      "kk11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej 11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman kesebelas": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman ke-11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "11th residential college": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+
+      "kk12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej 12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman kedua belas": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman ke-12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "12th residential college": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" }
+    };
+
+    async function geocode(place, isRetry = false) {
+      let clean = place.trim().toLowerCase();
+
+      // 1. Direct coordinates match (lat, lon)
+      const coordMatch = place.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
       if (coordMatch) {
-        return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: query };
+        return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: place };
       }
 
-      const collegeMatch = clean.match(/\b(?:kk|kolej\s*(?:kediaman)?(?:\s*ke)?)\s*(\d{1,2})\b/);
-      if (collegeMatch) {
-        const num = collegeMatch[1];
-        const key = `kk${num}`;
-        if (campusLocations[key]) {
-          return campusLocations[key];
-        }
-      }
-
-      const strippedKey = clean.replace(/\s+/g, "");
-      for (const [key, val] of Object.entries(campusLocations)) {
-        if (key.replace(/\s+/g, "") === strippedKey) {
-          return val;
-        }
-      }
-
-      for (const [key, val] of Object.entries(campusLocations)) {
+      // 2. Direct lookup for UM faculties
+      for (const [key, val] of Object.entries(umDirectLocations)) {
         if (clean.includes(key)) {
           return val;
         }
       }
 
-      return null;
+      // 3. Direct coordinates for UM residential colleges
+      for (const [key, val] of Object.entries(umResidentialColleges).sort((a,b)=>b[0].length-a[0].length)) {
+        if (clean.includes(key)) {
+          return val;
+        }
+      }
+
+      if (locationCache.has(clean)) return locationCache.get(clean);
+
+      // 4. Query Nominatim with cleaned string
+      const queryTerm = clean.replace(/ke-(\d+)/g, "ke $1");
+      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(queryTerm);
+
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Location lookup service unavailable.");
+      const list = await res.json();
+
+      if (!list.length) {
+        if (!isRetry && !queryTerm.includes("universiti malaya") && !queryTerm.includes("um")) {
+          return await geocode(queryTerm + " Universiti Malaya", true);
+        }
+        throw new Error(`Location "${place}" not found. Try entering KK1 to KK12, or the specific faculty name.`);
+      }
+
+      const result = { lat: Number(list[0].lat), lon: Number(list[0].lon), name: list[0].display_name };
+      locationCache.set(place.trim().toLowerCase(), result);
+      return result;
     }
 
     // =========================================================================
@@ -4406,41 +4377,14 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // OVERPASS & ROUTING ENGINE
     // =========================================================================
-    function isElementTactile(tags = {}) {
-      if (!tags) return false;
-      const val = tags.tactile_paving;
-      if (val === "yes" || val === "primitive" || val === "contrasted" || val === "incorrect") return true;
-
-      if (
-        tags["sidewalk:both:tactile_paving"] === "yes" ||
-        tags["sidewalk:right:tactile_paving"] === "yes" ||
-        tags["sidewalk:left:tactile_paving"] === "yes" ||
-        tags["sidewalk:tactile_paving"] === "yes"
-      ) return true;
-
-      if (tags["blind:description"] || tags["blind:tactile_paving"] === "yes") return true;
-      return false;
-    }
-
     async function detectPedestrianPaths(bounds) {
-      const south = bounds.getSouth();
-      const west = bounds.getWest();
-      const north = bounds.getNorth();
-      const east = bounds.getEast();
-
       const query = `
         [out:json][timeout:35];
         (
-          way["highway"~"^(footway|path|pedestrian|living_street|service|residential|tertiary|unclassified|steps|crossing|track)$"]
-            (${south},${west},${north},${east});
-          way["tactile_paving"]
-            (${south},${west},${north},${east});
-          node["tactile_paving"~"^(yes|primitive|contrasted|incorrect)$"]
-            (${south},${west},${north},${east});
-          node["highway"="crossing"]["tactile_paving"="yes"]
-            (${south},${west},${north},${east});
+          way["highway"~"^(footway|path|pedestrian|living_street|service|residential|unclassified|steps|crossing|track)$"]
+            (${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
         );
-        out body geom;
+        out geom;
       `;
 
       const servers = [
@@ -4456,7 +4400,7 @@ window.addEventListener("load",()=>{
           if (Array.isArray(data.elements)) {
             return data.elements.map(e => ({
               ...e,
-              isTactile: isElementTactile(e.tags)
+              isTactile: e.tags?.tactile_paving === "yes"
             }));
           }
         } catch (err) {}
@@ -4464,14 +4408,137 @@ window.addEventListener("load",()=>{
       return [];
     }
 
-    async function getDirectCampusWalkingRoute(start, destination) {
+    async function getOSRMRoute(start, destination) {
       const url = `https://router.project-osrm.org/route/v1/foot/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
-      if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found between these points.");
-      setGPSNavigationRoute(data.routes[0]);
+      if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found.");
       return data.routes[0];
+    }
+
+    function buildRoutingGraph(features, start, destination) {
+      const graph = new Map();
+      const coordinates = new Map();
+      const deadEnds = new Set();
+
+      function addNode(pt) {
+        const id = `${pt.lat.toFixed(7)},${pt.lon.toFixed(7)}`;
+        if (!coordinates.has(id)) {
+          coordinates.set(id, { lat: pt.lat, lon: pt.lon });
+          graph.set(id, []);
+        }
+        return id;
+      }
+
+      function addEdge(u, v, isTactile, isSynth = false) {
+        if (u === v) return;
+        const ptA = coordinates.get(u);
+        const ptB = coordinates.get(v);
+        const len = distanceMetres(ptA, ptB);
+        if (len < 0.1) return;
+
+        // Tactile paving gets heavy priority (0.2x cost)
+        let cost = len * (isTactile ? 0.2 : 1.0);
+        if (isSynth) cost = len * 2.0;
+
+        graph.get(u).push({ target: v, length: len, cost, isTactile, isSynth });
+        graph.get(v).push({ target: u, length: len, cost, isTactile, isSynth });
+      }
+
+      for (const f of features) {
+        if (!f.geometry || f.geometry.length < 2) continue;
+        const tags = f.tags || {};
+        if (tags.foot === "no" || tags.access === "no" || tags.access === "private") continue;
+
+        const isTactile = tags.tactile_paving === "yes";
+        const nodeIds = f.geometry.map(pt => addNode(pt));
+
+        deadEnds.add(nodeIds[0]);
+        deadEnds.add(nodeIds[nodeIds.length - 1]);
+
+        for (let i = 0; i < nodeIds.length - 1; i++) {
+          addEdge(nodeIds[i], nodeIds[i + 1], isTactile);
+        }
+      }
+
+      // Connect isolated campus paths within 35m
+      const deadEndList = Array.from(deadEnds);
+      for (let i = 0; i < deadEndList.length; i++) {
+        const idA = deadEndList[i];
+        const coordA = coordinates.get(idA);
+        for (let j = i + 1; j < deadEndList.length; j++) {
+          const idB = deadEndList[j];
+          const coordB = coordinates.get(idB);
+          if (distanceMetres(coordA, coordB) <= 35) {
+            addEdge(idA, idB, false, true);
+          }
+        }
+      }
+
+      const startId = addNode(start);
+      const destId = addNode(destination);
+
+      for (const [id, coord] of coordinates) {
+        if (id === startId || id === destId) continue;
+        if (distanceMetres(start, coord) <= 120) addEdge(startId, id, false, true);
+        if (distanceMetres(destination, coord) <= 120) addEdge(destId, id, false, true);
+      }
+
+      return { graph, coordinates, startId, destId };
+    }
+
+    function runDijkstra(graphData) {
+      const { graph, coordinates, startId, destId } = graphData;
+      const costs = new Map();
+      const previous = new Map();
+      const unvisited = new Set(graph.keys());
+
+      for (const id of graph.keys()) costs.set(id, Infinity);
+      costs.set(startId, 0);
+
+      while (unvisited.size > 0) {
+        let current = null;
+        let lowest = Infinity;
+
+        for (const node of unvisited) {
+          const c = costs.get(node);
+          if (c < lowest) {
+            lowest = c;
+            current = node;
+          }
+        }
+
+        if (current === null || lowest === Infinity || current === destId) break;
+        unvisited.delete(current);
+
+        for (const edge of graph.get(current)) {
+          if (!unvisited.has(edge.target)) continue;
+          const alt = lowest + edge.cost;
+          if (alt < costs.get(edge.target)) {
+            costs.set(edge.target, alt);
+            previous.set(edge.target, { from: current, edge });
+          }
+        }
+      }
+
+      if (!Number.isFinite(costs.get(destId))) return null;
+
+      const segments = [];
+      let curr = destId;
+      while (curr !== startId) {
+        const step = previous.get(curr);
+        segments.push({
+          from: coordinates.get(step.from),
+          to: coordinates.get(curr),
+          distance: step.edge.length,
+          isTactile: step.edge.isTactile, isSynth: step.edge.isSynth
+        });
+        curr = step.from;
+      }
+
+      segments.reverse();
+      return segments;
     }
 
     function buildSpokenInstructions(segments) {
@@ -4677,7 +4744,7 @@ window.addEventListener("load",()=>{
       const btn = document.getElementById("friend-routeBtn");
 
       if (!startText || !destText) {
-        announce("Please enter or speak both a starting point and destination.");
+        announce("Please enter both a starting point and destination.");
         return;
       }
 
@@ -4688,66 +4755,63 @@ window.addEventListener("load",()=>{
       btn.textContent = "Finding Route...";
 
       try {
-        announce("Locating campus destinations...");
-        const start = resolveLocation(startText);
-        const destination = resolveLocation(destText);
-
-        if (!start) throw new Error(`Could not find location "${startText}". Try KK1 to KK12 or faculty names.`);
-        if (!destination) throw new Error(`Could not find location "${destText}". Try KK1 to KK12 or faculty names.`);
+        announce("Searching locations...");
+        const start = await geocode(startText);
+        const destination = await geocode(destText);
 
         if (startMarker) map.removeLayer(startMarker);
         if (destinationMarker) map.removeLayer(destinationMarker);
         if (routeLine) map.removeLayer(routeLine);
         if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
 
-        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start: " + start.name).openPopup();
-        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination: " + destination.name);
+        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start").openPopup();
+        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination");
 
         const bounds = L.latLngBounds([start.lat, start.lon], [destination.lat, destination.lon]);
-        bounds.extend([bounds.getSouth() - 0.005, bounds.getWest() - 0.005]);
-        bounds.extend([bounds.getNorth() + 0.005, bounds.getEast() + 0.005]);
+        bounds.extend([bounds.getSouth() - 0.006, bounds.getWest() - 0.006]);
+        bounds.extend([bounds.getNorth() + 0.006, bounds.getEast() + 0.006]);
 
-        announce("Calculating direct route and checking tactile blind paving...");
-        const [features, walkRoute] = await Promise.all([
-          detectPedestrianPaths(bounds),
-          getDirectCampusWalkingRoute(start, destination)
-        ]);
+        announce("Searching tactile and pedestrian network...");
+        const features = await detectPedestrianPaths(bounds);
 
-        const rawCoords = walkRoute.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
-        const segments = [];
+        const graphData = buildRoutingGraph(features, start, destination);
+        let segments = runDijkstra(graphData);
 
-        for (let i = 0; i < rawCoords.length - 1; i++) {
-          const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
-          const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
+        // Fallback to general pedestrian network if graph has isolated gaps
+        if (!segments || segments.length === 0) {
+          const fallback = await getOSRMRoute(start, destination);
+          const rawCoords = fallback.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
 
-          let isNearTactile = false;
+          segments = [];
+          for (let i = 0; i < rawCoords.length - 1; i++) {
+            const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
+            const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
 
-          for (const f of features) {
-            if (!f.isTactile) continue;
-
-            if (f.geometry) {
-              for (const pt of f.geometry) {
-                if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 18) {
-                  isNearTactile = true;
-                  break;
+            let isNearTactile = false;
+            for (const f of features) {
+              if (f.isTactile && f.geometry) {
+                for (const pt of f.geometry) {
+                  if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 6) {
+                    isNearTactile = true;
+                    break;
+                  }
                 }
               }
-            } else if (f.lat && f.lon) {
-              if (distanceMetres({ lat: midLat, lon: midLon }, { lat: f.lat, lon: f.lon }) < 18) {
-                isNearTactile = true;
-              }
+              if (isNearTactile) break;
             }
-            if (isNearTactile) break;
-          }
 
-          segments.push({
-            from: rawCoords[i],
-            to: rawCoords[i+1],
-            distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
-            isTactile: isNearTactile
-          });
+            segments.push({
+              from: rawCoords[i],
+              to: rawCoords[i+1],
+              distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
+              isTactile: isNearTactile
+            });
+          }
         }
 
+        updateGPSFromSelectedSegments(segments);
+
+        // Draw ONLY the selected route: Amber = Tactile, Blue = Regular Walkway
         routeLine = L.featureGroup();
         segments.forEach(seg => {
           L.polyline([[seg.from.lat, seg.from.lon], [seg.to.lat, seg.to.lon]], {
@@ -4760,6 +4824,7 @@ window.addEventListener("load",()=>{
         routeLine.addTo(map);
         map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
 
+        // Calculate statistics
         const totalDist = segments.reduce((sum, s) => sum + s.distance, 0);
         const tactileDist = segments.filter(s => s.isTactile).reduce((sum, s) => sum + s.distance, 0);
         const percent = totalDist > 0 ? Math.round((tactileDist / totalDist) * 100) : 0;
@@ -4769,13 +4834,14 @@ window.addEventListener("load",()=>{
         document.getElementById("friend-tactileCoverage").textContent = `${percent}% (${Math.round(tactileDist)}m)`;
         document.getElementById("friend-duration").textContent = `${estDuration} min`;
 
+        // Generate and format spoken instructions
         instructions = buildSpokenInstructions(segments);
         currentStepIdx = 0;
         renderDirectionsUI(instructions);
         highlightStep(0);
 
-        document.getElementById("friend-status").textContent = `Direct route found: ${Math.round(totalDist)} m (${percent}% tactile blind path).`;
-        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. First instruction: ${instructions[0].speechText}`);
+        document.getElementById("friend-status").textContent = `Route found: ${Math.round(totalDist)} m (${percent}% tactile paving).`;
+        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. Starting instructions: ${instructions[0].speechText}`);
 
       } catch (err) {
         announce(err.message || "Failed to find connected route.");
@@ -4986,6 +5052,9 @@ window.addEventListener("load",()=>{
       const elapsed=gpsLastTime?Math.max(0,(position.timestamp-gpsLastTime)/1000):0;
       const match=gpsProject(point,gpsPlan,gpsProgress===null?0:gpsProgress-20,gpsProgress===null?Infinity:gpsProgress+Math.min(100,elapsed*3+30));
       if(!match||match.distance>Math.max(30,c.accuracy+10)){gpsStatus('Guidance paused. You appear away from the mapped route. Check your position and find a new route if needed.',true);return;}
+      if(gpsPlan.gaps?.some(g=>match.along>=g[0]-10&&match.along<=g[1]+10)){
+        gpsStatus('Guidance paused near an inferred path connection. This connection is not confirmed by mapped walkway data.',true);return;
+      }
       if(gpsLastTime&&position.timestamp<=gpsLastTime)return;
       gpsProgress=match.along;gpsLastTime=position.timestamp;
       if(gpsPlan.total-match.along<=12&&gpsDistance(point,gpsPlan.points[gpsPlan.points.length-1])<=12){
@@ -4997,6 +5066,23 @@ window.addEventListener("load",()=>{
       const text=stage==='now'?next.text+' nearby.': 'In approximately '+Math.round(distance)+' metres, '+next.text.toLowerCase()+'.';
       gpsStatus(text);
       if(!gpsSaid.has(key)&&!isListening){speakText(text);gpsLastMessage=text;gpsSaid.add(key);}
+    }
+    function updateGPSFromSelectedSegments(segments){
+      if(!segments.length){gpsPlan=null;return;}
+      const points=[[segments[0].from.lon,segments[0].from.lat],...segments.map(s=>[s.to.lon,s.to.lat])];
+      const steps=[{maneuver:{type:'depart',location:points[0]}}];
+      let offset=0;const gaps=[];
+      segments.forEach((segment,i)=>{
+        if(segment.isSynth)gaps.push([offset,offset+segment.distance]);
+        offset+=segment.distance;
+        if(i>0){
+          const angle=((getBearing(segment.from,segment.to)-getBearing(segments[i-1].from,segments[i-1].to)+540)%360)-180;
+          if(Math.abs(angle)>=35)steps.push({maneuver:{type:'turn',modifier:(Math.abs(angle)>125?'sharp ':Math.abs(angle)<65?'slight ':'')+(angle>0?'right':'left'),location:points[i]}});
+        }
+      });
+      steps.push({maneuver:{type:'arrive',location:points[points.length-1]}});
+      setGPSNavigationRoute({geometry:{coordinates:points},legs:[{steps}]});
+      if(gpsPlan)gpsPlan.gaps=gaps;
     }
     function startGPSNavigation(){
       if(!gpsPlan){gpsStatus('Find a route first. GPS guidance needs walking maneuvers from the routing service.',true);return;}
