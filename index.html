@@ -3764,7 +3764,7 @@ function chooseAppMode(e){
     t=!1;
   }
 
-  goTo("home");
+  goTo("accessible"===e?"navigation":"home");
 
   t||(
     o("homeIntro").textContent+=
@@ -3772,7 +3772,7 @@ function chooseAppMode(e){
   );
 
   "accessible"===e&&je(
-    "Accessible Mode selected. Choose Start Navigation, Report an Issue, or Voice and Settings. More options contains community reports and your profile.",
+    "Accessible Mode selected. Navigation is open. Tap anywhere to speak your starting point and destination.",
     "en-MY"
   );
 }
