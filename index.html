@@ -353,6 +353,7 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
       </div>
       <p id="friend-gpsStatus" role="status" aria-live="polite">After finding a route, tap Start Navigation to locate you with GPS and begin spoken directions.</p>
 
+      <details style="margin:12px 0"><summary>Navigation check details</summary><pre id="friend-navigationCheck" style="white-space:pre-wrap;overflow-wrap:anywhere">Find a route to show the map source, selected locations and tactile data.</pre></details>
       <!-- Turn-by-Turn Voice Controls -->
       <div class="voice-controls" id="friend-voiceBar" style="display: none;">
         <span style="font-size: 13px; font-weight: bold;">Voice Guidance:</span>
@@ -4377,6 +4378,11 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // OVERPASS & ROUTING ENGINE
     // =========================================================================
+    const navigationCheck={version:'Friend navigation audit 2026-10-23',source:'',features:0,tactile:0,mode:'',start:null,destination:null};
+    function showNavigationCheck(){
+      const e=document.getElementById('friend-navigationCheck');
+      if(e)e.textContent=JSON.stringify(navigationCheck,null,2);
+    }
     async function detectPedestrianPaths(bounds) {
       const query = `
         [out:json][timeout:35];
@@ -4392,20 +4398,26 @@ window.addEventListener("load",()=>{
         "https://overpass.kumi.systems/api/interpreter"
       ];
 
+      let failure="No usable map response.";
       for (const server of servers) {
         try {
           const res = await fetch(server + "?data=" + encodeURIComponent(query));
-          if (!res.ok) continue;
+          if (!res.ok){failure="Map server returned HTTP "+res.status;continue;}
           const data = await res.json();
+          if(data.remark){failure=String(data.remark);continue;}
           if (Array.isArray(data.elements)) {
+            navigationCheck.source=server;
+            navigationCheck.features=data.elements.length;
+            navigationCheck.tactile=data.elements.filter(e=>e.tags?.tactile_paving==='yes').length;
+            showNavigationCheck();
             return data.elements.map(e => ({
               ...e,
               isTactile: e.tags?.tactile_paving === "yes"
             }));
           }
-        } catch (err) {}
+        } catch (err) {failure=err.message||String(err);}
       }
-      return [];
+      throw new Error("Tactile map lookup failed. This does not mean there is no tactile paving. "+failure);
     }
 
     async function getOSRMRoute(start, destination) {
@@ -4758,6 +4770,8 @@ window.addEventListener("load",()=>{
         announce("Searching locations...");
         const start = await geocode(startText);
         const destination = await geocode(destText);
+        navigationCheck.start={entered:startText,...start};navigationCheck.destination={entered:destText,...destination};
+        navigationCheck.source='';navigationCheck.features=0;navigationCheck.tactile=0;navigationCheck.mode='Loading map';showNavigationCheck();
 
         if (startMarker) map.removeLayer(startMarker);
         if (destinationMarker) map.removeLayer(destinationMarker);
@@ -4776,9 +4790,11 @@ window.addEventListener("load",()=>{
 
         const graphData = buildRoutingGraph(features, start, destination);
         let segments = runDijkstra(graphData);
+        navigationCheck.mode="Friend tactile-prioritised graph";
 
         // Fallback to general pedestrian network if graph has isolated gaps
         if (!segments || segments.length === 0) {
+          navigationCheck.mode="Friend OSRM fallback (no graph connection)";
           const fallback = await getOSRMRoute(start, destination);
           const rawCoords = fallback.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
 
@@ -4809,6 +4825,7 @@ window.addEventListener("load",()=>{
           }
         }
 
+        showNavigationCheck();
         updateGPSFromSelectedSegments(segments);
 
         // Draw ONLY the selected route: Amber = Tactile, Blue = Regular Walkway
@@ -4844,6 +4861,11 @@ window.addEventListener("load",()=>{
         speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. Starting instructions: ${instructions[0].speechText}`);
 
       } catch (err) {
+        gpsPlan=null;
+        document.getElementById('friend-distance').textContent='—';
+        document.getElementById('friend-tactileCoverage').textContent='Unknown — lookup failed';
+        document.getElementById('friend-duration').textContent='—';
+        navigationCheck.mode='Route or map lookup failed';showNavigationCheck();
         announce(err.message || "Failed to find connected route.");
       } finally {
         btn.disabled = false;
