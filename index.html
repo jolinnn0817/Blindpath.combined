@@ -1148,7 +1148,7 @@ function I(e){
 
 async function O(e){
   const supplied=window.friendNav?.lookupKnownLocation(e);
-  if(supplied)return supplied;
+  if(supplied)return await window.friendNav.resolvePlace(e);
   const t=fe(e);
   if(t)return{lat:t.lat,lon:t.lng,name:e};
 
@@ -4023,143 +4023,163 @@ window.addEventListener("load",()=>{
     // =========================================================================
     const locationCache = new Map();
     const umDirectLocations = {
-      "fakulti sains": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
-      "faculty of science": { lat: 3.12364, lon: 101.65468, name: "Faculty of Science, Universiti Malaya" },
-      "fakulti bahasa": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
-      "faculty of languages": { lat: 3.1205, lon: 101.6528, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
-      "fakulti sastera": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
-      "faculty of arts": { lat: 3.1205, lon: 101.6568, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
-      "fakulti undang-undang": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
-      "faculty of law": { lat: 3.1202, lon: 101.6595, name: "Faculty of Law, Universiti Malaya" },
-      "dtc": { lat: 3.1209, lon: 101.6579, name: "Dewan Tunku Canselor (DTC), Universiti Malaya" },
-      "perpustakaan": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" },
-      "main library": { lat: 3.1208, lon: 101.6558, name: "Main Library, Universiti Malaya" }
+      "fakulti sains": {"name": "Faculty of Science, Universiti Malaya", "identities": ["Fakulti Sains", "Faculty of Science"], "queries": ["Fakulti Sains, Universiti Malaya", "Faculty of Science, Universiti Malaya"]},
+      "faculty of science": {"name": "Faculty of Science, Universiti Malaya", "identities": ["Fakulti Sains", "Faculty of Science"], "queries": ["Fakulti Sains, Universiti Malaya", "Faculty of Science, Universiti Malaya"]},
+      "fakulti bahasa": {"name": "Faculty of Languages and Linguistics, Universiti Malaya", "identities": ["Fakulti Bahasa", "Faculty of Languages"], "queries": ["Fakulti Bahasa dan Linguistik, Universiti Malaya", "Faculty of Languages and Linguistics, Universiti Malaya"]},
+      "faculty of languages": {"name": "Faculty of Languages and Linguistics, Universiti Malaya", "identities": ["Fakulti Bahasa", "Faculty of Languages"], "queries": ["Fakulti Bahasa dan Linguistik, Universiti Malaya", "Faculty of Languages and Linguistics, Universiti Malaya"]},
+      "fakulti sastera": {"name": "Faculty of Arts and Social Sciences, Universiti Malaya", "identities": ["Fakulti Sastera", "Faculty of Arts"], "queries": ["Fakulti Sastera dan Sains Sosial, Universiti Malaya", "Faculty of Arts and Social Sciences, Universiti Malaya"]},
+      "faculty of arts": {"name": "Faculty of Arts and Social Sciences, Universiti Malaya", "identities": ["Fakulti Sastera", "Faculty of Arts"], "queries": ["Fakulti Sastera dan Sains Sosial, Universiti Malaya", "Faculty of Arts and Social Sciences, Universiti Malaya"]},
+      "fakulti undang-undang": {"name": "Faculty of Law, Universiti Malaya", "identities": ["Fakulti Undang", "Faculty of Law"], "queries": ["Fakulti Undang-Undang, Universiti Malaya", "Faculty of Law, Universiti Malaya"]},
+      "faculty of law": {"name": "Faculty of Law, Universiti Malaya", "identities": ["Fakulti Undang", "Faculty of Law"], "queries": ["Fakulti Undang-Undang, Universiti Malaya", "Faculty of Law, Universiti Malaya"]},
+      "dtc": {"name": "Dewan Tunku Canselor (DTC), Universiti Malaya", "identities": ["Dewan Tunku Canselor", "Dewan Tuanku Canselor"], "queries": ["Dewan Tunku Canselor, Universiti Malaya", "Dewan Tunku Canselor (DTC), Universiti Malaya"]},
+      "perpustakaan": {"name": "Main Library, Universiti Malaya", "identities": ["Perpustakaan Utama", "Perpustakaan Universiti Malaya", "Main Library", "University of Malaya Library"], "queries": ["Perpustakaan Utama, Universiti Malaya", "Main Library, Universiti Malaya"]},
+      "main library": {"name": "Main Library, Universiti Malaya", "identities": ["Perpustakaan Utama", "Perpustakaan Universiti Malaya", "Main Library", "University of Malaya Library"], "queries": ["Perpustakaan Utama, Universiti Malaya", "Main Library, Universiti Malaya"]}
     };
 
     // Direct coordinates for all 12 UM Residential Colleges (KK1 - KK12)
     const umResidentialColleges = {
-      "kk1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej 1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej kediaman pertama": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "kolej kediaman ke-1": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "1st residential college": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
-      "astaka": { lat: 3.1187, lon: 101.6543, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kk1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+      "kolej 1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+      "kolej kediaman pertama": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+      "kolej kediaman ke-1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+      "1st residential college": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+      "astaka": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
 
-      "kk2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej 2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej kediaman kedua": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "kolej kediaman ke-2": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
-      "2nd residential college": { lat: 3.1172, lon: 101.6570, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kk2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
+      "kolej 2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
+      "kolej kediaman kedua": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
+      "kolej kediaman ke-2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
+      "2nd residential college": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
 
-      "kk3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ketiga": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ke-3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "kolej kediaman ke 3": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
-      "3rd residential college": { lat: 3.1251, lon: 101.6512, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kk3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      "kolej 3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      "kolej kediaman ketiga": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      "kolej kediaman ke-3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      "kolej kediaman ke 3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      "3rd residential college": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
 
-      "kk4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej 4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej kediaman keempat": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "kolej kediaman ke-4": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
-      "4th residential college": { lat: 3.1265, lon: 101.6534, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kk4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
+      "kolej 4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
+      "kolej kediaman keempat": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
+      "kolej kediaman ke-4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
+      "4th residential college": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
 
-      "kk5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej 5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej kediaman kelima": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "kolej kediaman ke-5": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
-      "5th residential college": { lat: 3.1158, lon: 101.6598, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kk5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
+      "kolej 5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
+      "kolej kediaman kelima": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
+      "kolej kediaman ke-5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
+      "5th residential college": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
 
-      "kk6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej 6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej kediaman keenam": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "kolej kediaman ke-6": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
-      "6th residential college": { lat: 3.1248, lon: 101.6575, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kk6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
+      "kolej 6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
+      "kolej kediaman keenam": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
+      "kolej kediaman ke-6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
+      "6th residential college": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
 
-      "kk7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej 7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej kediaman ketujuh": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "kolej kediaman ke-7": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
-      "7th residential college": { lat: 3.1284, lon: 101.6517, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kk7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
+      "kolej 7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
+      "kolej kediaman ketujuh": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
+      "kolej kediaman ke-7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
+      "7th residential college": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
 
-      "kk8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej 8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej kediaman kelapan": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "kolej kediaman ke-8": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
-      "8th residential college": { lat: 3.1219, lon: 101.6508, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kk8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
+      "kolej 8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
+      "kolej kediaman kelapan": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
+      "kolej kediaman ke-8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
+      "8th residential college": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
 
-      "kk9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej 9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej kediaman kesembilan": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "kolej kediaman ke-9": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
-      "9th residential college": { lat: 3.1226, lon: 101.6483, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kk9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
+      "kolej 9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
+      "kolej kediaman kesembilan": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
+      "kolej kediaman ke-9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
+      "9th residential college": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
 
-      "kk10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej 10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej kediaman kesepuluh": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "kolej kediaman ke-10": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
-      "10th residential college": { lat: 3.1189, lon: 101.6604, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kk10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
+      "kolej 10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
+      "kolej kediaman kesepuluh": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
+      "kolej kediaman ke-10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
+      "10th residential college": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
 
-      "kk11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej 11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej kediaman kesebelas": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "kolej kediaman ke-11": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
-      "11th residential college": { lat: 3.1197, lon: 101.6622, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kk11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
+      "kolej 11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
+      "kolej kediaman kesebelas": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
+      "kolej kediaman ke-11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
+      "11th residential college": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
 
-      "kk12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej 12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej kediaman kedua belas": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "kolej kediaman ke-12": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
-      "12th residential college": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" }
+      "kk12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
+      "kolej 12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
+      "kolej kediaman kedua belas": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
+      "kolej kediaman ke-12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
+      "12th residential college": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]}
     };
 
+    // Resolve venue identity from its name; never use the old approximate coordinates.
+    function placeKey(text){return String(text||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');}
     function lookupKnownLocation(place){
-      const clean=String(place||'').trim().toLowerCase().replace(/\s+/g,' ');
-      const all={...umDirectLocations,...umResidentialColleges};
-      if(all[clean])return {...all[clean]};
-      // Keep KK10/11/12 distinct from KK1; do not match KK3 inside KK30.
-      for(const [key,value] of Object.entries(all).sort((a,b)=>b[0].length-a[0].length)){
-        let offset=clean.indexOf(key);
-        while(offset!==-1){
-          const before=clean[offset-1],after=clean[offset+key.length];
+      const input=String(place||'').trim().toLowerCase();
+      const key=placeKey(input),all={...umDirectLocations,...umResidentialColleges};
+      for(const [alias,value] of Object.entries(all))if(placeKey(alias)===key)return {...value};
+      for(const [alias,value] of Object.entries(all).sort((a,b)=>b[0].length-a[0].length)){
+        let i=input.indexOf(alias);
+        while(i>=0){const before=input[i-1],after=input[i+alias.length];
           if((!before||!/[a-z0-9]/.test(before))&&(!after||!/[a-z0-9]/.test(after)))return {...value};
-          offset=clean.indexOf(key,offset+1);
+          i=input.indexOf(alias,i+1);
         }
       }
       return null;
     }
-    async function geocode(place, isRetry = false) {
-      let clean = place.trim().toLowerCase();
-
-      // 1. Direct coordinates match (lat, lon)
-      const coordMatch = place.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-      if (coordMatch) {
-        return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: place };
+    let placeQueue=Promise.resolve(),placeLastRequest=0;
+    const placeRequests=new Map();
+    function requestPlaces(query,campus){
+      const key=query+'|'+campus;
+      if(placeRequests.has(key))return placeRequests.get(key);
+      const result=placeQueue.then(async()=>{
+        const wait=Math.max(0,1100-(Date.now()-placeLastRequest));
+        if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
+        placeLastRequest=Date.now();
+        const params=new URLSearchParams({format:'jsonv2',q:query,limit:'8',namedetails:'1',addressdetails:'1','accept-language':'en,ms',countrycodes:'my'});
+        if(campus){params.set('viewbox','101.63,3.16,101.69,3.09');params.set('bounded','1');}
+        const response=await fetch('https://nominatim.openstreetmap.org/search?'+params,{signal:AbortSignal.timeout(15000)});
+        if(!response.ok)throw new Error('Venue lookup unavailable (HTTP '+response.status+'). Please try again.');
+        const list=await response.json();if(!Array.isArray(list))throw new Error('Venue lookup returned an invalid response.');
+        return list;
+      });
+      placeQueue=result.catch(()=>{});placeRequests.set(key,result);
+      result.catch(()=>placeRequests.delete(key));return result;
+    }
+    function venueCandidate(entry,known){
+      const lat=Number(entry.lat),lon=Number(entry.lon);
+      if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat>90||lon < -180||lon>180)return null;
+      const category=entry.category||entry.class||'',type=entry.type||'',addressType=entry.addresstype||'';
+      if(/^(highway|railway|public_transport)$/.test(category)||/bus_stop|platform|bus_station|parking|road|street/.test(type+' '+addressType))return null;
+      const names=[entry.name,...Object.values(entry.namedetails||{}),String(entry.display_name||'').split(',')[0]].filter(Boolean);
+      if(known){
+        if(lat<3.09||lat>3.16||lon<101.63||lon>101.69)return null;
+        if(!names.some(name=>known.identities.some(identity=>placeKey(name).includes(placeKey(identity)))))return null;
       }
-
-      const known=lookupKnownLocation(place);
-      if(known)return known;
-
-      if (locationCache.has(clean)) return locationCache.get(clean);
-
-      // 4. Query Nominatim with cleaned string
-      const queryTerm = clean.replace(/ke-(\d+)/g, "ke $1");
-      const url = "https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=" + encodeURIComponent(queryTerm);
-
-      const res = await fetch(url);
-      if (!res.ok) throw new Error("Location lookup service unavailable.");
-      const list = await res.json();
-
-      if (!list.length) {
-        if (!isRetry && !queryTerm.includes("universiti malaya") && !queryTerm.includes("um")) {
-          return await geocode(queryTerm + " Universiti Malaya", true);
+      return {lat,lon,name:entry.display_name||entry.name,source:'OpenStreetMap name search',osm_type:entry.osm_type,osm_id:entry.osm_id};
+    }
+    async function geocode(place){
+      const text=String(place||'').trim();
+      if(!text)throw new Error('Enter a starting point and destination.');
+      const coord=text.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if(coord){const lat=Number(coord[1]),lon=Number(coord[2]);if(lat < -90||lat>90||lon < -180||lon>180)throw new Error('Invalid latitude or longitude.');return {lat,lon,name:text,source:'Entered coordinates'};}
+      const known=lookupKnownLocation(text),cacheKey=known?known.name:placeKey(text);
+      if(locationCache.has(cacheKey))return locationCache.get(cacheKey);
+      const queries=known?known.queries:[text];
+      for(const query of queries){
+        const list=await requestPlaces(query,Boolean(known));
+        const options=list.map(e=>venueCandidate(e,known)).filter(Boolean);
+        if(!options.length)continue;
+        let match=options[0];
+        if(known){
+          // Prefer the named college/faculty area over an individual dormitory block.
+          const whole=list.find(e=>venueCandidate(e,known)&&/^(university|college|dormitory)$/.test(e.type||''));
+          if(whole)match=venueCandidate(whole,known);
         }
-        throw new Error(`Location "${place}" not found. Try entering KK1 to KK12, or the specific faculty name.`);
+        locationCache.set(cacheKey,match);return match;
       }
-
-      const result = { lat: Number(list[0].lat), lon: Number(list[0].lon), name: list[0].display_name };
-      locationCache.set(place.trim().toLowerCase(), result);
-      return result;
+      throw new Error('Could not match '+(known?known.name:text)+' on the map. Enter its full mapped name or exact coordinates. The old approximate location was not used.');
     }
 
     // =========================================================================
@@ -4788,8 +4808,8 @@ window.addEventListener("load",()=>{
         if (routeLine) map.removeLayer(routeLine);
         if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
 
-        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start").openPopup();
-        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination");
+        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup(document.createTextNode("Start: "+start.name)).openPopup();
+        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup(document.createTextNode("Destination: "+destination.name));
 
         const bounds = L.latLngBounds([start.lat, start.lon], [destination.lat, destination.lon]);
         bounds.extend([bounds.getSouth() - 0.006, bounds.getWest() - 0.006]);
@@ -5157,7 +5177,7 @@ window.addEventListener("load",()=>{
     setInterval(()=>{if(gpsActive&&(!liveFix||Date.now()-liveFix.time>15000))gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);},3000);
 
     function endNavigation(){stopLiveTracking(false);gpsStatus("Navigation stopped.");}
-    window.friendNav={lookupKnownLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
+    window.friendNav={resolvePlace:geocode,lookupKnownLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
       pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
