@@ -331,7 +331,6 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
         Ready. Tap anywhere on screen to speak your route.
       </div>
 
-      <p id="friend-matchedPlaces" class="muted" role="status" aria-live="polite"></p>
       <div class="stats">
         <div class="stat">
           Distance
@@ -354,7 +353,6 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
       </div>
       <p id="friend-gpsStatus" role="status" aria-live="polite">After finding a route, tap Start Navigation to locate you with GPS and begin spoken directions.</p>
 
-      <details style="margin:12px 0"><summary>Navigation check details</summary><pre id="friend-navigationCheck" style="white-space:pre-wrap;overflow-wrap:anywhere">Find a route to show the map source, selected locations and tactile data.</pre></details>
       <!-- Turn-by-Turn Voice Controls -->
       <div class="voice-controls" id="friend-voiceBar" style="display: none;">
         <span style="font-size: 13px; font-weight: bold;">Voice Guidance:</span>
@@ -1147,8 +1145,6 @@ function I(e){
 }
 
 async function O(e){
-  const supplied=window.friendNav?.lookupKnownLocation(e);
-  if(supplied)return await window.friendNav.resolvePlace(e);
   const t=fe(e);
   if(t)return{lat:t.lat,lon:t.lng,name:e};
 
@@ -4021,165 +4017,167 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // ACCURATE VERIFIED PHYSICAL LOCATIONS (OPENSTREETMAP ALIGNED)
     // =========================================================================
-    const locationCache = new Map();
-    const umDirectLocations = {
-      "fakulti sains": {"name": "Faculty of Science, Universiti Malaya", "identities": ["Fakulti Sains", "Faculty of Science"], "queries": ["Fakulti Sains, Universiti Malaya", "Faculty of Science, Universiti Malaya"]},
-      "faculty of science": {"name": "Faculty of Science, Universiti Malaya", "identities": ["Fakulti Sains", "Faculty of Science"], "queries": ["Fakulti Sains, Universiti Malaya", "Faculty of Science, Universiti Malaya"]},
-      "fakulti bahasa": {"name": "Faculty of Languages and Linguistics, Universiti Malaya", "identities": ["Fakulti Bahasa", "Faculty of Languages"], "queries": ["Fakulti Bahasa dan Linguistik, Universiti Malaya", "Faculty of Languages and Linguistics, Universiti Malaya"]},
-      "faculty of languages": {"name": "Faculty of Languages and Linguistics, Universiti Malaya", "identities": ["Fakulti Bahasa", "Faculty of Languages"], "queries": ["Fakulti Bahasa dan Linguistik, Universiti Malaya", "Faculty of Languages and Linguistics, Universiti Malaya"]},
-      "fakulti sastera": {"name": "Faculty of Arts and Social Sciences, Universiti Malaya", "identities": ["Fakulti Sastera", "Faculty of Arts"], "queries": ["Fakulti Sastera dan Sains Sosial, Universiti Malaya", "Faculty of Arts and Social Sciences, Universiti Malaya"]},
-      "faculty of arts": {"name": "Faculty of Arts and Social Sciences, Universiti Malaya", "identities": ["Fakulti Sastera", "Faculty of Arts"], "queries": ["Fakulti Sastera dan Sains Sosial, Universiti Malaya", "Faculty of Arts and Social Sciences, Universiti Malaya"]},
-      "fakulti undang-undang": {"name": "Faculty of Law, Universiti Malaya", "identities": ["Fakulti Undang", "Faculty of Law"], "queries": ["Fakulti Undang-Undang, Universiti Malaya", "Faculty of Law, Universiti Malaya"]},
-      "faculty of law": {"name": "Faculty of Law, Universiti Malaya", "identities": ["Fakulti Undang", "Faculty of Law"], "queries": ["Fakulti Undang-Undang, Universiti Malaya", "Faculty of Law, Universiti Malaya"]},
-      "dtc": {"name": "Dewan Tunku Canselor (DTC), Universiti Malaya", "identities": ["Dewan Tunku Canselor", "Dewan Tuanku Canselor"], "queries": ["Dewan Tunku Canselor, Universiti Malaya", "Dewan Tunku Canselor (DTC), Universiti Malaya"]},
-      "perpustakaan": {"name": "Main Library, Universiti Malaya", "identities": ["Perpustakaan Utama", "Perpustakaan Universiti Malaya", "Main Library", "University of Malaya Library"], "queries": ["Perpustakaan Utama, Universiti Malaya", "Main Library, Universiti Malaya"]},
-      "main library": {"name": "Main Library, Universiti Malaya", "identities": ["Perpustakaan Utama", "Perpustakaan Universiti Malaya", "Main Library", "University of Malaya Library"], "queries": ["Perpustakaan Utama, Universiti Malaya", "Main Library, Universiti Malaya"]}
+    const campusLocations = {
+      "kk1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej 1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman pertama": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "kolej kediaman ke-1": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "1st residential college": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+      "astaka": { lat: 3.117710, lon: 101.659379, name: "Kolej Kediaman Pertama (Astaka), UM" },
+
+      "kk2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej 2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman kedua": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "kolej kediaman ke-2": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+      "2nd residential college": { lat: 3.118052, lon: 101.657733, name: "Kolej Kediaman Kedua (Tuanku Bahiyah), UM" },
+
+      "kk3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej 3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ketiga": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke-3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "kolej kediaman ke 3": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+      "3rd residential college": { lat: 3.124586, lon: 101.650861, name: "Kolej Kediaman Ketiga (Tuanku Kurshiah), UM" },
+
+      "kk4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej 4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman keempat": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "kolej kediaman ke-4": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
+      "4th residential college": { lat: 3.125331, lon: 101.650073, name: "Kolej Kediaman Keempat (Bestari), UM" },
+
+      "kk5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej 5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman kelima": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "kolej kediaman ke-5": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+      "5th residential college": { lat: 3.126773, lon: 101.659564, name: "Kolej Kediaman Kelima (Dayasari), UM" },
+
+      "kk6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej 6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman keenam": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "kolej kediaman ke-6": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+      "6th residential college": { lat: 3.115149, lon: 101.655416, name: "Kolej Kediaman Keenam (Ibnu Sina), UM" },
+
+      "kk7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej 7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ketujuh": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "kolej kediaman ke-7": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+      "7th residential college": { lat: 3.125851, lon: 101.650657, name: "Kolej Kediaman Ketujuh (Za'ba), UM" },
+
+      "kk8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej 8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman kelapan": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "kolej kediaman ke-8": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+      "8th residential college": { lat: 3.129911, lon: 101.649896, name: "Kolej Kediaman Kelapan (Kinabalu), UM" },
+
+      "kk9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej 9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman kesembilan": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "kolej kediaman ke-9": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+      "9th residential college": { lat: 3.120489, lon: 101.646168, name: "Kolej Kediaman Kesembilan (Tun Syed Zahiruddin), UM" },
+
+      "kk10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej 10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman kesepuluh": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "kolej kediaman ke-10": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+      "10th residential college": { lat: 3.130618, lon: 101.650469, name: "Kolej Kediaman Kesepuluh (Tun Ahmad Zaidi), UM" },
+
+      "kk11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej 11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman kesebelas": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "kolej kediaman ke-11": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+      "11th residential college": { lat: 3.129199, lon: 101.660426, name: "Kolej Kediaman Kesebelas (Ungku Aziz), UM" },
+
+      "kk12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej 12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman kedua belas": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "kolej kediaman ke-12": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+      "12th residential college": { lat: 3.124722, lon: 101.660651, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" },
+
+      "fakulti sastera dan sains sosial": { lat: 3.121025, lon: 101.652283, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "faculty of arts and social sciences": { lat: 3.121025, lon: 101.652283, name: "Faculty of Arts and Social Sciences, Universiti Malaya" },
+      "fakulti alam bina": { lat: 3.116292, lon: 101.655051, name: "Faculty of Built Environment, Universiti Malaya" },
+      "faculty built environment": { lat: 3.116292, lon: 101.655051, name: "Faculty of Built Environment, Universiti Malaya" },
+      "fakulti perniagaan dan ekonomi": { lat: 3.118532, lon: 101.653184, name: "Faculty of Business and Economics, Universiti Malaya" },
+      "faculty of business and economics": { lat: 3.118532, lon: 101.653184, name: "Faculty of Business and Economics, Universiti Malaya" },
+      "fakulti sains komputer dan teknologi maklumat": { lat: 3.1284285, lon: 101.6502099, name: "Faculty of Computer Science and Information Technology, Universiti Malaya" },
+      "faculty of computer science and information technology": { lat: 3.1284285, lon: 101.6502099, name: "Faculty of Computer Science and Information Technology, Universiti Malaya" },
+      "fakulti seni kreatif": { lat: 3.121081, lon: 101.656695, name: "Faculty of Creative Arts, Universiti Malaya" },
+      "faculty of creative arts": { lat: 3.121081, lon: 101.656695, name: "Faculty of Creative Arts, Universiti Malaya" },
+      "fakulti pergigian": { lat: 3.111149, lon: 101.653044, name: "Faculty of Dentistry, Universiti Malaya" },
+      "faculty of dentistry": { lat: 3.111149, lon: 101.653044, name: "Faculty of Dentistry, Universiti Malaya" },
+      "fakulti pendidikan": { lat: 3.120114, lon: 101.652661, name: "Faculty of Education, Universiti Malaya" },
+      "faculty of education": { lat: 3.120114, lon: 101.652661, name: "Faculty of Education, Universiti Malaya" },
+      "fakulti kejuruteraan": { lat: 3.118076, lon: 101.655844, name: "Faculty of Engineering, Universiti Malaya" },
+      "faculty of engineering": { lat: 3.118076, lon: 101.655844, name: "Faculty of Engineering, Universiti Malaya" },
+      "fakulti bahasa dan linguistik": { lat: 3.122262, lon: 101.651419, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "faculty of languages and linguistics": { lat: 3.122262, lon: 101.651419, name: "Faculty of Languages and Linguistics, Universiti Malaya" },
+      "fakulti undang-undang": { lat: 3.117790, lon: 101.661363, name: "Faculty of Law, Universiti Malaya" },
+      "faculty of law": { lat: 3.117790, lon: 101.661363, name: "Faculty of Law, Universiti Malaya" },
+      "fakulti perubatan": { lat: 3.114715, lon: 101.653227, name: "Faculty of Medicine, Universiti Malaya" },
+      "faculty of medicine": { lat: 3.114715, lon: 101.653227, name: "Faculty of Medicine, Universiti Malaya" },
+      "fakulti farmasi": { lat: 3.115320, lon: 101.651848, name: "Faculty of Pharmacy, Universiti Malaya" },
+      "faculty of pharmacy": { lat: 3.115320, lon: 101.651848, name: "Faculty of Pharmacy, Universiti Malaya" },
+      "fakulti sains": { lat: 3.121914, lon: 101.653869, name: "Faculty of Science, Universiti Malaya" },
+      "faculty of science": { lat: 3.121914, lon: 101.653869, name: "Faculty of Science, Universiti Malaya" },
+      "fakulti sains sukan dan rekreasi": { lat: 3.130095, lon: 101.659679, name: "Faculty of Sports and Exercise Science, Universiti Malaya" },
+      "faculty of sports and exercise science": { lat: 3.130095, lon: 101.659679, name: "Faculty of Sports and Exercise Science, Universiti Malaya" },
+      "akademi pengajian islam": { lat: 3.133066, lon: 101.657240, name: "Academy of Islamic Studies, Universiti Malaya" },
+      "academy of islamic studies": { lat: 3.133066, lon: 101.657240, name: "Academy of Islamic Studies, Universiti Malaya" },
+      "akademi pengajian melayu": { lat: 3.124764, lon: 101.652473, name: "Academy of Malay Studies, Universiti Malaya" },
+      "academy of malay studies": { lat: 3.124764, lon: 101.652473, name: "Academy of Malay Studies, Universiti Malaya" },
+      "pusat asasi sains": { lat: 3.122943, lon: 101.659235, name: "Foundation Studies in Science, Universiti Malaya" },
+      "foundation studies in science": { lat: 3.122943, lon: 101.659235, name: "Foundation Studies in Science, Universiti Malaya" },
+      "dtc": { lat: 3.121600, lon: 101.656486, name: "Dewan Tunku Canselor (DTC), Universiti Malaya" },
+      "perpustakaan": { lat: 3.120311, lon: 101.654110, name: "Main Library, Universiti Malaya" },
+      "main library": { lat: 3.120311, lon: 101.654110, name: "Main Library, Universiti Malaya" },
+      "kps": { lat: 3.120468, lon: 101.656110, name: "Perdanasiswa Complex, Universiti Malaya" },
+      "arena stadium": { lat: 3.131118, lon: 101.659582, name: "Arena Stadium, Universiti Malaya" },
+      "swimming pool and sports centre": { lat: 3.128788, lon: 101.659540, name: "Swimming Pool and Sports Centre, Universiti Malaya" },
+      "varsity lake": { lat: 3.119268, lon: 101.656639, name: "Varsity Lake, Universiti Malaya" },
+      "rimba ilmu botanical garden": { lat: 3.131062, lon: 101.657894, name: "Rimba Ilmu Botanical Garden, Universiti Malaya" },
+      "student health clinic": { lat: 3.1218203, lon: 101.6525930, name: "Student Health Clinic, Universiti Malaya" },
+      "museum of asian arts": { lat: 3.118218, lon: 101.653179, name: "Museum of Asian Arts, Universiti Malaya" },
+      "main exam halls and centre": { lat: 3.115219, lon: 101.658800, name: "Main Exam Halls and Centre, Universiti Malaya" },
+      "um central": { lat: 3.121040, lon: 101.653613, name: "UM Central, Universiti Malaya" },
+      "um arena": { lat: 3.131041, lon: 101.658843, name: "UM Arena, Universiti Malaya" },
+      "high impact research building": { lat: 3.122075, lon: 101.656478, name: "High Impact Research Building, Universiti Malaya" },
+      "kk mart": { lat: 3.121177, lon: 101.655557, name: "KK Mart, Universiti Malaya" }
     };
 
-    // Direct coordinates for all 12 UM Residential Colleges (KK1 - KK12)
-    const umResidentialColleges = {
-      "kk1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
-      "kolej 1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
-      "kolej kediaman pertama": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
-      "kolej kediaman ke-1": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
-      "1st residential college": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
-      "astaka": {"name": "Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "identities": ["ASTAR", "Tuanku Abdul Rahman", "Kolej Kediaman Pertama"], "queries": ["Kolej Kediaman Tuanku Abdul Rahman, Universiti Malaya", "Kolej Kediaman Tuanku Abdul Rahman"]},
+    function resolveLocation(query) {
+      if (!query) return null;
+      const gps=query.trim().match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if(gps){const lat=Number(gps[1]),lon=Number(gps[2]);if(lat < -90||lat>90||lon < -180||lon>180)return null;return {lat,lon,name:query};}
 
-      "kk2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
-      "kolej 2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
-      "kolej kediaman kedua": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
-      "kolej kediaman ke-2": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
-      "2nd residential college": {"name": "Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "identities": ["Tuanku Bahiyah", "Kolej Kediaman Kedua"], "queries": ["Kolej Kediaman Tuanku Bahiyah, Universiti Malaya", "Kolej Kediaman Tuanku Bahiyah"]},
+      const clean = query.trim().toLowerCase().replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ");
 
-      "kk3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
-      "kolej 3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
-      "kolej kediaman ketiga": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
-      "kolej kediaman ke-3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
-      "kolej kediaman ke 3": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
-      "3rd residential college": {"name": "Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "identities": ["Tuanku Kurshiah", "Tunku Kurshiah", "Kolej Kediaman Ketiga"], "queries": ["Kolej Kediaman Tuanku Kurshiah, Universiti Malaya", "Kolej Kediaman Tuanku Kurshiah"]},
+      const coordMatch = clean.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
+      if (coordMatch) {
+        return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: query };
+      }
 
-      "kk4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
-      "kolej 4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
-      "kolej kediaman keempat": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
-      "kolej kediaman ke-4": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
-      "4th residential college": {"name": "Kolej Kediaman Bestari, Universiti Malaya", "identities": ["Bestari", "Kolej Kediaman Keempat"], "queries": ["Kolej Kediaman Bestari, Universiti Malaya", "Kolej Kediaman Bestari"]},
-
-      "kk5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
-      "kolej 5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
-      "kolej kediaman kelima": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
-      "kolej kediaman ke-5": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
-      "5th residential college": {"name": "Kolej Kediaman Dayasari, Universiti Malaya", "identities": ["Dayasari", "Kolej Kediaman Kelima"], "queries": ["Kolej Kediaman Dayasari, Universiti Malaya", "Kolej Kediaman Dayasari"]},
-
-      "kk6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
-      "kolej 6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
-      "kolej kediaman keenam": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
-      "kolej kediaman ke-6": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
-      "6th residential college": {"name": "Kolej Kediaman Ibnu Sina, Universiti Malaya", "identities": ["Ibnu Sina", "Kolej Kediaman Keenam"], "queries": ["Kolej Kediaman Ibnu Sina, Universiti Malaya", "Kolej Kediaman Ibnu Sina"]},
-
-      "kk7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
-      "kolej 7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
-      "kolej kediaman ketujuh": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
-      "kolej kediaman ke-7": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
-      "7th residential college": {"name": "Kolej Kediaman Za'ba, Universiti Malaya", "identities": ["Zaba", "Za'ba", "Kolej Kediaman Ketujuh"], "queries": ["Kolej Kediaman Za'ba, Universiti Malaya", "Kolej Kediaman Za'ba"]},
-
-      "kk8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
-      "kolej 8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
-      "kolej kediaman kelapan": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
-      "kolej kediaman ke-8": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
-      "8th residential college": {"name": "Kolej Kediaman Kinabalu, Universiti Malaya", "identities": ["Kinabalu", "Kolej Kediaman Kelapan"], "queries": ["Kolej Kediaman Kinabalu, Universiti Malaya", "Kolej Kediaman Kinabalu"]},
-
-      "kk9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
-      "kolej 9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
-      "kolej kediaman kesembilan": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
-      "kolej kediaman ke-9": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
-      "9th residential college": {"name": "Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "identities": ["Tun Syed Zahiruddin", "Kolej Kediaman Kesembilan"], "queries": ["Kolej Kediaman Tun Syed Zahiruddin, Universiti Malaya", "Kolej Kediaman Tun Syed Zahiruddin"]},
-
-      "kk10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
-      "kolej 10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
-      "kolej kediaman kesepuluh": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
-      "kolej kediaman ke-10": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
-      "10th residential college": {"name": "Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "identities": ["Tun Ahmad Zaidi", "Kolej Kediaman Kesepuluh"], "queries": ["Kolej Kediaman Tun Ahmad Zaidi, Universiti Malaya", "Kolej Kediaman Tun Ahmad Zaidi"]},
-
-      "kk11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
-      "kolej 11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
-      "kolej kediaman kesebelas": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
-      "kolej kediaman ke-11": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
-      "11th residential college": {"name": "Kolej Kediaman Ungku Aziz, Universiti Malaya", "identities": ["Ungku Aziz", "Kolej Kediaman Kesebelas"], "queries": ["Kolej Kediaman Ungku Aziz, Universiti Malaya", "Kolej Kediaman Ungku Aziz"]},
-
-      "kk12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
-      "kolej 12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
-      "kolej kediaman kedua belas": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
-      "kolej kediaman ke-12": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]},
-      "12th residential college": {"name": "Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "identities": ["Nazrin Shah", "Kolej Kediaman Kedua Belas", "Kolej Kediaman Keduabelas"], "queries": ["Kolej Kediaman Raja Dr Nazrin Shah, Universiti Malaya", "Kolej Kediaman Raja Dr Nazrin Shah"]}
-    };
-
-    // Resolve venue identity from its name; never use the old approximate coordinates.
-    function placeKey(text){return String(text||'').toLowerCase().normalize('NFKD').replace(/[^a-z0-9]/g,'');}
-    function lookupKnownLocation(place){
-      const input=String(place||'').trim().toLowerCase();
-      const key=placeKey(input),all={...umDirectLocations,...umResidentialColleges};
-      for(const [alias,value] of Object.entries(all))if(placeKey(alias)===key)return {...value};
-      for(const [alias,value] of Object.entries(all).sort((a,b)=>b[0].length-a[0].length)){
-        let i=input.indexOf(alias);
-        while(i>=0){const before=input[i-1],after=input[i+alias.length];
-          if((!before||!/[a-z0-9]/.test(before))&&(!after||!/[a-z0-9]/.test(after)))return {...value};
-          i=input.indexOf(alias,i+1);
+      const collegeMatch = clean.match(/\b(?:kk|kolej\s*(?:kediaman)?(?:\s*ke)?)\s*(\d{1,2})\b/);
+      if (collegeMatch) {
+        const num = collegeMatch[1];
+        const key = `kk${num}`;
+        if (campusLocations[key]) {
+          return campusLocations[key];
         }
       }
+
+      const strippedKey = clean.replace(/\s+/g, "");
+      for (const [key, val] of Object.entries(campusLocations)) {
+        if (key.replace(/\s+/g, "") === strippedKey) {
+          return val;
+        }
+      }
+
+      for (const [key, val] of Object.entries(campusLocations)) {
+        if (clean.includes(key)) {
+          return val;
+        }
+      }
+
       return null;
-    }
-    let placeQueue=Promise.resolve(),placeLastRequest=0;
-    const placeRequests=new Map();
-    function requestPlaces(query,campus){
-      const key=query+'|'+campus;
-      if(placeRequests.has(key))return placeRequests.get(key);
-      const result=placeQueue.then(async()=>{
-        const wait=Math.max(0,1100-(Date.now()-placeLastRequest));
-        if(wait)await new Promise(resolve=>setTimeout(resolve,wait));
-        placeLastRequest=Date.now();
-        const params=new URLSearchParams({format:'jsonv2',q:query,limit:'8',namedetails:'1',addressdetails:'1','accept-language':'en,ms',countrycodes:'my'});
-        if(campus){params.set('viewbox','101.63,3.16,101.69,3.09');params.set('bounded','1');}
-        const response=await fetch('https://nominatim.openstreetmap.org/search?'+params,{signal:AbortSignal.timeout(15000)});
-        if(!response.ok)throw new Error('Venue lookup unavailable (HTTP '+response.status+'). Please try again.');
-        const list=await response.json();if(!Array.isArray(list))throw new Error('Venue lookup returned an invalid response.');
-        return list;
-      });
-      placeQueue=result.catch(()=>{});placeRequests.set(key,result);
-      result.catch(()=>placeRequests.delete(key));return result;
-    }
-    function venueCandidate(entry,known){
-      const lat=Number(entry.lat),lon=Number(entry.lon);
-      if(!Number.isFinite(lat)||!Number.isFinite(lon)||lat < -90||lat>90||lon < -180||lon>180)return null;
-      const category=entry.category||entry.class||'',type=entry.type||'',addressType=entry.addresstype||'';
-      if(/^(highway|railway|public_transport)$/.test(category)||/bus_stop|platform|bus_station|parking|road|street/.test(type+' '+addressType))return null;
-      const names=[entry.name,...Object.values(entry.namedetails||{}),String(entry.display_name||'').split(',')[0]].filter(Boolean);
-      if(known){
-        if(lat<3.09||lat>3.16||lon<101.63||lon>101.69)return null;
-        if(!names.some(name=>known.identities.some(identity=>placeKey(name).includes(placeKey(identity)))))return null;
-      }
-      return {lat,lon,name:entry.display_name||entry.name,source:'OpenStreetMap name search',osm_type:entry.osm_type,osm_id:entry.osm_id};
-    }
-    async function geocode(place){
-      const text=String(place||'').trim();
-      if(!text)throw new Error('Enter a starting point and destination.');
-      const coord=text.match(/^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/);
-      if(coord){const lat=Number(coord[1]),lon=Number(coord[2]);if(lat < -90||lat>90||lon < -180||lon>180)throw new Error('Invalid latitude or longitude.');return {lat,lon,name:text,source:'Entered coordinates'};}
-      const known=lookupKnownLocation(text),cacheKey=known?known.name:placeKey(text);
-      if(locationCache.has(cacheKey))return locationCache.get(cacheKey);
-      const queries=known?known.queries:[text];
-      for(const query of queries){
-        const list=await requestPlaces(query,Boolean(known));
-        const options=list.map(e=>venueCandidate(e,known)).filter(Boolean);
-        if(!options.length)continue;
-        let match=options[0];
-        if(known){
-          // Prefer the named college/faculty area over an individual dormitory block.
-          const whole=list.find(e=>venueCandidate(e,known)&&/^(university|college|dormitory)$/.test(e.type||''));
-          if(whole)match=venueCandidate(whole,known);
-        }
-        locationCache.set(cacheKey,match);return match;
-      }
-      throw new Error('Could not match '+(known?known.name:text)+' on the map. Enter its full mapped name or exact coordinates. The old approximate location was not used.');
     }
 
     // =========================================================================
@@ -4206,8 +4204,8 @@ window.addEventListener("load",()=>{
         window.speechSynthesis.cancel();
       }
 
-      const micBtn = document.getElementById(targetFieldId === "friend-start" ? "friend-startMicBtn" : "friend-destMicBtn");
-      const promptLabel = targetFieldId === "friend-start" ? "starting point" : "friend-destination";
+      const micBtn = document.getElementById(targetFieldId === "start" ? "startMicBtn" : "destMicBtn");
+      const promptLabel = targetFieldId === "start" ? "starting point" : "destination";
 
       isListening = true;
       micBtn.classList.add("listening");
@@ -4405,19 +4403,41 @@ window.addEventListener("load",()=>{
     // =========================================================================
     // OVERPASS & ROUTING ENGINE
     // =========================================================================
-    const navigationCheck={version:'Friend navigation audit 2026-10-23',source:'',features:0,tactile:0,mode:'',start:null,destination:null};
-    function showNavigationCheck(){
-      const e=document.getElementById('friend-navigationCheck');
-      if(e)e.textContent=JSON.stringify(navigationCheck,null,2);
+    function isElementTactile(tags = {}) {
+      if (!tags) return false;
+      const val = tags.tactile_paving;
+      if (val === "yes" || val === "primitive" || val === "contrasted" || val === "incorrect") return true;
+
+      if (
+        tags["sidewalk:both:tactile_paving"] === "yes" ||
+        tags["sidewalk:right:tactile_paving"] === "yes" ||
+        tags["sidewalk:left:tactile_paving"] === "yes" ||
+        tags["sidewalk:tactile_paving"] === "yes"
+      ) return true;
+
+      if (tags["blind:description"] || tags["blind:tactile_paving"] === "yes") return true;
+      return false;
     }
+
     async function detectPedestrianPaths(bounds) {
+      const south = bounds.getSouth();
+      const west = bounds.getWest();
+      const north = bounds.getNorth();
+      const east = bounds.getEast();
+
       const query = `
         [out:json][timeout:35];
         (
-          way["highway"~"^(footway|path|pedestrian|living_street|service|residential|unclassified|steps|crossing|track)$"]
-            (${bounds.getSouth()},${bounds.getWest()},${bounds.getNorth()},${bounds.getEast()});
+          way["highway"~"^(footway|path|pedestrian|living_street|service|residential|tertiary|unclassified|steps|crossing|track)$"]
+            (${south},${west},${north},${east});
+          way["tactile_paving"]
+            (${south},${west},${north},${east});
+          node["tactile_paving"~"^(yes|primitive|contrasted|incorrect)$"]
+            (${south},${west},${north},${east});
+          node["highway"="crossing"]["tactile_paving"="yes"]
+            (${south},${west},${north},${east});
         );
-        out geom;
+        out body geom;
       `;
 
       const servers = [
@@ -4425,159 +4445,30 @@ window.addEventListener("load",()=>{
         "https://overpass.kumi.systems/api/interpreter"
       ];
 
-      let failure="No usable map response.";
       for (const server of servers) {
         try {
           const res = await fetch(server + "?data=" + encodeURIComponent(query));
-          if (!res.ok){failure="Map server returned HTTP "+res.status;continue;}
+          if (!res.ok) continue;
           const data = await res.json();
-          if(data.remark){failure=String(data.remark);continue;}
           if (Array.isArray(data.elements)) {
-            navigationCheck.source=server;
-            navigationCheck.features=data.elements.length;
-            navigationCheck.tactile=data.elements.filter(e=>e.tags?.tactile_paving==='yes').length;
-            showNavigationCheck();
             return data.elements.map(e => ({
               ...e,
-              isTactile: e.tags?.tactile_paving === "yes"
+              isTactile: isElementTactile(e.tags)
             }));
           }
-        } catch (err) {failure=err.message||String(err);}
+        } catch (err) {}
       }
-      throw new Error("Tactile map lookup failed. This does not mean there is no tactile paving. "+failure);
+      return [];
     }
 
-    async function getOSRMRoute(start, destination) {
+    async function getDirectCampusWalkingRoute(start, destination) {
       const url = `https://router.project-osrm.org/route/v1/foot/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
       const res = await fetch(url);
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
-      if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found.");
+      if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found between these points.");
+      setGPSNavigationRoute(data.routes[0]);
       return data.routes[0];
-    }
-
-    function buildRoutingGraph(features, start, destination) {
-      const graph = new Map();
-      const coordinates = new Map();
-      const deadEnds = new Set();
-
-      function addNode(pt) {
-        const id = `${pt.lat.toFixed(7)},${pt.lon.toFixed(7)}`;
-        if (!coordinates.has(id)) {
-          coordinates.set(id, { lat: pt.lat, lon: pt.lon });
-          graph.set(id, []);
-        }
-        return id;
-      }
-
-      function addEdge(u, v, isTactile, isSynth = false) {
-        if (u === v) return;
-        const ptA = coordinates.get(u);
-        const ptB = coordinates.get(v);
-        const len = distanceMetres(ptA, ptB);
-        if (len < 0.1) return;
-
-        // Tactile paving gets heavy priority (0.2x cost)
-        let cost = len * (isTactile ? 0.2 : 1.0);
-        if (isSynth) cost = len * 2.0;
-
-        graph.get(u).push({ target: v, length: len, cost, isTactile, isSynth });
-        graph.get(v).push({ target: u, length: len, cost, isTactile, isSynth });
-      }
-
-      for (const f of features) {
-        if (!f.geometry || f.geometry.length < 2) continue;
-        const tags = f.tags || {};
-        if (tags.foot === "no" || tags.access === "no" || tags.access === "private") continue;
-
-        const isTactile = tags.tactile_paving === "yes";
-        const nodeIds = f.geometry.map(pt => addNode(pt));
-
-        deadEnds.add(nodeIds[0]);
-        deadEnds.add(nodeIds[nodeIds.length - 1]);
-
-        for (let i = 0; i < nodeIds.length - 1; i++) {
-          addEdge(nodeIds[i], nodeIds[i + 1], isTactile);
-        }
-      }
-
-      // Connect isolated campus paths within 35m
-      const deadEndList = Array.from(deadEnds);
-      for (let i = 0; i < deadEndList.length; i++) {
-        const idA = deadEndList[i];
-        const coordA = coordinates.get(idA);
-        for (let j = i + 1; j < deadEndList.length; j++) {
-          const idB = deadEndList[j];
-          const coordB = coordinates.get(idB);
-          if (distanceMetres(coordA, coordB) <= 35) {
-            addEdge(idA, idB, false, true);
-          }
-        }
-      }
-
-      const startId = addNode(start);
-      const destId = addNode(destination);
-
-      for (const [id, coord] of coordinates) {
-        if (id === startId || id === destId) continue;
-        if (distanceMetres(start, coord) <= 120) addEdge(startId, id, false, true);
-        if (distanceMetres(destination, coord) <= 120) addEdge(destId, id, false, true);
-      }
-
-      return { graph, coordinates, startId, destId };
-    }
-
-    function runDijkstra(graphData) {
-      const { graph, coordinates, startId, destId } = graphData;
-      const costs = new Map();
-      const previous = new Map();
-      const unvisited = new Set(graph.keys());
-
-      for (const id of graph.keys()) costs.set(id, Infinity);
-      costs.set(startId, 0);
-
-      while (unvisited.size > 0) {
-        let current = null;
-        let lowest = Infinity;
-
-        for (const node of unvisited) {
-          const c = costs.get(node);
-          if (c < lowest) {
-            lowest = c;
-            current = node;
-          }
-        }
-
-        if (current === null || lowest === Infinity || current === destId) break;
-        unvisited.delete(current);
-
-        for (const edge of graph.get(current)) {
-          if (!unvisited.has(edge.target)) continue;
-          const alt = lowest + edge.cost;
-          if (alt < costs.get(edge.target)) {
-            costs.set(edge.target, alt);
-            previous.set(edge.target, { from: current, edge });
-          }
-        }
-      }
-
-      if (!Number.isFinite(costs.get(destId))) return null;
-
-      const segments = [];
-      let curr = destId;
-      while (curr !== startId) {
-        const step = previous.get(curr);
-        segments.push({
-          from: coordinates.get(step.from),
-          to: coordinates.get(curr),
-          distance: step.edge.length,
-          isTactile: step.edge.isTactile, isSynth: step.edge.isSynth
-        });
-        curr = step.from;
-      }
-
-      segments.reverse();
-      return segments;
     }
 
     function buildSpokenInstructions(segments) {
@@ -4672,7 +4563,7 @@ window.addEventListener("load",()=>{
     }
 
     function highlightStep(idx) {
-      document.querySelectorAll(".friend-navigation .instruction-step").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".instruction-step").forEach(el => el.classList.remove("active"));
       const el = document.getElementById(`friend-step-${idx}`);
       if (el) {
         el.classList.add("active");
@@ -4687,7 +4578,7 @@ window.addEventListener("load",()=>{
             color: "#b45309",
             fillColor: "#f59e0b",
             fillOpacity: 1
-          }).addTo(map).bindTooltip("Route preview marker — not your live GPS position");
+          }).addTo(map);
         } else {
           userMarker.setLatLng([pt.lat, pt.lon]);
         }
@@ -4783,7 +4674,7 @@ window.addEventListener("load",()=>{
       const btn = document.getElementById("friend-routeBtn");
 
       if (!startText || !destText) {
-        announce("Please enter both a starting point and destination.");
+        announce("Please enter or speak both a starting point and destination.");
         return;
       }
 
@@ -4794,71 +4685,66 @@ window.addEventListener("load",()=>{
       btn.textContent = "Finding Route...";
 
       try {
-        announce("Searching locations...");
-        const start = await geocode(startText);
-        const destination = await geocode(destText);
-        document.getElementById('friend-matchedPlaces').textContent=
-          'Start: '+start.name+' ('+start.lat.toFixed(6)+', '+start.lon.toFixed(6)+'). '+
-          'Destination: '+destination.name+' ('+destination.lat.toFixed(6)+', '+destination.lon.toFixed(6)+').';
-        navigationCheck.start={entered:startText,...start};navigationCheck.destination={entered:destText,...destination};
-        navigationCheck.source='';navigationCheck.features=0;navigationCheck.tactile=0;navigationCheck.mode='Loading map';showNavigationCheck();
+        announce("Locating campus destinations...");
+        const start = resolveLocation(startText);
+        const destination = resolveLocation(destText);
+
+        if (!start) throw new Error(`Could not find location "${startText}". Try KK1 to KK12 or faculty names.`);
+        if (!destination) throw new Error(`Could not find location "${destText}". Try KK1 to KK12 or faculty names.`);
 
         if (startMarker) map.removeLayer(startMarker);
         if (destinationMarker) map.removeLayer(destinationMarker);
         if (routeLine) map.removeLayer(routeLine);
         if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
 
-        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup(document.createTextNode("Start: "+start.name)).openPopup();
-        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup(document.createTextNode("Destination: "+destination.name));
+        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start: " + start.name).openPopup();
+        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination: " + destination.name);
 
         const bounds = L.latLngBounds([start.lat, start.lon], [destination.lat, destination.lon]);
-        bounds.extend([bounds.getSouth() - 0.006, bounds.getWest() - 0.006]);
-        bounds.extend([bounds.getNorth() + 0.006, bounds.getEast() + 0.006]);
+        bounds.extend([bounds.getSouth() - 0.005, bounds.getWest() - 0.005]);
+        bounds.extend([bounds.getNorth() + 0.005, bounds.getEast() + 0.005]);
 
-        announce("Searching tactile and pedestrian network...");
-        const features = await detectPedestrianPaths(bounds);
+        announce("Calculating direct route and checking tactile blind paving...");
+        const [features, walkRoute] = await Promise.all([
+          detectPedestrianPaths(bounds),
+          getDirectCampusWalkingRoute(start, destination)
+        ]);
 
-        const graphData = buildRoutingGraph(features, start, destination);
-        let segments = runDijkstra(graphData);
-        navigationCheck.mode="Friend tactile-prioritised graph";
+        const rawCoords = walkRoute.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
+        const segments = [];
 
-        // Fallback to general pedestrian network if graph has isolated gaps
-        if (!segments || segments.length === 0) {
-          navigationCheck.mode="Friend OSRM fallback (no graph connection)";
-          const fallback = await getOSRMRoute(start, destination);
-          const rawCoords = fallback.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
+        for (let i = 0; i < rawCoords.length - 1; i++) {
+          const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
+          const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
 
-          segments = [];
-          for (let i = 0; i < rawCoords.length - 1; i++) {
-            const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
-            const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
+          let isNearTactile = false;
 
-            let isNearTactile = false;
-            for (const f of features) {
-              if (f.isTactile && f.geometry) {
-                for (const pt of f.geometry) {
-                  if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 6) {
-                    isNearTactile = true;
-                    break;
-                  }
+          for (const f of features) {
+            if (!f.isTactile) continue;
+
+            if (f.geometry) {
+              for (const pt of f.geometry) {
+                if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 18) {
+                  isNearTactile = true;
+                  break;
                 }
               }
-              if (isNearTactile) break;
+            } else if (f.lat && f.lon) {
+              if (distanceMetres({ lat: midLat, lon: midLon }, { lat: f.lat, lon: f.lon }) < 18) {
+                isNearTactile = true;
+              }
             }
-
-            segments.push({
-              from: rawCoords[i],
-              to: rawCoords[i+1],
-              distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
-              isTactile: isNearTactile
-            });
+            if (isNearTactile) break;
           }
+
+          segments.push({
+            from: rawCoords[i],
+            to: rawCoords[i+1],
+            distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
+            isTactile: isNearTactile
+          });
         }
 
-        showNavigationCheck();
-        updateGPSFromSelectedSegments(segments);
-
-        // Draw ONLY the selected route: Amber = Tactile, Blue = Regular Walkway
         routeLine = L.featureGroup();
         segments.forEach(seg => {
           L.polyline([[seg.from.lat, seg.from.lon], [seg.to.lat, seg.to.lon]], {
@@ -4871,7 +4757,6 @@ window.addEventListener("load",()=>{
         routeLine.addTo(map);
         map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
 
-        // Calculate statistics
         const totalDist = segments.reduce((sum, s) => sum + s.distance, 0);
         const tactileDist = segments.filter(s => s.isTactile).reduce((sum, s) => sum + s.distance, 0);
         const percent = totalDist > 0 ? Math.round((tactileDist / totalDist) * 100) : 0;
@@ -4881,21 +4766,15 @@ window.addEventListener("load",()=>{
         document.getElementById("friend-tactileCoverage").textContent = `${percent}% (${Math.round(tactileDist)}m)`;
         document.getElementById("friend-duration").textContent = `${estDuration} min`;
 
-        // Generate and format spoken instructions
         instructions = buildSpokenInstructions(segments);
         currentStepIdx = 0;
         renderDirectionsUI(instructions);
         highlightStep(0);
 
-        document.getElementById("friend-status").textContent = `Route found: ${Math.round(totalDist)} m (${percent}% tactile paving).`;
-        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. Starting instructions: ${instructions[0].speechText}`);
+        document.getElementById("friend-status").textContent = `Direct route found: ${Math.round(totalDist)} m (${percent}% tactile blind path).`;
+        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. First instruction: ${instructions[0].speechText}`);
 
       } catch (err) {
-        gpsPlan=null;
-        document.getElementById('friend-distance').textContent='—';
-        document.getElementById('friend-tactileCoverage').textContent='Unknown — lookup failed';
-        document.getElementById('friend-duration').textContent='—';
-        navigationCheck.mode='Route or map lookup failed';showNavigationCheck();
         announce(err.message || "Failed to find connected route.");
       } finally {
         btn.disabled = false;
@@ -4903,6 +4782,55 @@ window.addEventListener("load",()=>{
       }
     }
 
+    function useMyLocation(onSuccessCallback = null) {
+      if (!navigator.geolocation) {
+        announce("Geolocation is not supported by your browser.");
+        return;
+      }
+      announce("Locating accurate position via GPS...");
+
+      navigator.geolocation.getCurrentPosition(
+        pos => {
+          const lat = pos.coords.latitude;
+          const lon = pos.coords.longitude;
+          document.getElementById("friend-start").value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+          map.setView([lat, lon], 17);
+          announce("Current location set as starting point.");
+          if (typeof onSuccessCallback === "function") {
+            onSuccessCallback();
+          }
+        },
+        () => {
+          announce("GPS accuracy timed out or was denied. Check your browser location permissions.");
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 0
+        }
+      );
+    }
+
+    function clearRoute() {
+      stopAutoPlay();
+      if (simulationTimer) clearInterval(simulationTimer);
+
+      if (startMarker) map.removeLayer(startMarker);
+      if (destinationMarker) map.removeLayer(destinationMarker);
+      if (routeLine) map.removeLayer(routeLine);
+      if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+
+      document.getElementById("friend-start").value = "";
+      document.getElementById("friend-destination").value = "";
+      document.getElementById("friend-distance").textContent = "—";
+      document.getElementById("friend-tactileCoverage").textContent = "—";
+      document.getElementById("friend-duration").textContent = "—";
+      document.getElementById("friend-voiceBar").style.display = "none";
+      document.getElementById("friend-directionsList").innerHTML = '<p style="color: #64748b; margin: 0; text-align: center;">Turn-by-turn guidance will appear here once route is found.</p>';
+
+      announce("Route cleared.");
+    }
+  
     // Independent GPS marker: route previews never change this position.
     let liveWatch=null;
     let liveTracking=false;
@@ -4986,55 +4914,6 @@ window.addEventListener("load",()=>{
       if(document.hidden&&liveTracking){stopLiveTracking(false);setTrackingStatus('Tracking stopped because the page was hidden. Tap Start Navigation to resume.');}
     });
 
-    function useMyLocation(onSuccessCallback = null) {
-      if (!navigator.geolocation) {
-        announce("Geolocation is not supported by your browser.");
-        return;
-      }
-      announce("Locating accurate position via GPS...");
-
-      navigator.geolocation.getCurrentPosition(
-        pos => {
-          const lat = pos.coords.latitude;
-          const lon = pos.coords.longitude;
-          document.getElementById("friend-start").value = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-          map.setView([lat, lon], 17);
-          announce("Current location set as starting point.");
-          if (typeof onSuccessCallback === "function") {
-            onSuccessCallback();
-          }
-        },
-        () => {
-          announce("GPS accuracy timed out or was denied. Check your browser location permissions.");
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 0
-        }
-      );
-    }
-
-    function clearRoute() {
-      stopAutoPlay();
-      if (simulationTimer) clearInterval(simulationTimer);
-
-      if (startMarker) map.removeLayer(startMarker);
-      if (destinationMarker) map.removeLayer(destinationMarker);
-      if (routeLine) map.removeLayer(routeLine);
-      if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
-
-      document.getElementById("friend-start").value = "";
-      document.getElementById("friend-destination").value = "";
-      document.getElementById("friend-distance").textContent = "—";
-      document.getElementById("friend-tactileCoverage").textContent = "—";
-      document.getElementById("friend-duration").textContent = "—";
-      document.getElementById("friend-voiceBar").style.display = "none";
-      document.getElementById("friend-directionsList").innerHTML = '<p style="color: #64748b; margin: 0; text-align: center;">Turn-by-turn guidance will appear here once route is found.</p>';
-
-      announce("Route cleared.");
-    }
-  
 
     let activeRecognizer=null;
     const suppliedInitRecognizer=initSpeechRecognizer;
@@ -5104,9 +4983,6 @@ window.addEventListener("load",()=>{
       const elapsed=gpsLastTime?Math.max(0,(position.timestamp-gpsLastTime)/1000):0;
       const match=gpsProject(point,gpsPlan,gpsProgress===null?0:gpsProgress-20,gpsProgress===null?Infinity:gpsProgress+Math.min(100,elapsed*3+30));
       if(!match||match.distance>Math.max(30,c.accuracy+10)){gpsStatus('Guidance paused. You appear away from the mapped route. Check your position and find a new route if needed.',true);return;}
-      if(gpsPlan.gaps?.some(g=>match.along>=g[0]-10&&match.along<=g[1]+10)){
-        gpsStatus('Guidance paused near an inferred path connection. This connection is not confirmed by mapped walkway data.',true);return;
-      }
       if(gpsLastTime&&position.timestamp<=gpsLastTime)return;
       gpsProgress=match.along;gpsLastTime=position.timestamp;
       if(gpsPlan.total-match.along<=12&&gpsDistance(point,gpsPlan.points[gpsPlan.points.length-1])<=12){
@@ -5118,23 +4994,6 @@ window.addEventListener("load",()=>{
       const text=stage==='now'?next.text+' nearby.': 'In approximately '+Math.round(distance)+' metres, '+next.text.toLowerCase()+'.';
       gpsStatus(text);
       if(!gpsSaid.has(key)&&!isListening){speakText(text);gpsLastMessage=text;gpsSaid.add(key);}
-    }
-    function updateGPSFromSelectedSegments(segments){
-      if(!segments.length){gpsPlan=null;return;}
-      const points=[[segments[0].from.lon,segments[0].from.lat],...segments.map(s=>[s.to.lon,s.to.lat])];
-      const steps=[{maneuver:{type:'depart',location:points[0]}}];
-      let offset=0;const gaps=[];
-      segments.forEach((segment,i)=>{
-        if(segment.isSynth)gaps.push([offset,offset+segment.distance]);
-        offset+=segment.distance;
-        if(i>0){
-          const angle=((getBearing(segment.from,segment.to)-getBearing(segments[i-1].from,segments[i-1].to)+540)%360)-180;
-          if(Math.abs(angle)>=35)steps.push({maneuver:{type:'turn',modifier:(Math.abs(angle)>125?'sharp ':Math.abs(angle)<65?'slight ':'')+(angle>0?'right':'left'),location:points[i]}});
-        }
-      });
-      steps.push({maneuver:{type:'arrive',location:points[points.length-1]}});
-      setGPSNavigationRoute({geometry:{coordinates:points},legs:[{steps}]});
-      if(gpsPlan)gpsPlan.gaps=gaps;
     }
     function startGPSNavigation(){
       if(!gpsPlan){gpsStatus('Find a route first. GPS guidance needs walking maneuvers from the routing service.',true);return;}
@@ -5167,7 +5026,7 @@ window.addEventListener("load",()=>{
     const originalGPSFind=findRoute;
     findRoute=async function(fromGPS=false){if(fromGPS!==true)gpsRequest++;gpsActive=false;gpsPlan=null;gpsStatus('Finding route. GPS guidance will be available when it is ready.');await originalGPSFind();};
     const originalGPSClear=clearRoute;
-    clearRoute=function(){stopGPSNavigation();gpsPlan=null;document.getElementById("friend-matchedPlaces").textContent="";originalGPSClear();};
+    clearRoute=function(){stopGPSNavigation();gpsPlan=null;originalGPSClear();};
     function repeatGPSDirection(){if(gpsActive&&!isListening)speakText(document.getElementById('friend-gpsStatus').textContent);}
     const gpsPreviewSpeak=speakCurrentStep,gpsPreviewNext=nextStepVoice,gpsPreviewAuto=toggleAutoPlay,gpsPreviewSim=toggleSimulation;
     speakCurrentStep=function(){stopGPSNavigation();return gpsPreviewSpeak();};
@@ -5177,13 +5036,17 @@ window.addEventListener("load",()=>{
     setInterval(()=>{if(gpsActive&&(!liveFix||Date.now()-liveFix.time>15000))gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);},3000);
 
     function endNavigation(){stopLiveTracking(false);gpsStatus("Navigation stopped.");}
-    window.friendNav={resolvePlace:geocode,lookupKnownLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
+    window.friendNav={resolveLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
       pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
     window.goTo=function(screen){if(screen!=='navigation')window.friendNav.pause();const result=previousGoTo.apply(this,arguments);if(screen==='navigation')window.friendNav.activate();return result;};
     window.x=function(){};
     window.addEventListener('pagehide',()=>window.friendNav.pause());
+
+    // New report location lookups use the same supplied venue table.
+    const previousReportLookup=window.O;
+    window.O=async function(place){return resolveLocation(place)||previousReportLookup(place);};
 
 })();
 </script>
