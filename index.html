@@ -331,6 +331,7 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
         Ready. Tap anywhere on screen to speak your route.
       </div>
 
+      <p id="friend-matchedPlaces" class="muted" role="status" aria-live="polite"></p>
       <div class="stats">
         <div class="stat">
           Distance
@@ -1146,6 +1147,8 @@ function I(e){
 }
 
 async function O(e){
+  const supplied=window.friendNav?.lookupKnownLocation(e);
+  if(supplied)return supplied;
   const t=fe(e);
   if(t)return{lat:t.lat,lon:t.lng,name:e};
 
@@ -4110,6 +4113,21 @@ window.addEventListener("load",()=>{
       "12th residential college": { lat: 3.1268, lon: 101.6585, name: "Kolej Kediaman Kedua Belas (Raja Dr Nazrin Shah), UM" }
     };
 
+    function lookupKnownLocation(place){
+      const clean=String(place||'').trim().toLowerCase().replace(/\s+/g,' ');
+      const all={...umDirectLocations,...umResidentialColleges};
+      if(all[clean])return {...all[clean]};
+      // Keep KK10/11/12 distinct from KK1; do not match KK3 inside KK30.
+      for(const [key,value] of Object.entries(all).sort((a,b)=>b[0].length-a[0].length)){
+        let offset=clean.indexOf(key);
+        while(offset!==-1){
+          const before=clean[offset-1],after=clean[offset+key.length];
+          if((!before||!/[a-z0-9]/.test(before))&&(!after||!/[a-z0-9]/.test(after)))return {...value};
+          offset=clean.indexOf(key,offset+1);
+        }
+      }
+      return null;
+    }
     async function geocode(place, isRetry = false) {
       let clean = place.trim().toLowerCase();
 
@@ -4119,19 +4137,8 @@ window.addEventListener("load",()=>{
         return { lat: Number(coordMatch[1]), lon: Number(coordMatch[2]), name: place };
       }
 
-      // 2. Direct lookup for UM faculties
-      for (const [key, val] of Object.entries(umDirectLocations)) {
-        if (clean.includes(key)) {
-          return val;
-        }
-      }
-
-      // 3. Direct coordinates for UM residential colleges
-      for (const [key, val] of Object.entries(umResidentialColleges).sort((a,b)=>b[0].length-a[0].length)) {
-        if (clean.includes(key)) {
-          return val;
-        }
-      }
+      const known=lookupKnownLocation(place);
+      if(known)return known;
 
       if (locationCache.has(clean)) return locationCache.get(clean);
 
@@ -4770,6 +4777,9 @@ window.addEventListener("load",()=>{
         announce("Searching locations...");
         const start = await geocode(startText);
         const destination = await geocode(destText);
+        document.getElementById('friend-matchedPlaces').textContent=
+          'Start: '+start.name+' ('+start.lat.toFixed(6)+', '+start.lon.toFixed(6)+'). '+
+          'Destination: '+destination.name+' ('+destination.lat.toFixed(6)+', '+destination.lon.toFixed(6)+').';
         navigationCheck.start={entered:startText,...start};navigationCheck.destination={entered:destText,...destination};
         navigationCheck.source='';navigationCheck.features=0;navigationCheck.tactile=0;navigationCheck.mode='Loading map';showNavigationCheck();
 
@@ -5137,7 +5147,7 @@ window.addEventListener("load",()=>{
     const originalGPSFind=findRoute;
     findRoute=async function(fromGPS=false){if(fromGPS!==true)gpsRequest++;gpsActive=false;gpsPlan=null;gpsStatus('Finding route. GPS guidance will be available when it is ready.');await originalGPSFind();};
     const originalGPSClear=clearRoute;
-    clearRoute=function(){stopGPSNavigation();gpsPlan=null;originalGPSClear();};
+    clearRoute=function(){stopGPSNavigation();gpsPlan=null;document.getElementById("friend-matchedPlaces").textContent="";originalGPSClear();};
     function repeatGPSDirection(){if(gpsActive&&!isListening)speakText(document.getElementById('friend-gpsStatus').textContent);}
     const gpsPreviewSpeak=speakCurrentStep,gpsPreviewNext=nextStepVoice,gpsPreviewAuto=toggleAutoPlay,gpsPreviewSim=toggleSimulation;
     speakCurrentStep=function(){stopGPSNavigation();return gpsPreviewSpeak();};
@@ -5147,7 +5157,7 @@ window.addEventListener("load",()=>{
     setInterval(()=>{if(gpsActive&&(!liveFix||Date.now()-liveFix.time>15000))gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);},3000);
 
     function endNavigation(){stopLiveTracking(false);gpsStatus("Navigation stopped.");}
-    window.friendNav={endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
+    window.friendNav={lookupKnownLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
       pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
