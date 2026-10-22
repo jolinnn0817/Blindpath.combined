@@ -353,7 +353,6 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
       </div>
       <p id="friend-gpsStatus" role="status" aria-live="polite">After finding a route, tap Start Navigation to locate you with GPS and begin spoken directions.</p>
 
-      <div class="btn-row"><button type="button" class="secondary" id="friend-retryTactile" disabled onclick="friendNav.retryTactileCheck()">Retry Tactile Check</button></div>
       <!-- Turn-by-Turn Voice Controls -->
       <div class="voice-controls" id="friend-voiceBar" style="display: none;">
         <span style="font-size: 13px; font-weight: bold;">Voice Guidance:</span>
@@ -4420,42 +4419,7 @@ window.addEventListener("load",()=>{
       return false;
     }
 
-    // Measure distance to each mapped tactile line, not only its stored vertices.
-    function tactilePointToSegment(point,a,b){
-      const scale=111195*Math.cos(point.lat*Math.PI/180);
-      const ax=(a.lon-point.lon)*scale,ay=(a.lat-point.lat)*111195;
-      const bx=(b.lon-point.lon)*scale,by=(b.lat-point.lat)*111195;
-      const dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy;
-      const t=length?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/length)):0;
-      return Math.hypot(ax+t*dx,ay+t*dy);
-    }
-    function matchTactileRoute(rawCoords,features){
-      const lines=[],points=[];
-      for(const feature of features){
-        if(!feature.isTactile)continue;
-        const geometry=feature.geometry?.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
-        if(geometry?.length){
-          if(geometry.length===1)points.push(geometry[0]);
-          for(let i=1;i<geometry.length;i++)lines.push([geometry[i-1],geometry[i]]);
-        }else if(Number.isFinite(feature.lat)&&Number.isFinite(feature.lon))points.push({lat:feature.lat,lon:feature.lon});
-      }
-      const segments=[];
-      for(let i=1;i<rawCoords.length;i++){
-        const a=rawCoords[i-1],b=rawCoords[i],length=distanceMetres(a,b);
-        if(length<0.01)continue;
-        // Short pieces avoid colouring an entire long road for one tactile crossing.
-        const pieces=Math.max(1,Math.ceil(length/5));
-        for(let k=0;k<pieces;k++){
-          const interpolate=t=>({lat:a.lat+(b.lat-a.lat)*t,lon:a.lon+(b.lon-a.lon)*t});
-          const from=interpolate(k/pieces),to=interpolate((k+1)/pieces),mid=interpolate((k+.5)/pieces);
-          const isTactile=lines.some(([u,v])=>tactilePointToSegment(mid,u,v)<18)||points.some(p=>distanceMetres(mid,p)<18);
-          segments.push({from,to,distance:distanceMetres(from,to),isTactile});
-        }
-      }
-      return segments;
-    }
-
-    async function detectPedestrianPaths(bounds,journeySignal) {
+    async function detectPedestrianPaths(bounds) {
       const south = bounds.getSouth();
       const west = bounds.getWest();
       const north = bounds.getNorth();
@@ -4464,12 +4428,8 @@ window.addEventListener("load",()=>{
       const query = `
         [out:json][timeout:35];
         (
-          way["sidewalk:both:tactile_paving"="yes"](${south},${west},${north},${east});
-          way["sidewalk:left:tactile_paving"="yes"](${south},${west},${north},${east});
-          way["sidewalk:right:tactile_paving"="yes"](${south},${west},${north},${east});
-          way["sidewalk:tactile_paving"="yes"](${south},${west},${north},${east});
-          way["blind:tactile_paving"="yes"](${south},${west},${north},${east});
-          way["blind:description"](${south},${west},${north},${east});
+          way["highway"~"^(footway|path|pedestrian|living_street|service|residential|tertiary|unclassified|steps|crossing|track)$"]
+            (${south},${west},${north},${east});
           way["tactile_paving"]
             (${south},${west},${north},${east});
           node["tactile_paving"~"^(yes|primitive|contrasted|incorrect)$"]
@@ -4485,30 +4445,29 @@ window.addEventListener("load",()=>{
         "https://overpass.kumi.systems/api/interpreter"
       ];
 
-      let failure="No usable tactile map response.";
       for (const server of servers) {
         try {
-          const res = await fetch(server + "?data=" + encodeURIComponent(query),{signal:journeySignal?AbortSignal.any([journeySignal,AbortSignal.timeout(40000)]):AbortSignal.timeout(40000)});
-          if (!res.ok){failure="HTTP "+res.status;continue;}
+          const res = await fetch(server + "?data=" + encodeURIComponent(query));
+          if (!res.ok) continue;
           const data = await res.json();
-          if(data.remark){failure=String(data.remark);continue;}
           if (Array.isArray(data.elements)) {
             return data.elements.map(e => ({
               ...e,
               isTactile: isElementTactile(e.tags)
             }));
           }
-        } catch (err) {if(journeySignal?.aborted)throw err;failure=err.message||String(err);}
+        } catch (err) {}
       }
-      throw new Error("Tactile map lookup failed ("+failure+"). Tactile coverage is unknown; this is not a 0% result.");
+      return [];
     }
 
-    async function getDirectCampusWalkingRoute(start, destination,signal) {
+    async function getDirectCampusWalkingRoute(start, destination) {
       const url = `https://router.project-osrm.org/route/v1/foot/${start.lon},${start.lat};${destination.lon},${destination.lat}?overview=full&geometries=geojson&steps=true`;
-      const res = await fetch(url,{signal:signal?AbortSignal.any([signal,AbortSignal.timeout(25000)]):AbortSignal.timeout(25000)});
+      const res = await fetch(url);
       if (!res.ok) throw new Error("Walking routing service unreachable.");
       const data = await res.json();
       if (data.code !== "Ok" || !data.routes.length) throw new Error("No walking connection found between these points.");
+      setGPSNavigationRoute(data.routes[0]);
       return data.routes[0];
     }
 
@@ -4580,7 +4539,7 @@ window.addEventListener("load",()=>{
         item.onclick = () => selectStep(idx);
 
         const badgeClass = step.isTactile ? "badge-tactile" : "badge-regular";
-        const badgeLabel = idx === steps.length - 1 ? "Finish" : step.tactileKnown===false ? "Tactile status unverified" : (step.isTactile ? "Tactile Paving" : "Regular Walkway");
+        const badgeLabel = idx === steps.length - 1 ? "Finish" : (step.isTactile ? "Tactile Paving" : "Regular Walkway");
 
         item.innerHTML = `
           <div class="step-number">${idx + 1}</div>
@@ -4709,102 +4668,117 @@ window.addEventListener("load",()=>{
       }, 5500);
     }
 
-    let journeySerial=0,activeJourney=null;
-    const tactileMapCache=new Map();
-    function journeyIsCurrent(j){return activeJourney===j&&j.serial===journeySerial&&document.getElementById('friend-start').value.trim()===j.startText&&document.getElementById('friend-destination').value.trim()===j.destText;}
-    function cancelJourneyRequests(){
-      journeySerial++;
-      if(activeJourney?.controller)activeJourney.controller.abort();
-      activeJourney=null;
-    }
-    function renderJourney(j,initial=false){
-      if(!journeyIsCurrent(j)||!j.rawCoords)return;
-      const known=j.tactileState==='ready';
-      const segments=matchTactileRoute(j.rawCoords,known?j.features:[]);
-      if(!segments.length)throw new Error('Routing service returned an empty route.');
-      if(routeLine)map.removeLayer(routeLine);
-      routeLine=L.featureGroup();
-      const runs=[];
-      for(const seg of segments){
-        const last=runs[runs.length-1];
-        if(last&&last.isTactile===seg.isTactile)last.points.push([seg.to.lat,seg.to.lon]);
-        else runs.push({isTactile:seg.isTactile,points:[[seg.from.lat,seg.from.lon],[seg.to.lat,seg.to.lon]]});
+    async function findRoute() {
+      const startText = document.getElementById("friend-start").value.trim();
+      const destText = document.getElementById("friend-destination").value.trim();
+      const btn = document.getElementById("friend-routeBtn");
+
+      if (!startText || !destText) {
+        announce("Please enter or speak both a starting point and destination.");
+        return;
       }
-      for(const run of runs)L.polyline(run.points,{color:run.isTactile?'#d97706':'#2563eb',weight:7,opacity:.95}).addTo(routeLine);
-      routeLine.addTo(map);
-      if(initial)map.fitBounds(routeLine.getBounds(),{padding:[40,40]});
-      const distance=segments.reduce((n,s)=>n+s.distance,0),tactile=segments.filter(s=>s.isTactile).reduce((n,s)=>n+s.distance,0);
-      const percent=distance?Math.round(100*tactile/distance):0;
-      document.getElementById('friend-distance').textContent=Math.round(distance)+' m';
-      document.getElementById('friend-duration').textContent=Math.max(1,Math.round(distance/1.1/60))+' min';
-      document.getElementById('friend-tactileCoverage').textContent=known?percent+'% ('+Math.round(tactile)+'m)':j.tactileState==='failed'?'Unavailable — retry tactile check':'Checking tactile map…';
-      document.getElementById('friend-retryTactile').disabled=j.tactileState==='loading';
-      const status='Route ready: '+Math.round(distance)+' m. '+(known?percent+'% mapped tactile coverage.':j.tactileState==='failed'?'Tactile service unavailable. Your route and GPS can still be used; tactile coverage is unverified.':'Checking tactile information separately. You can start GPS navigation now.');
-      document.getElementById('friend-status').textContent=status;
-      if(!initial)stopAutoPlay();
-      instructions=buildSpokenInstructions(segments);
-      for(const step of instructions){step.tactileKnown=known;if(!known)step.speechText=step.speechText.replace(/ordinary walking path|ordinary path/g,'path with unverified tactile status');}
-      currentStepIdx=initial?0:Math.min(currentStepIdx,instructions.length-1);
-      renderDirectionsUI(instructions);
-      if(initial&&!gpsActive)highlightStep(currentStepIdx);
-      if(initial)speakText('Route ready. '+Math.round(distance)+' metres. '+(known?percent+' percent mapped tactile coverage.':'Tactile coverage is being checked. You can start GPS navigation.'));
-    }
-    async function checkJourneyTactile(j,force=false){
-      if(!journeyIsCurrent(j))return;
-      const ticket=++j.tactileTicket;
-      j.tactileState='loading';
-      if(j.rawCoords)renderJourney(j);
-      const b=j.bounds,key=[b.getSouth(),b.getWest(),b.getNorth(),b.getEast()].map(n=>n.toFixed(5)).join(',');
-      try{
-        const cached=tactileMapCache.get(key);
-        const features=!force&&cached&&Date.now()-cached.time<900000?cached.features:await detectPedestrianPaths(b,j.controller.signal);
-        if(!journeyIsCurrent(j)||ticket!==j.tactileTicket)return;
-        tactileMapCache.set(key,{time:Date.now(),features});
-        j.features=features;j.tactileState='ready';
-      }catch(error){
-        if(!journeyIsCurrent(j)||ticket!==j.tactileTicket)return;
-        j.tactileState='failed';j.tactileError=error.message||String(error);
-      }
-      if(journeyIsCurrent(j)&&j.rawCoords)renderJourney(j);
-    }
-    function retryTactileCheck(){if(activeJourney?.rawCoords&&activeJourney.tactileState!=='loading')return checkJourneyTactile(activeJourney,true);}
-    async function findRoute(){
-      const startText=document.getElementById('friend-start').value.trim(),destText=document.getElementById('friend-destination').value.trim();
-      if(!startText||!destText){announce('Please enter or speak both a starting point and destination.');return;}
-      cancelJourneyRequests();stopAutoPlay();
-      if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}
-      const button=document.getElementById('friend-routeBtn');button.disabled=true;button.textContent='Finding Route…';
-      const j={serial:journeySerial,startText,destText,controller:new AbortController(),tactileState:'loading',tactileTicket:0};activeJourney=j;
-      try{
-        const start=resolveLocation(startText),destination=resolveLocation(destText);
-        if(!start)throw new Error('Starting location not found: '+startText);
-        if(!destination)throw new Error('Destination not found: '+destText);
-        for(const marker of [startMarker,destinationMarker,userMarker,routeLine])if(marker)map.removeLayer(marker);
-        userMarker=null;routeLine=null;instructions=[];
-        document.getElementById('friend-voiceBar').style.display='none';
-        document.getElementById('friend-distance').textContent='—';document.getElementById('friend-duration').textContent='—';
-        document.getElementById('friend-tactileCoverage').textContent='Checking tactile map…';
-        document.getElementById('friend-retryTactile').disabled=true;
-        startMarker=L.marker([start.lat,start.lon]).addTo(map).bindPopup(document.createTextNode('Start: '+start.name)).openPopup();
-        destinationMarker=L.marker([destination.lat,destination.lon]).addTo(map).bindPopup(document.createTextNode('Destination: '+destination.name));
-        j.bounds=L.latLngBounds([start.lat,start.lon],[destination.lat,destination.lon]);
-        j.bounds.extend([j.bounds.getSouth()-.005,j.bounds.getWest()-.005]);j.bounds.extend([j.bounds.getNorth()+.005,j.bounds.getEast()+.005]);
-        announce('Finding route. Tactile information will be checked separately.');
-        // Both start now. A slow or failed tactile server never rejects the route.
-        void checkJourneyTactile(j);
-        const route=await getDirectCampusWalkingRoute(start,destination,j.controller.signal);
-        if(!journeyIsCurrent(j))return;
-        j.rawCoords=route.geometry.coordinates.map(p=>({lat:p[1],lon:p[0]}));
-        setGPSNavigationRoute(route);
-        renderJourney(j,true);
-      }catch(error){
-        if(!journeyIsCurrent(j))return;
-        j.controller.abort();gpsPlan=null;
-        document.getElementById('friend-tactileCoverage').textContent='Route unavailable';
-        document.getElementById('friend-retryTactile').disabled=true;
-        announce(error.message||'Route service unavailable. Please try again.');
-      }finally{
-        if(activeJourney===j){button.disabled=false;button.textContent='Find Route';}
+
+      stopAutoPlay();
+      if (simulationTimer) clearInterval(simulationTimer);
+
+      btn.disabled = true;
+      btn.textContent = "Finding Route...";
+
+      try {
+        announce("Locating campus destinations...");
+        const start = resolveLocation(startText);
+        const destination = resolveLocation(destText);
+
+        if (!start) throw new Error(`Could not find location "${startText}". Try KK1 to KK12 or faculty names.`);
+        if (!destination) throw new Error(`Could not find location "${destText}". Try KK1 to KK12 or faculty names.`);
+
+        if (startMarker) map.removeLayer(startMarker);
+        if (destinationMarker) map.removeLayer(destinationMarker);
+        if (routeLine) map.removeLayer(routeLine);
+        if (userMarker) { map.removeLayer(userMarker); userMarker = null; }
+
+        startMarker = L.marker([start.lat, start.lon]).addTo(map).bindPopup("Start: " + start.name).openPopup();
+        destinationMarker = L.marker([destination.lat, destination.lon]).addTo(map).bindPopup("Destination: " + destination.name);
+
+        const bounds = L.latLngBounds([start.lat, start.lon], [destination.lat, destination.lon]);
+        bounds.extend([bounds.getSouth() - 0.005, bounds.getWest() - 0.005]);
+        bounds.extend([bounds.getNorth() + 0.005, bounds.getEast() + 0.005]);
+
+        announce("Calculating direct route and checking tactile blind paving...");
+        const [features, walkRoute] = await Promise.all([
+          detectPedestrianPaths(bounds),
+          getDirectCampusWalkingRoute(start, destination)
+        ]);
+
+        const rawCoords = walkRoute.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
+        const segments = [];
+
+        for (let i = 0; i < rawCoords.length - 1; i++) {
+          const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
+          const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
+
+          let isNearTactile = false;
+
+          for (const f of features) {
+            if (!f.isTactile) continue;
+
+            if (f.geometry) {
+              for (const pt of f.geometry) {
+                if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 18) {
+                  isNearTactile = true;
+                  break;
+                }
+              }
+            } else if (f.lat && f.lon) {
+              if (distanceMetres({ lat: midLat, lon: midLon }, { lat: f.lat, lon: f.lon }) < 18) {
+                isNearTactile = true;
+              }
+            }
+            if (isNearTactile) break;
+          }
+
+          segments.push({
+            from: rawCoords[i],
+            to: rawCoords[i+1],
+            distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
+            isTactile: isNearTactile
+          });
+        }
+
+        routeLine = L.featureGroup();
+        segments.forEach(seg => {
+          L.polyline([[seg.from.lat, seg.from.lon], [seg.to.lat, seg.to.lon]], {
+            color: seg.isTactile ? "#d97706" : "#2563eb",
+            weight: 7,
+            opacity: 0.95
+          }).addTo(routeLine);
+        });
+
+        routeLine.addTo(map);
+        map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+
+        const totalDist = segments.reduce((sum, s) => sum + s.distance, 0);
+        const tactileDist = segments.filter(s => s.isTactile).reduce((sum, s) => sum + s.distance, 0);
+        const percent = totalDist > 0 ? Math.round((tactileDist / totalDist) * 100) : 0;
+        const estDuration = Math.max(1, Math.round(totalDist / 1.1 / 60));
+
+        document.getElementById("friend-distance").textContent = `${Math.round(totalDist)} m`;
+        document.getElementById("friend-tactileCoverage").textContent = `${percent}% (${Math.round(tactileDist)}m)`;
+        document.getElementById("friend-duration").textContent = `${estDuration} min`;
+
+        instructions = buildSpokenInstructions(segments);
+        currentStepIdx = 0;
+        renderDirectionsUI(instructions);
+        highlightStep(0);
+
+        document.getElementById("friend-status").textContent = `Direct route found: ${Math.round(totalDist)} m (${percent}% tactile blind path).`;
+        speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. First instruction: ${instructions[0].speechText}`);
+
+      } catch (err) {
+        announce(err.message || "Failed to find connected route.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Find Route";
       }
     }
 
@@ -5052,7 +5026,7 @@ window.addEventListener("load",()=>{
     const originalGPSFind=findRoute;
     findRoute=async function(fromGPS=false){if(fromGPS!==true)gpsRequest++;gpsActive=false;gpsPlan=null;gpsStatus('Finding route. GPS guidance will be available when it is ready.');await originalGPSFind();};
     const originalGPSClear=clearRoute;
-    clearRoute=function(){cancelJourneyRequests();stopGPSNavigation();gpsPlan=null;originalGPSClear();document.getElementById("friend-routeBtn").disabled=false;document.getElementById("friend-routeBtn").textContent="Find Route";document.getElementById("friend-retryTactile").disabled=true;};
+    clearRoute=function(){stopGPSNavigation();gpsPlan=null;originalGPSClear();};
     function repeatGPSDirection(){if(gpsActive&&!isListening)speakText(document.getElementById('friend-gpsStatus').textContent);}
     const gpsPreviewSpeak=speakCurrentStep,gpsPreviewNext=nextStepVoice,gpsPreviewAuto=toggleAutoPlay,gpsPreviewSim=toggleSimulation;
     speakCurrentStep=function(){stopGPSNavigation();return gpsPreviewSpeak();};
@@ -5062,7 +5036,7 @@ window.addEventListener("load",()=>{
     setInterval(()=>{if(gpsActive&&(!liveFix||Date.now()-liveFix.time>15000))gpsStatus('Guidance paused. Waiting for an accurate, recent GPS position.',true);},3000);
 
     function endNavigation(){stopLiveTracking(false);gpsStatus("Navigation stopped.");}
-    window.friendNav={retryTactileCheck,resolveLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
+    window.friendNav={resolveLocation,endNavigation,navigateFromGPS,startGPSNavigation,stopGPSNavigation,repeatGPSDirection,findRoute,useMyLocation,toggleVoice,clearRoute,speakCurrentStep,nextStepVoice,toggleAutoPlay,toggleSimulation,listenForInput,startMasterVoiceInput,startLiveTracking,stopLiveTracking,centerLiveLocation,
       activate:()=>setTimeout(()=>map.invalidateSize(),100),
       pause:()=>{stopLiveTracking(false);if(activeRecognizer){try{activeRecognizer.abort();}catch{}activeRecognizer=null;}isListening=false;stopAutoPlay();if(simulationTimer){clearInterval(simulationTimer);simulationTimer=null;document.getElementById('friend-simBtn').textContent='Simulate Walk';}if('speechSynthesis' in window)speechSynthesis.cancel();}};
     const previousGoTo=window.goTo;
