@@ -478,8 +478,12 @@ This demo does not contact JKM, MyGOV or a government database. Do not upload id
 <input id="reportLocation" required placeholder="e.g. Near a mall entrance">
 <label for="reportDetails">Additional Details (optional)</label>
 <textarea id="reportDetails" placeholder="Describe the problem. Do not include private information."></textarea>
-<label for="reportPhoto">Photo or Video (optional, maximum 20 MB)</label>
+<p>Photo or Video (optional, one file, maximum 20 MB)</p>
+<label for="reportPhoto">Take a New Photo or Video</label>
 <input id="reportPhoto" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" capture="environment">
+<label for="reportUpload">Upload an Existing Photo or Video</label>
+<input id="reportUpload" type="file" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm,video/quicktime" aria-describedby="reportMediaHelp">
+<p id="reportMediaHelp" class="muted">Choose from your gallery or files. JPG, PNG, WebP, MP4, WebM or MOV. Selecting a new file replaces the previous attachment.</p>
 <div id="photoPreviewContainer" class="hidden" style="margin-top:10px">
 <video id="videoPreview" class="hidden report-photo" controls playsinline preload="metadata"></video>
 <img id="photoPreview" alt="Preview of the reported accessibility issue" style="max-width:100%;max-height:220px;border-radius:10px;border:1px solid var(--line)">
@@ -1814,6 +1818,7 @@ function removeReportPhoto(){
   m=null;
 
   o("reportPhoto").value="";
+  o("reportUpload").value="";
   o("photoPreview").removeAttribute("src");
   o("videoPreview").pause();
   o("videoPreview").removeAttribute("src");
@@ -2178,10 +2183,10 @@ function Ne(e){
     "other_obstacle";
 }
 
-o("reportPhoto").addEventListener("change",e=>{
+function handleReportMediaSelection(e){
   const t=e.target.files?.[0];
-  removeReportPhoto();
   if(!t)return;
+  removeReportPhoto();
 
   if(t.size>20971520||!te[t.type]){
     o("gpsStatus").textContent=
@@ -2201,7 +2206,9 @@ o("reportPhoto").addEventListener("change",e=>{
 
   o("gpsStatus").textContent=
     t.name+" selected ("+(t.size/1048576).toFixed(2)+" MB).";
-});
+}
+o("reportPhoto").addEventListener("change",handleReportMediaSelection);
+o("reportUpload").addEventListener("change",handleReportMediaSelection);
 
 let pendingReport=null,
 Re=0,
