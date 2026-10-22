@@ -4419,6 +4419,41 @@ window.addEventListener("load",()=>{
       return false;
     }
 
+    // Measure distance to each mapped tactile line, not only its stored vertices.
+    function tactilePointToSegment(point,a,b){
+      const scale=111195*Math.cos(point.lat*Math.PI/180);
+      const ax=(a.lon-point.lon)*scale,ay=(a.lat-point.lat)*111195;
+      const bx=(b.lon-point.lon)*scale,by=(b.lat-point.lat)*111195;
+      const dx=bx-ax,dy=by-ay,length=dx*dx+dy*dy;
+      const t=length?Math.max(0,Math.min(1,-(ax*dx+ay*dy)/length)):0;
+      return Math.hypot(ax+t*dx,ay+t*dy);
+    }
+    function matchTactileRoute(rawCoords,features){
+      const lines=[],points=[];
+      for(const feature of features){
+        if(!feature.isTactile)continue;
+        const geometry=feature.geometry?.filter(p=>Number.isFinite(p.lat)&&Number.isFinite(p.lon));
+        if(geometry?.length){
+          if(geometry.length===1)points.push(geometry[0]);
+          for(let i=1;i<geometry.length;i++)lines.push([geometry[i-1],geometry[i]]);
+        }else if(Number.isFinite(feature.lat)&&Number.isFinite(feature.lon))points.push({lat:feature.lat,lon:feature.lon});
+      }
+      const segments=[];
+      for(let i=1;i<rawCoords.length;i++){
+        const a=rawCoords[i-1],b=rawCoords[i],length=distanceMetres(a,b);
+        if(length<0.01)continue;
+        // Short pieces avoid colouring an entire long road for one tactile crossing.
+        const pieces=Math.max(1,Math.ceil(length/5));
+        for(let k=0;k<pieces;k++){
+          const interpolate=t=>({lat:a.lat+(b.lat-a.lat)*t,lon:a.lon+(b.lon-a.lon)*t});
+          const from=interpolate(k/pieces),to=interpolate((k+1)/pieces),mid=interpolate((k+.5)/pieces);
+          const isTactile=lines.some(([u,v])=>tactilePointToSegment(mid,u,v)<18)||points.some(p=>distanceMetres(mid,p)<18);
+          segments.push({from,to,distance:distanceMetres(from,to),isTactile});
+        }
+      }
+      return segments;
+    }
+
     async function detectPedestrianPaths(bounds) {
       const south = bounds.getSouth();
       const west = bounds.getWest();
@@ -4445,20 +4480,22 @@ window.addEventListener("load",()=>{
         "https://overpass.kumi.systems/api/interpreter"
       ];
 
+      let failure="No usable tactile map response.";
       for (const server of servers) {
         try {
-          const res = await fetch(server + "?data=" + encodeURIComponent(query));
-          if (!res.ok) continue;
+          const res = await fetch(server + "?data=" + encodeURIComponent(query),{signal:AbortSignal.timeout(40000)});
+          if (!res.ok){failure="HTTP "+res.status;continue;}
           const data = await res.json();
+          if(data.remark){failure=String(data.remark);continue;}
           if (Array.isArray(data.elements)) {
             return data.elements.map(e => ({
               ...e,
               isTactile: isElementTactile(e.tags)
             }));
           }
-        } catch (err) {}
+        } catch (err) {failure=err.message||String(err);}
       }
-      return [];
+      throw new Error("Tactile map lookup failed ("+failure+"). Tactile coverage is unknown; this is not a 0% result.");
     }
 
     async function getDirectCampusWalkingRoute(start, destination) {
@@ -4711,43 +4748,18 @@ window.addEventListener("load",()=>{
         ]);
 
         const rawCoords = walkRoute.geometry.coordinates.map(c => ({ lat: c[1], lon: c[0] }));
-        const segments = [];
-
-        for (let i = 0; i < rawCoords.length - 1; i++) {
-          const midLat = (rawCoords[i].lat + rawCoords[i+1].lat) / 2;
-          const midLon = (rawCoords[i].lon + rawCoords[i+1].lon) / 2;
-
-          let isNearTactile = false;
-
-          for (const f of features) {
-            if (!f.isTactile) continue;
-
-            if (f.geometry) {
-              for (const pt of f.geometry) {
-                if (distanceMetres({ lat: midLat, lon: midLon }, pt) < 18) {
-                  isNearTactile = true;
-                  break;
-                }
-              }
-            } else if (f.lat && f.lon) {
-              if (distanceMetres({ lat: midLat, lon: midLon }, { lat: f.lat, lon: f.lon }) < 18) {
-                isNearTactile = true;
-              }
-            }
-            if (isNearTactile) break;
-          }
-
-          segments.push({
-            from: rawCoords[i],
-            to: rawCoords[i+1],
-            distance: distanceMetres(rawCoords[i], rawCoords[i+1]),
-            isTactile: isNearTactile
-          });
-        }
+        const segments = matchTactileRoute(rawCoords,features);
+        if(!segments.length)throw new Error('Routing service returned an empty route.');
 
         routeLine = L.featureGroup();
-        segments.forEach(seg => {
-          L.polyline([[seg.from.lat, seg.from.lon], [seg.to.lat, seg.to.lon]], {
+        const drawingRuns=[];
+        for(const seg of segments){
+          const last=drawingRuns[drawingRuns.length-1];
+          if(last&&last.isTactile===seg.isTactile)last.points.push([seg.to.lat,seg.to.lon]);
+          else drawingRuns.push({isTactile:seg.isTactile,points:[[seg.from.lat,seg.from.lon],[seg.to.lat,seg.to.lon]]});
+        }
+        drawingRuns.forEach(seg => {
+          L.polyline(seg.points, {
             color: seg.isTactile ? "#d97706" : "#2563eb",
             weight: 7,
             opacity: 0.95
@@ -4775,6 +4787,10 @@ window.addEventListener("load",()=>{
         speakText(`Route found: Total distance is ${Math.round(totalDist)} metres, with ${percent} percent tactile blind path coverage. First instruction: ${instructions[0].speechText}`);
 
       } catch (err) {
+        gpsPlan=null;
+        document.getElementById('friend-distance').textContent='—';
+        document.getElementById('friend-tactileCoverage').textContent='Unknown — lookup failed';
+        document.getElementById('friend-duration').textContent='—';
         announce(err.message || "Failed to find connected route.");
       } finally {
         btn.disabled = false;
