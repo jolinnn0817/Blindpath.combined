@@ -2117,12 +2117,11 @@ async function Ee(e){
         .select("id")
         .abortSignal(AbortSignal.timeout(12e3));
 
-      if(n||!e?.length){
-        throw new Error("Update was not confirmed.");
-      }
-    }catch{
+      if(n)throw new Error([n.code,n.message,n.details,n.hint].filter(Boolean).join(" — "));
+      if(!e?.length)throw new Error("No report was returned by the update. The report may have been deleted, or database permissions/policies may prevent updating or reading it.");
+    }catch(error){
       alert(
-        "Could not confirm the cloud update. The report has not been removed."
+        "Could not confirm the cloud update. Refresh Reports to check its current status.\n\nDetails: "+(error.message||String(error))
       );
       return;
     }
