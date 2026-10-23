@@ -122,6 +122,13 @@ if(n){n.style.display="block";n.textContent="BlindPath async error: "+(e.reason?
 <div class="card">
 <h1 id="modeHeading">How would you like to use BlindPath?</h1>
 <p>Choose the layout that works for you. You can switch anytime. No account or OKU verification is needed.</p>
+<div class="good-note">
+<p><strong>Choose by voice</strong></p>
+<p>Tap anywhere in an open area to hear the question, then say “Accessible Mode” or “Public Mode”.</p>
+<div class="button-row"><button type="button" id="modeVoiceStart" onclick="startModeVoice()">Choose Mode by Voice</button>
+<button type="button" id="modeVoiceStop" class="secondary" disabled onclick="cancelModeVoice()">Stop Listening</button></div>
+<p id="modeVoiceStatus" class="status" role="status" aria-live="polite">Tap anywhere to choose your mode by voice.</p>
+</div>
 <div class="mode-choice">
 <button class="mode-card" id="accessibleModeButton" aria-pressed="false" onclick="chooseAppMode('accessible')">
 <strong>Accessible Mode</strong>
@@ -3790,7 +3797,8 @@ function gt(){
     e=localStorage.getItem(mt);
   }catch{}
 
-  ["accessible","public"].includes(e)&&(ht(e),goTo("home"));
+  ["accessible","public"].includes(e)&&ht(e);
+  goTo("mode");
 }
 
 window.addEventListener("load",()=>{
@@ -5050,6 +5058,89 @@ window.addEventListener("load",()=>{
 
 })();
 </script>
+<script>
+(() => {
+  let modeRecognizer=null,modeGeneration=0,modeSpeaking=false;
+  const question='Welcome to BlindPath. Would you like Accessible Mode or Public Mode? Say Accessible Mode, or Public Mode. Tap anywhere on this screen to answer by voice.';
+  const active=()=>document.getElementById('screen-mode').classList.contains('active');
+  const status=text=>{document.getElementById('modeVoiceStatus').textContent=text;};
+  function stopModeVoice(){
+    modeGeneration++;modeSpeaking=false;
+    if(modeRecognizer){const r=modeRecognizer;modeRecognizer=null;try{r.abort();}catch{}}
+    if('speechSynthesis' in window)speechSynthesis.cancel();
+    document.getElementById('modeVoiceStart').disabled=false;
+    document.getElementById('modeVoiceStop').disabled=true;
+  }
+  function parseMode(text){
+    const clean=String(text).toLowerCase().replace(/[^a-z\s]/g,' ').replace(/\s+/g,' ').trim();
+    const accessible=/\b(accessible|accessibility|blind)\b/.test(clean),publicMode=/\b(public|standard)\b/.test(clean);
+    return accessible===publicMode?null:accessible?'accessible':'public';
+  }
+  function listen(token){
+    if(token!==modeGeneration||!active())return;
+    const API=window.SpeechRecognition||window.webkitSpeechRecognition;
+    if(!API){status('Voice recognition is not supported in this browser. Use the Accessible Mode or Public Mode button.');stopModeVoice();return;}
+    const r=new API();modeRecognizer=r;r.lang='en-MY';r.continuous=false;r.interimResults=false;
+    let received=false;
+    r.onresult=event=>{
+      if(token!==modeGeneration||!active())return;
+      received=true;const text=event.results[0][0].transcript,mode=parseMode(text);
+      if(mode){stopModeVoice();window.chooseAppMode(mode);}
+      else{stopModeVoice();status('Heard “'+text+'”. Please tap anywhere and say only Accessible Mode or Public Mode.');}
+    };
+    r.onerror=event=>{
+      if(token!==modeGeneration)return;
+      received=true;stopModeVoice();
+      status(event.error==='not-allowed'||event.error==='service-not-allowed'?'Microphone permission was not granted. Allow it in your browser, then tap anywhere to try again.':'Could not hear a mode. Tap anywhere to try again, or use either mode button.');
+    };
+    r.onend=()=>{
+      if(token!==modeGeneration)return;
+      modeRecognizer=null;document.getElementById('modeVoiceStart').disabled=false;document.getElementById('modeVoiceStop').disabled=true;
+      if(!received)status('No answer heard. Tap anywhere to try again, or use either mode button.');
+    };
+    status('Listening… Say Accessible Mode or Public Mode.');
+    try{r.start();}catch{stopModeVoice();status('Voice input could not start. Tap anywhere to try again.');}
+  }
+  function speakQuestion(token,thenListen){
+    const after=()=>{if(token!==modeGeneration||!active())return;modeSpeaking=false;if(thenListen)listen(token);};
+    if(!('speechSynthesis' in window)){after();return;}
+    const u=new SpeechSynthesisUtterance(question);u.lang='en-MY';u.rate=.95;u.onend=after;u.onerror=after;
+    modeSpeaking=true;
+    try{speechSynthesis.speak(u);}catch{after();}
+    // Browsers may block automatic speech. A tap always remains available.
+    setTimeout(()=>{if(token===modeGeneration&&modeSpeaking){modeSpeaking=false;if(thenListen){speechSynthesis.cancel();listen(token);}}},15000);
+  }
+  window.startModeVoice=function(){
+    if(!active()||modeRecognizer||(modeSpeaking&&document.getElementById('modeVoiceStart').disabled))return;
+    stopModeVoice();const token=modeGeneration;
+    document.getElementById('modeVoiceStart').disabled=true;document.getElementById('modeVoiceStop').disabled=false;
+    status('Choose by voice. The question will be read first, then the microphone will listen.');
+    speakQuestion(token,true);
+  };
+  window.cancelModeVoice=function(){stopModeVoice();status('Voice selection stopped. Tap anywhere to start again, or use either mode button.');};
+  const originalChoose=window.chooseAppMode;
+  window.chooseAppMode=function(mode){if(!['accessible','public'].includes(mode))return;stopModeVoice();return originalChoose(mode);};
+  const originalGoTo=window.goTo;
+  window.goTo=function(screen){if(screen!=='mode'&&active())stopModeVoice();return originalGoTo.apply(this,arguments);};
+  document.addEventListener('click',event=>{
+    if(!active()||event.defaultPrevented||modeRecognizer)return;
+    if(event.target.closest('button,a,input,select,textarea,summary,[role="button"]'))return;
+    window.startModeVoice();
+  });
+  document.addEventListener('keydown',event=>{
+    if(!active()||event.defaultPrevented||!['Enter',' '].includes(event.key)||event.target.closest('button,a,input,select,textarea,summary'))return;
+    event.preventDefault();window.startModeVoice();
+  });
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)stopModeVoice();});
+  window.addEventListener('pagehide',stopModeVoice);
+  window.addEventListener('load',()=>{
+    if(!active())return;
+    status('Tap anywhere on this screen to hear the question and answer by voice. Your browser may ask for microphone permission.');
+    speakQuestion(modeGeneration,false);
+  });
+})();
+</script>
+
 </body>
 </html>
 
